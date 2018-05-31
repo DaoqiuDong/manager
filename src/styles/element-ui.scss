@@ -1,0 +1,67 @@
+//覆盖一些element-ui样式 覆盖css样式可在这里添加
+@import './mixin.scss';
+
+// .el-table .normal{
+//   background: rgba(25, 209, 50, .3);
+//   &:hover {
+//     background: rgba(25, 209, 50, .5);  
+//   }
+// }
+
+// .el-table .abnormal{
+//   background: rgba(209, 47, 25, .3);
+//   &:hover{
+//     background: rgba(209, 47, 25, .5);  
+//   }
+// }
+
+
+.el-pagination{
+  text-align: center;
+  margin: 10px;
+}
+.handle{
+  @include handlecolor;
+  padding: .5em 1em;
+}
+.clearfix{
+  @include clearfix;
+}
+.handle{
+  @include handlecolor;
+}
+
+//暂时性解决diolag 问题 https://github.com/ElemeFE/element/issues/2461
+.largeDialog{
+  .el-dialog{
+    width: 1000px;
+  }
+}
+
+.el-table{
+  .el-button{
+    padding: 0 1em;
+  }
+}
+p{
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow: hidden;
+}
+.search{
+  display: inline-block;
+  padding:0 20px;
+  line-height: 36px;
+}
+.redText{
+  color: #ff6666;
+}
+.yellowText{
+  color: #fa8f05;
+}
+.greenText{
+  color: #22c868;
+}
+._top{
+  color: #1875ee;
+}

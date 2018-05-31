@@ -1,0 +1,81 @@
+@import './element-ui.scss';
+@import './mixin.scss';
+
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+}
+
+html {
+  -webkit-box-sizing: border-box;
+  /* Safari/Chrome 等 WebKit 内核浏览器 */
+  -moz-box-sizing: border-box;
+  /* Firefox 等 Gecko 内核浏览器 */
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: #eaebec;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+//vue router transition css
+.fade-enter-active,
+.fade-leave-active {
+  transition: all .2s ease
+}
+
+.fade-enter,
+.fade-leave-active {
+  opacity: 0;
+}
+
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+.w-e-text-container{
+  height: 160px!important;
+}//富文本高度
+
+ul,
+ol,
+li {
+  list-style: none;
+}

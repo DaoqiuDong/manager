@@ -1,0 +1,23 @@
+const getters = {
+  token: state => state.user.token,
+  avatar: state => state.user.avatar,
+  name: state => state.user.name,
+  menus: state => state.user.menus,
+  permission_routers: state => state.permission.routers,
+  addRouters: state => state.permission.addRouters,
+  btnGoList: state => state.permission.btnGoList,
+  btnApiList: state => state.permission.btnApiList,  
+  pageSize:state => state.app.pageSize,
+  dict:state => state.app.dict,
+  productList:state => state.app.productList,
+  nodeCode:state => state.app.nodeCode,
+  roleList:state => state.app.roleList,
+  addrList:state => state.app.addrList,
+  sourceList:state => state.app.sourceList,
+  strList:state => state.app.strList,
+  strProList:state => state.app.strProList,
+  strDict:state => state.app.strDict,
+  refuseCodeDict:state => state.app.refuseCodeDict,
+  payList:state => state.app.payList,
+};
+export default getters;
