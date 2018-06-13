@@ -67,7 +67,7 @@
         <el-row :gutter="20">
             <el-col :span="18">
                 <div>
-                    <el-tabs v-model="activeName">
+                    <el-tabs v-model="activeName" @tab-click="tabswitch">
                         <el-tab-pane label="用户信息" name="first">
                             <Info :info="userInfo"/>
                             <ImageInfo :Image="infoData"/>
@@ -168,6 +168,9 @@
                         <el-tab-pane label="其他信息" name="Other">
                             <Other :info="userInfo.otherInfoData"/>
                         </el-tab-pane>
+                        <el-tab-pane label="LBS信息" name="Map">
+                            <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
+                        </el-tab-pane>
                     </el-tabs>
                 </div>
             </el-col>
@@ -191,16 +194,18 @@
     </div>
 </template>
 <script>
-import { Info, ImageInfo,Other } from "@/components/applyDetail";
+import { Info, ImageInfo, Other, BMap } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 export default {
   data() {
     return {
+      lbsInfo: {},
+      mapVisible: false,
       activeName: "first",
       billInfo: {},
       userInfo: {},
       operatorId: "",
-      uid:"",
+      uid: "",
       infoData: {},
       contractList: [],
       mobileInfo: {},
@@ -208,29 +213,27 @@ export default {
       dialingList: [], //主叫
       callTopList: [], //被叫
       userCallInfo: {},
-      addrList:[],
-      addrListTotal:0,
+      addrList: [],
+      addrListTotal: 0,
       callList: [],
-      textarea:"",
+      textarea: "",
       callTotal: 0,
       tradeTypeList: [
         { title: "本地", value: 1 },
         { title: "国内漫游", value: 2 },
         { title: "其他", value: 3 }
       ],
-      callTypeList: [
-          { title: "主叫", value: 1 }, 
-          { title: "被叫", value: 2 }
-          ]
+      callTypeList: [{ title: "主叫", value: 1 }, { title: "被叫", value: 2 }]
     };
   },
   components: {
     Info,
     ImageInfo,
-    Other
+    Other,
+    BMap
   },
   computed: {
-    ...mapGetters(["dict"]),
+    ...mapGetters(["dict"])
   },
   mounted() {
     this.getBillInfo();
@@ -238,6 +241,11 @@ export default {
     this.getInsert();
   },
   methods: {
+    tabswitch(tabpane) {
+      if (tabpane.name == "Map") {
+        this.mapVisible = true;
+      }
+    },
     getBillInfo() {
       const billId = this.$route.query.billId;
       this.ajax({
@@ -245,6 +253,15 @@ export default {
         data: { billId }
       }).then(res => {
         this.billInfo = res.data;
+      });
+    },
+    getLbsInfo(uid) {
+      const flowId = this.$route.query.flowId;
+      this.ajax({
+        url: "credit/web/sys/flow/findUserLbs",
+        data: { uid, flowId }
+      }).then(res => {
+        this.lbsInfo = res.data;
       });
     },
     getUserInfo() {
@@ -261,6 +278,7 @@ export default {
         this.getCallTop(res.data.infoData.operatorId);
         this.getCallList(1);
         this.getAddrList(1);
+        this.getLbsInfo(this.uid);
       });
     },
     getInsert() {
@@ -269,31 +287,30 @@ export default {
         url: "credit/web/sys/collectionrecord/listbypage",
         data: { billId, pageSize: 500, pageNo: 1 }
       }).then(res => {
-          if (res.data&&res.data.list) {
-              this.insertList = res.data.list;
-          }
+        if (res.data && res.data.list) {
+          this.insertList = res.data.list;
+        }
       });
     },
-    subInsert(){
-        const billId = this.$route.query.billId;
-        const contractId = this.$route.query.contractId;
-        const content = this.textarea;
-        if (this.isEmpty(content)) {
-            this.$message("催收记录不能为空!");
-            return false
-        }
-        this.ajax({
-            url:"credit/web/sys/collectionrecord/insert",
-            data:{billId,contractId,content}
-        }).then(res => {
-            this.$message({
-                message:"提交催收记录成功",
-                type:"success"
-            });
-            this.textarea = "";
-            this.getInsert();
-        })  
-
+    subInsert() {
+      const billId = this.$route.query.billId;
+      const contractId = this.$route.query.contractId;
+      const content = this.textarea;
+      if (this.isEmpty(content)) {
+        this.$message("催收记录不能为空!");
+        return false;
+      }
+      this.ajax({
+        url: "credit/web/sys/collectionrecord/insert",
+        data: { billId, contractId, content }
+      }).then(res => {
+        this.$message({
+          message: "提交催收记录成功",
+          type: "success"
+        });
+        this.textarea = "";
+        this.getInsert();
+      });
     },
     getContractList(operatorId) {
       const flowId = this.$route.query.flowId;
@@ -332,25 +349,25 @@ export default {
         this.callTotal = res.data.total;
       });
     },
-    getAddrList(pageNo){
-        //通讯录
+    getAddrList(pageNo) {
+      //通讯录
       const pageSize = this.pageSize;
       const uid = this.uid;
-        this.ajax({
-            url:"credit/web/sys/tcontact/query",
-            data:{uid,pageNo,pageSize}
-        }).then(res => {
-            this.addrList = res.data.list;
-            this.addrListTotal = res.data.total;
-        })
+      this.ajax({
+        url: "credit/web/sys/tcontact/query",
+        data: { uid, pageNo, pageSize }
+      }).then(res => {
+        this.addrList = res.data.list;
+        this.addrListTotal = res.data.total;
+      });
     }
   }
 };
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-.insert_wrapper{
-    max-height: 600px;
-    overflow-y: scroll;
+.insert_wrapper {
+  max-height: 600px;
+  overflow-y: scroll;
 }
 </style>

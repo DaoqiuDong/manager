@@ -15,8 +15,8 @@
             <tr>
                 <td>{{record.strategyName}}</td>
                 <td>{{record.proname}}</td>
-                <td>{{record.applyTime}}</td>
                 <td>{{record.create_time}}</td>
+                <td>{{record.applyTime}}</td>
                 <td>{{record.resultDes}}</td>
                 <td><span v-if="!isEmpty(record.score)" :class="getClass(record.score)">{{record.score}}分</span><span v-else>--</span></td>
                 <td>{{record.name}}</td>

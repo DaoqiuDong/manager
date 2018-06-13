@@ -129,6 +129,9 @@
               <el-tab-pane label="其他信息" name="Other">
                 <Other :info="userInfo.otherInfoData"/>
               </el-tab-pane>
+              <el-tab-pane label="LBS信息" name="Map">
+                <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
+              </el-tab-pane>
             </el-tabs>
         </div>
 
@@ -177,13 +180,15 @@
     </div>
 </template>
 <script>
-import {Info, ImageInfo,Contract,Mobile,Other} from "@/components/applyDetail";
+import {Info, ImageInfo,Contract,Mobile,Other,BMap} from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
 
 export default {
   data() {
     return {
+      lbsInfo:{},
+      mapVisible:false,
       tagType:"",
       subTagBtn:false,
       echartsVisibile:false,
@@ -226,7 +231,7 @@ export default {
     ImageInfo,
     Contract,
     Mobile,
-    Other
+    Other,BMap
   },
   computed: {
     ...mapGetters(["dict", "nodeCode","btnApiList","refuseCodeDict"])
@@ -240,6 +245,9 @@ export default {
     tabswitch(tabpane){
       if (tabpane.name == "Mobile") {
         this.echartsVisibile = true;
+      }
+      if (tabpane.name == "Map") {
+        this.mapVisible = true;
       }
     },
     getRefuseList(){
@@ -274,6 +282,15 @@ export default {
         this.subTagBtn = false;
       })
     },
+    getLbsInfo(uid){
+      const flowId = this.$route.query.id;
+      this.ajax({
+        url:"credit/web/sys/flow/findUserLbs",
+        data:{uid,flowId}
+      }).then(res=>{
+        this.lbsInfo = res.data;
+      })
+    },
     getInfo() {
       const flowId = this.$route.query.id;
       this.ajax({
@@ -300,6 +317,7 @@ export default {
           this.getContractData(res.data.infoData.operatorId);
           this.getNotMobileData(res.data.infoData.operatorId);
         }
+        this.getLbsInfo(res.data.uid);
       });
     },
     getContractData(operatorId){

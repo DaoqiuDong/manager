@@ -10,3 +10,5 @@ export { default as Mobile } from './MobileInfo';
 export { default as Rule } from './RuleInfo';
 
 export { default as Other } from './Other';
+
+export { default as BMap } from './BMap';

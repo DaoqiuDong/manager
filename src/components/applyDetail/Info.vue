@@ -205,31 +205,28 @@
 import { mapGetters } from "vuex";
 
 export default {
-
-    data(){
-        return {
-            
-        }
-    },
-    computed: {
+  data() {
+    return {};
+  },
+  computed: {
     ...mapGetters(["dict", "nodeCode"])
-    },
-    props:['info']
-}
+  },
+  props: ["info"]
+};
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
 .info {
-    .el-row {
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      .el-col{
-        padding-left: 1em;
-      }
-      .el-col:last-child {
-        border-left: 1px solid #ccc;
-      }
+  .el-row {
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    .el-col {
+      padding-left: 1em;
+    }
+    .el-col:last-child {
+      border-left: 1px solid #ccc;
     }
   }
+}
 </style>

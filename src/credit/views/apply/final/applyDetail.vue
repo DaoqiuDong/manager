@@ -129,6 +129,9 @@
               <el-tab-pane label="其他信息" name="Other">
                 <Other :info="userInfo.otherInfoData"/>
               </el-tab-pane>
+              <el-tab-pane label="LBS信息" name="Map">
+                <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
+              </el-tab-pane>
               <el-tab-pane label="通讯录" name="fourth">
                   <h5>通讯录</h5>
                   <el-table :data="addrList" stripe  border>
@@ -187,26 +190,35 @@
     </div>
 </template>
 <script>
-import {Info, ImageInfo,Contract,Mobile,Other} from "@/components/applyDetail";
+import {
+  Info,
+  ImageInfo,
+  Contract,
+  Mobile,
+  Other,
+  BMap
+} from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
 
 export default {
   data() {
     return {
-      tagType:"",
-      subTagBtn:false,
-      echartsVisibile:false,
-      activeName:"Info",
+      lbsInfo: {},
+      mapVisible: false,
+      tagType: "",
+      subTagBtn: false,
+      echartsVisibile: false,
+      activeName: "Info",
       operatorId: "",
       remarkDialog: false,
-      addRemarkDialog:false,
-      remarkContent:"",
+      addRemarkDialog: false,
+      remarkContent: "",
       refuseDialog: false,
-      refuseType:[],
-      refuseRemark:"",
+      refuseType: [],
+      refuseRemark: "",
       passDialog: false,
-      passRemark:"",
+      passRemark: "",
       userInfo: {},
       infoData: {},
       pending: false,
@@ -219,15 +231,15 @@ export default {
       mobileData: {}, //联系人表格
       chartData: {}, //图表数据
       manualAuitMap: {}, //人工审核数据
-      contractData:{},
-      addrList:[],
-      addrListTotal:0,
-      uid:"",
-      refuseDict:[],
-      refuseOption:{
-        value:"code",
-        label:"desc",
-        children:"subOptionList"
+      contractData: {},
+      addrList: [],
+      addrListTotal: 0,
+      uid: "",
+      refuseDict: [],
+      refuseOption: {
+        value: "code",
+        label: "desc",
+        children: "subOptionList"
       }
     };
   },
@@ -236,53 +248,66 @@ export default {
     ImageInfo,
     Contract,
     Mobile,
-    Other
+    Other,
+    BMap
   },
   computed: {
-    ...mapGetters(["dict", "nodeCode","btnApiList","refuseCodeDict"])
+    ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
   mounted() {
     this.getInfo();
     this.getApplyList();
-    this.getRefuseList()
+    this.getRefuseList();
   },
   methods: {
-    tabswitch(tabpane){
+    tabswitch(tabpane) {
       if (tabpane.name == "Mobile") {
         this.echartsVisibile = true;
       }
+      if (tabpane.name == "Map") {
+        this.mapVisible = true;
+      }
     },
-    getRefuseList(){
+    getRefuseList() {
       if (this.refuseCodeDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/all/refusal/codes"
+          url: "credit/web/sys/all/refusal/codes"
         }).then(res => {
-          this.$store.dispatch('getRefuseCodeDict',res.data)
-        })
+          this.$store.dispatch("getRefuseCodeDict", res.data);
+        });
       }
     },
-    getRefuseDict(){
+    getRefuseDict() {
       if (this.refuseDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/refusal/codes"
+          url: "credit/web/sys/refusal/codes"
         }).then(res => {
           this.refuseDict = res.data;
-        })
+        });
       }
     },
-    subTag(){
+    subTag() {
       const tagType = this.tagType;
       const nodeId = this.manualAuitMap.nodeId;
       this.ajax({
-        url:"credit/web/sys/flow/node/add/tag",
-        data:{tagType,nodeId}
+        url: "credit/web/sys/flow/node/add/tag",
+        data: { tagType, nodeId }
       }).then(res => {
         this.$message({
-          message:"添加临时标签成功",
-          type:"success"
+          message: "添加临时标签成功",
+          type: "success"
         });
         this.subTagBtn = false;
-      })
+      });
+    },
+    getLbsInfo(uid) {
+      const flowId = this.$route.query.id;
+      this.ajax({
+        url: "credit/web/sys/flow/findUserLbs",
+        data: { uid, flowId }
+      }).then(res => {
+        this.lbsInfo = res.data;
+      });
     },
     getInfo() {
       const flowId = this.$route.query.id;
@@ -298,11 +323,14 @@ export default {
         this.uid = res.data.uid;
         this.infoData = res.data.infoData;
         this.aduitHistory = res.data.aduitHistory;
-        if (this.aduitHistory&&this.aduitHistory.length) {
+        if (this.aduitHistory && this.aduitHistory.length) {
           const len = this.aduitHistory.length;
           this.tagType = this.aduitHistory[len - 1].tagType;
-        };
-        if (!this.isEmpty(res.data.manualAuitMap) && res.data.manualAuitMap.nodeId) {
+        }
+        if (
+          !this.isEmpty(res.data.manualAuitMap) &&
+          res.data.manualAuitMap.nodeId
+        ) {
           this.pending = true;
           this.manualAuitMap = res.data.manualAuitMap;
         }
@@ -311,19 +339,18 @@ export default {
           this.getContractData(res.data.infoData.operatorId);
           this.getNotMobileData(res.data.infoData.operatorId);
         }
+        this.getLbsInfo(this.uid);
         this.getAddrList(1);
       });
     },
-    getContractData(operatorId){
+    getContractData(operatorId) {
       const flowId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/rong/query/mobile",
-        data:{operatorId,flowId}
-      }).then(res => [
-        this.contractData = res.data
-      ])
+        url: "credit/web/sys/rong/query/mobile",
+        data: { operatorId, flowId }
+      }).then(res => [(this.contractData = res.data)]);
     },
-    getNotMobileData(operatorId){
+    getNotMobileData(operatorId) {
       this.ajax({
         url: "credit/web/sys/rong/query/nomobile",
         data: {
@@ -333,17 +360,17 @@ export default {
         this.noMobileData = res.data;
       });
     },
-    getAddrList(pageNo){
-        //通讯录
+    getAddrList(pageNo) {
+      //通讯录
       const pageSize = this.pageSize;
       const uid = this.uid;
-        this.ajax({
-            url:"credit/web/sys/tcontact/query",
-            data:{uid,pageNo,pageSize}
-        }).then(res => {
-            this.addrList = res.data.list;
-            this.addrListTotal = res.data.total;
-        })
+      this.ajax({
+        url: "credit/web/sys/tcontact/query",
+        data: { uid, pageNo, pageSize }
+      }).then(res => {
+        this.addrList = res.data.list;
+        this.addrListTotal = res.data.total;
+      });
     },
     applyrefuse() {
       const nodeId = this.manualAuitMap.nodeId;
@@ -353,40 +380,45 @@ export default {
       if (this.isEmpty(resultReasonType)) {
         this.$message("拒绝原因必填");
         return false;
-      };
+      }
       this.ajax({
-        url:"credit/web/sys/flow/trialfail",
-        data:{
-          nodeId,nodeCode,resultReasonType,resultReason
+        url: "credit/web/sys/flow/trialfail",
+        data: {
+          nodeId,
+          nodeCode,
+          resultReasonType,
+          resultReason
         }
       }).then(res => {
         this.$message({
-          message:"已拒绝该申请",
-          type:"success"
+          message: "已拒绝该申请",
+          type: "success"
         });
         this.refuseDialog = false;
         this.getInfo();
         this.pending = false;
-      })
+      });
     },
     applypass() {
       const nodeId = this.manualAuitMap.nodeId;
       const nodeCode = this.manualAuitMap.nodeCode;
       const resultReason = this.passRemark;
       this.ajax({
-        url:"credit/web/sys/flow/trialsuccess",
-        data:{
-          nodeId,nodeCode,resultReason
+        url: "credit/web/sys/flow/trialsuccess",
+        data: {
+          nodeId,
+          nodeCode,
+          resultReason
         }
       }).then(res => {
         this.$message({
-          message:"已通过该申请",
-          type:"success"
+          message: "已通过该申请",
+          type: "success"
         });
         this.passDialog = false;
-        this.getInfo();   
-        this.pending = false; 
-      })
+        this.getInfo();
+        this.pending = false;
+      });
     },
     addRemark() {
       const nodeId = this.manualAuitMap.nodeId;
@@ -394,20 +426,23 @@ export default {
       const content = this.remarkContent;
       if (this.isEmpty(content)) {
         this.$message("请填写备注信息再提交");
-        return false
-      };
+        return false;
+      }
       this.ajax({
-        url:"credit/web/sys/flow/node/add/remark",
-        data:{
-          nodeId,nodeCode,type:1,content
+        url: "credit/web/sys/flow/node/add/remark",
+        data: {
+          nodeId,
+          nodeCode,
+          type: 1,
+          content
         }
       }).then(res => {
         this.$message({
-          message:res.message,
-          type:"success"
+          message: res.message,
+          type: "success"
         });
         this.addRemarkDialog = false;
-      })   
+      });
     },
     getApplyList() {
       const flowId = this.$route.query.id;
@@ -442,13 +477,13 @@ export default {
         }
       });
     },
-    getChartData(operatorId){
+    getChartData(operatorId) {
       this.ajax({
-        url:"credit/web/sys/rong/query/useroperator",
-        data:{operatorId}
+        url: "credit/web/sys/rong/query/useroperator",
+        data: { operatorId }
       }).then(res => {
         this.chartData = res.data;
-      })
+      });
     }
   }
 };

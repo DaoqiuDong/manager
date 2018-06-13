@@ -4,43 +4,59 @@
         <el-col :span="12">
             <div>
               <el-form label-position="right" label-width="100px">
-                <el-form-item label="产品名称">
-                  <el-input v-model="config.productName" placeholder="产品名称"></el-input>
+                <el-form-item label="品牌名称">
+                  <el-select v-model="config.tpBrandId" clearable placeholder="品牌" @change="getProList">
+                    <el-option
+                      v-for="item in allBrandList"
+                      :key="item.brand_id"
+                      :label="item.brand_name"
+                      :value="item.brand_id">
+                    </el-option>
+                  </el-select>
                 </el-form-item>
-                <el-form-item label="产品logo">
-                  <el-input v-model="config.logo" placeholder="产品logo"></el-input>
+                <el-form-item label="机型">
+                  <el-select v-model="config.tpGoodsId" :disabled="isEmpty(brandProList)" placeholder="机型">
+                    <el-option
+                      v-for="item in brandProList"
+                      :key="item.id"
+                      :label="item.title"
+                      :value="item.id">
+                    </el-option>
+                  </el-select>
                 </el-form-item>
-                <el-form-item label="详情链接">
-                  <el-input v-model="config.tpUrl" placeholder="详情链接">
-                    <!-- <template slot="prepend">Http://</template>
-                    <template slot="append">.com</template> -->
-                  </el-input>
+                <el-form-item label="机型ID">
+                  <el-input v-model="config.tpGoodsId" placeholder="机型ID" disabled></el-input>
                 </el-form-item>
-                <el-form-item label="批卡概率">
-                  <el-radio-group v-model="config.approvedRate">
-                    <el-radio :label="1">1</el-radio>
-                    <el-radio :label="2">2</el-radio>
-                    <el-radio :label="3">3</el-radio>
-                    <el-radio :label="4">4</el-radio>
-                    <el-radio :label="5">5</el-radio>
-                  </el-radio-group>
+                <el-form-item label="保值额度">
+                  <el-input v-model.number="config.hedging" placeholder="保值额度"></el-input>
                 </el-form-item>
-                <el-form-item label="描述">
-                  <el-input v-model="config.slogan" placeholder="描述"></el-input>
+                <el-form-item label="机构名称">
+                  <el-select v-model="config.corpId" clearable placeholder="机构名称" @change="getCorpProList">
+                    <el-option
+                      v-for="item in allCorpList"
+                      :key="item.corpId"
+                      :label="item.corpName"
+                      :value="item.corpId">
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="机构产品">
+                  <el-select v-model="config.productId" :disabled="isEmpty(corpProList)" placeholder="机构产品">
+                    <el-option
+                      v-for="item in corpProList"
+                      :key="item.productId"
+                      :label="item.productName"
+                      :value="item.productId">
+                    </el-option>
+                  </el-select>
                 </el-form-item>
                 <el-form-item label="排序">
                   <el-input v-model.number="config.orderNum" placeholder="排序"></el-input>
                 </el-form-item>
                 <el-form-item label="状态">
-                  <el-radio-group v-model="config.status" @change="changeStatus">
+                  <el-radio-group v-model="config.status">
                     <el-radio :label="1">上架</el-radio>
                     <el-radio :label="2">下架</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-                <el-form-item label="申请状态">
-                  <el-radio-group v-model="config.busStatus">
-                    <el-radio :label="1">可申请</el-radio>
-                    <el-radio :label="2">人数已满</el-radio>
                   </el-radio-group>
                 </el-form-item>
               </el-form>
@@ -51,68 +67,162 @@
           </div>
         </el-col>
       </el-row>
-      <div style="text-align:center;margin-top:20px">
+      <div style="margin-top:20px">
         <router-link to="list">
           <el-button>取消</el-button>
         </router-link>
-        <el-button type="primary" @click="update" v-loading.fullscreen.lock="fullscreenLoading">保存</el-button>        
+        <el-button type="primary" @click="add">确定</el-button>      
       </div>
     </div>
 </template>
 <script>
+import { mapGetters } from "vuex";
+import {isNumber} from "@/utils/validate";
+
 export default {
   data() {
     return {
       config: {
-        productName: "",
-        logo: "",
-        tpUrl:"",
-        slogan:"",
-        orderNum:"",
-        status:1,
-        approvedRate:1,
-        busStatus:1
+        tpGoodsId: "",
+        hedging: null,
+        tpBrandId: "",
+        tpBrandName: "",
+        corpId: "",
+        productId: "",
+        termBorrow: "",
+        orderNum: "",
+        status: 1,
+        type: 1
       },
-      fullscreenLoading:false
+      allCorpList: [],
+      corpProList: [],
+      allBrandList: [],
+      brandProList: []
     };
   },
+  mounted() {
+    this.getAllBrand();
+    this.getCorpList();
+  },
+  computed: {
+    ...mapGetters(["dict", "btnGoList", "btnApiList"])
+  },
   methods: {
-    update(){
+    add() {
       const config = this.config;
-      this.fullscreenLoading = true;
+      if (this.isEmpty(config.tpBrandId)) {
+        this.$message("请选择品牌名称");
+        return false;
+      };
+      if (this.isEmpty(config.tpGoodsId)) {
+        this.$message("请选择机型");
+        return false;
+      };
+      if (this.isEmpty(config.hedging)) {
+        this.$message("请填写保值额度");
+        return false;
+      };
+      if (!isNumber(config.hedging)) {
+        this.$message("保值额度需为正整数");
+        return false;
+      };
+      if (this.isEmpty(config.corpId)) {
+        this.$message("请选择关联机构名称");
+        return false;
+      };
+      if (this.isEmpty(config.productId)) {
+        this.$message("请选择关联机构产品");
+        return false;
+      };
+      if (this.isEmpty(config.orderNum)) {
+        this.$message("请填写排序");
+        return false;
+      };
+      if (!isNumber(config.orderNum)) {
+        this.$message("排序需为正整数");
+        return false;
+      };
       this.ajax({
-        url:"credit/web/sys/ad/saveCreditCard",
-        data:{
+        url: "credit/web/sys/goods/quadd",
+        data: {
           ...config
         }
       }).then(res => {
         this.$message({
-          message:"新增信用卡类产品信息成功",
-          type:"success"
+          message: "新增品质回收产品成功",
+          type: "success"
         });
-        this.$router.push({path:"list"});
-      }).catch(err => {
-        console.log(err);
-      }).finally(() => {
-        this.fullscreenLoading = false;
-      })
+        this.$router.push({ path: "list" });
+      });
     },
-    changeStatus(value){
-      if (value === 2) {
-        this.$alert("设置该产品的状态为下架,前端将会隐藏该产品,确定下架?","产品下架",{
-          confirmButtonText: '确定',
-          type: 'warning'
-        })
+    getAllBrand() {
+      this.ajax({
+        url: "credit/web/sys/goods/subrand",
+        data: { classId: 1 }
+      }).then(res => {
+        this.allBrandList = res.data.list;
+      });
+    },
+    getProList(brandId){
+      this.config.tpGoodsId = "";
+      if (this.isEmpty(brandId)) {
+        this.brandProList = [];
+      }else{
+        for (let i = 0; i < this.allBrandList.length; i++) {
+          const element = this.allBrandList[i];
+          if (element.brand_id == brandId) {
+            this.config.tpBrandName = element.brand_name;
+            break;
+          }
+        };
+        this.ajax({
+          url: "credit/web/sys/goods/model",
+          data: {
+            brandId,
+            pageNo: 1,
+            pageSize: 500
+          }
+        }).then(res => {
+          if (!this.isEmpty(res.data.list)) {
+            this.brandProList = res.data.list;
+          } else {
+            this.brandProList = [];
+            this.$message("该品牌下无可选机型");
+          }
+        });
+      }
+    },
+    getCorpList() {
+      this.ajax({
+        url: "credit/web/sys/corp/product/dict"
+      }).then(res => {
+        this.allCorpList = res.data.list;
+      });
+    },
+    getCorpProList(corpId){
+      this.config.productId = "";
+      if (this.isEmpty(corpId)) {
+        this.corpProList = [];
+      }else{
+        this.ajax({
+          url: "credit/web/sys/product/dict/corpid",
+          data: { corpId }
+        }).then(res => {
+          if (!this.isEmpty(res.data)) {
+            this.corpProList = res.data;
+          } else {
+            this.corpProList = [];
+            this.$message("该机构下无可选金融产品");
+          }
+        });
       }
     }
   }
 };
 </script>
 <style lang="scss" scoped>
-.editor{
-  li{
-    padding-bottom: 30px;
-  }
+.el-select{
+  width:100%;
 }
 </style>
 

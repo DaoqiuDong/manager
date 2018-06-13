@@ -2,19 +2,19 @@
     <div>
         <el-form :inline='true'>
           <el-form-item>   
-            <el-input v-model="searchForm.productName" placeholder="产品名称"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.startTime " type="date" placeholder="更新开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.endTime" type="date" placeholder="更新结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
+            <el-input v-model="searchForm.tpGoodsName" placeholder="产品名称"></el-input>
           </el-form-item>
           <el-form-item>
             <el-select clearable v-model="searchForm.status" placeholder="状态">
               <el-option label="上架" value="1"></el-option>
               <el-option label="下架" value="2"></el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-date-picker v-model="searchForm.statDateStart " type="date" placeholder="统计开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-date-picker v-model="searchForm.statDateEnd" type="date" placeholder="统计结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
           </el-form-item>
             <el-button type="primary" @click="getList(1)">查询</el-button>
             <router-link :to="{path:'addquality'}"  style="float:right" v-if="hasBtnAuth('B10056',btnGoList)">
@@ -24,13 +24,19 @@
 
         <div>
           <el-table :data="list"  v-loading.body="loading" :stripe='true'>
-            <el-table-column label="产品编号" prop="code"></el-table-column>
-            <el-table-column label="产品名称" prop="name"></el-table-column>
-            <el-table-column label="估值(最高)" prop="order_num"></el-table-column>
-            <el-table-column label="保值额度" prop="status_val"></el-table-column>
-            <el-table-column label="附加产品" prop="bus_status_val"></el-table-column>
-            <el-table-column label="上下架" prop="click_count"></el-table-column>
-            <el-table-column label="排序" prop="ip_count"></el-table-column>
+            <el-table-column label="产品编号" prop="tpGoodsId"></el-table-column>
+            <el-table-column label="产品名称" prop="tpGoodsName"></el-table-column>
+            <el-table-column label="估值(最高)" prop="valuation" :formatter="(row)=>count(row.valuation,'元')"></el-table-column>
+            <el-table-column label="保值额度" prop="hedging" :formatter="(row)=>count(row.hedging,'元')"></el-table-column>
+            <el-table-column label="附加产品" prop="productName"></el-table-column>
+            <el-table-column label="上下架">
+              <template scope="scope">
+                <span v-if="scope.row.status == 1">上架</span>
+                <span v-else>下架</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="排序" prop="orderNum"></el-table-column>
+            <el-table-column label="点击统计(UV)" prop="clickCount"></el-table-column>
             <el-table-column label="操作" align="center" v-if="hasBtnAuth('B10055',btnGoList)">
               <template scope="scope">
                 <router-link :to="{path:'config',query:{id:scope.row.id}}">
@@ -50,9 +56,9 @@ export default {
   data() {
     return {
       searchForm: {
-        productName: "",
-        startTime: "",
-        endTime: "",
+        tpGoodsName: "",
+        statDateStart: "",
+        statDateEnd: "",
         status:""
       },
       list: [],
@@ -68,16 +74,16 @@ export default {
   },
   methods: {
     selectStartTime(time){
-      this.searchForm.startTime = time
+      this.searchForm.statDateStart = time
     },
     selectEndTime(time){
-      this.searchForm.endTime = time
+      this.searchForm.statDateEnd = time
     },
     getList(pageNo) {
       this.loading = true;
       const pageSize = this.pageSize;
       this.ajax({
-        url: "credit/web/sys/ad/findCreditCardList",
+        url: "credit/web/sys/goods/qulist",
         data: {
           pageSize,
           pageNo,
