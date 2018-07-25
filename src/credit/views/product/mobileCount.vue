@@ -35,15 +35,14 @@
             <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
             <el-table-column label="注册" prop="regist"></el-table-column>
             <el-table-column label="申请" prop="apply"></el-table-column>
-            <el-table-column label="资料准备" prop="dataPrepare"></el-table-column>
+            <el-table-column label="资料准备" prop="dataPreparation"></el-table-column>
             <el-table-column label="初审" prop="firstTrial"></el-table-column>
-            <el-table-column label="绑卡" prop="bindCard"></el-table-column>
+            <el-table-column label="绑卡" prop="bankCard"></el-table-column>
             <el-table-column label="终审" prop="finalTrial"></el-table-column>
             <el-table-column label="贷前支付" prop="preAmountPay"></el-table-column>
             <el-table-column label="放款" prop="loan"></el-table-column>
             <el-table-column label="PV" prop="pv"></el-table-column>
             <el-table-column label="IP" prop="ip"></el-table-column>
-            <!-- <el-table-column label="坏账率" prop="badDebt" :formatter="(row)=>count(row.badDebt,'%')"></el-table-column> -->
             <el-table-column label="逾期率" prop="overdue" :formatter="(row)=>count(row.overdue,'%')"></el-table-column>
             <el-table-column label="操作" v-if="hasBtnAuth('B20060',btnApiList)" align="center">
               <template scope="scope">
@@ -63,7 +62,7 @@
               </el-form-item>
             </el-form>
             <li v-for="item in remarkList" :key="item">
-              <h3>{{item.createTime}} {{item.accountRealName}}</h3>
+              <h3>{{item.createTime}} {{item.accName}}</h3>
               <p class="remark">{{item.content}}</p>
             </li>
             <span slot="footer" class="dialog-footer">
@@ -86,7 +85,7 @@ export default {
         happenDateEnd: Date.now() - 8.64e7
       },
       addForm:{
-        channel:"",
+        id:"",
         content:""
       },
       sourceList:[],
@@ -148,12 +147,12 @@ export default {
     getRemark(row){
       this.remarkList = [];
       this.handleChannel = row;
-      this.addForm.channel = row.channelCode;
+      this.addForm.id = row.channelId;
       this.addForm.content = "";
-      const channel = row.channelCode;
+      const id = row.channelId;
       this.ajax({
-        url:"credit/web/sys/collectionrecord/findchannel",
-        data:{channel,pageNo:1,pageSize:500}
+        url:"credit/web/sys/remark/query/channelid",
+        data:{id,pageNo:1,pageSize:500}
       }).then(res => {
         this.remarkList = res.data.list;
         this.remarkDialog = true;
@@ -169,10 +168,11 @@ export default {
           return false
         };
         this.ajax({
-          url:"credit/web/sys/collectionrecord/insertchannel",
+          url:"credit/web/sys/remark/insert/channel",
           data:{...this.addForm}
         }).then(res => {
           this.remarkDialog = false;
+          this.addForm.content = "";
           this.$message({
             message:"添加备注成功",
             type:"success"

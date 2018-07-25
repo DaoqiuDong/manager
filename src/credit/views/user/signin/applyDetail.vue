@@ -56,7 +56,7 @@
             <el-table :data="applyList" :stripe='true' v-if="applyList.length" style="margin-top:40px;">
               <el-table-column label="申请产品" prop="productName"></el-table-column>
               <el-table-column label="申请提交时间" prop="flowCreateTime"></el-table-column>
-              <el-table-column label="初审评分" prop="score">
+              <el-table-column label="初审评分">
                 <template scope="scope">
                   <span  v-if="scope.row.firstTrial&&!isEmpty(scope.row.firstTrial.score)"  :class="getClass(scope.row.firstTrial.score)">{{scope.row.firstTrial.score}}分</span>
                   <span v-else>--</span>
@@ -121,7 +121,7 @@
                 <ImageInfo :Image="infoData"/>
               </el-tab-pane>
               <el-tab-pane label="联系人信息" name="Contract">
-                <Contract :operatorData="contractData" :operatorData2="noMobileData"/>
+                <Contract :operatorData="contractData" :operatorData2="noMobileData" :operatorData3="callRecord" @getRecord="getUserCallRecord"/>
               </el-tab-pane>
               <el-tab-pane label="通话详单" name="Mobile">
                 <Mobile :operatorData="chartData" :visibile="echartsVisibile"/>
@@ -132,13 +132,32 @@
               <el-tab-pane label="LBS信息" name="Map">
                 <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
               </el-tab-pane>
+              <el-tab-pane label="通讯录" name="fourth">
+                  <h5>通讯录</h5>
+                  <el-form :inline='true'>
+                    <el-form-item>
+                      <el-autocomplete v-model="addrName" :fetch-suggestions="querySearch" placeholder="请输入内容"></el-autocomplete>
+                    </el-form-item>
+                    <el-button type="primary" @click="getAddrList(1)">查询</el-button>
+                  </el-form>
+                  <el-table :data="addrList" stripe  border>
+                    <el-table-column label="姓名" prop="name"></el-table-column>
+                    <el-table-column label="联系电话1" prop="mobile"></el-table-column>
+                    <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
+                    <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
+                  </el-table>
+                  <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
+              </el-tab-pane>
+              <el-tab-pane label="备注详情" name="Remark">
+                <Remark :remarkList="allRemarkInfo"/>
+              </el-tab-pane>
             </el-tabs>
         </div>
 
         <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny" @close="remarkList = []">
             <div v-for="item in remarkList" :key="item.createTime">
                 <p>{{item.createTime}}{{item.accountName}}</p>
-                <p v-if="item.contentType">原因:{{getRefuse(item.contentType,refuseCodeDict)}}</p>
+                <p v-if="!isEmpty(item.field3)">原因:{{item.field3}}</p>
                 <p>备注:{{item.content||" "}}</p>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -176,6 +195,7 @@
                 <el-button type="primary" @click="refuseDialog = false">取 消</el-button>    
             </span>
         </el-dialog>
+
     </div>
 </template>
 <script>
@@ -184,7 +204,9 @@ import {
   ImageInfo,
   Contract,
   Mobile,
-  Other,BMap
+  Other,
+  BMap,
+  Remark
 } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
@@ -192,10 +214,11 @@ let echarts = require("echarts");
 export default {
   data() {
     return {
-      lbsInfo:{},
-      mapVisible:false,
-      tagType: "",
+      callRecord: {},
+      lbsInfo: {},
+      mapVisible: false,
       subTagBtn: false,
+      tagType: "",
       echartsVisibile: false,
       activeName: "Info",
       operatorId: "",
@@ -203,8 +226,7 @@ export default {
       addRemarkDialog: false,
       remarkContent: "",
       refuseDialog: false,
-      refuseTab:"",
-      refuseType: "",
+      refuseType: [],
       refuseRemark: "",
       passDialog: false,
       passRemark: "",
@@ -224,12 +246,27 @@ export default {
       addrList: [],
       addrListTotal: 0,
       uid: "",
-      refuseDict:[],
-      refuseOption:{
-        value:"code",
-        label:"desc",
-        children:"subOptionList"
-      }
+      refuseDict: [],
+      allRemarkInfo: [],
+      addrName:"",
+      refuseOption: {
+        value: "code",
+        label: "desc",
+        children: "subOptionList"
+      },
+      suggestionData:[{
+        value:"信"
+      },{
+        value:"贷"
+      },{
+        value:"催"
+      },{
+        value:"金"
+      },{
+        value:"钱"
+      },{
+        value:"中介"
+      }]
     };
   },
   components: {
@@ -237,17 +274,34 @@ export default {
     ImageInfo,
     Contract,
     Mobile,
-    Other,BMap
+    Other,
+    BMap,
+    Remark
   },
   computed: {
-    ...mapGetters(["dict", "nodeCode", "btnApiList","refuseCodeDict"])
+    ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
   mounted() {
     this.getInfo();
     this.getApplyList();
     this.getRefuseList();
+    this.getAllRemark();
   },
   methods: {
+    querySearch(queryString, cb){
+      var data = queryString ? this.suggestionData.filter(obj=>obj.value.indexOf(queryString) > -1) : this.suggestionData;
+      cb(data)
+    },
+    getAllRemark() {
+      const flowId = this.$route.query.id;
+      const pageSize = 500;
+      this.ajax({
+        url: "credit/web/sys/remark/query/list",
+        data: { flowId, pageSize }
+      }).then(res => {
+        this.allRemarkInfo = res.data.list;
+      });
+    },
     tabswitch(tabpane) {
       if (tabpane.name == "Mobile") {
         this.echartsVisibile = true;
@@ -256,22 +310,22 @@ export default {
         this.mapVisible = true;
       }
     },
-    getRefuseList(){
+    getRefuseList() {
       if (this.refuseCodeDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/all/refusal/codes"
+          url: "credit/web/sys/all/refusal/codes"
         }).then(res => {
-          this.$store.dispatch('getRefuseCodeDict',res.data)
-        })
+          this.$store.dispatch("getRefuseCodeDict", res.data);
+        });
       }
     },
-    getRefuseDict(){
+    getRefuseDict() {
       if (this.refuseDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/refusal/codes"
+          url: "credit/web/sys/refusal/codes"
         }).then(res => {
           this.refuseDict = res.data;
-        })
+        });
       }
     },
     subTag() {
@@ -288,14 +342,14 @@ export default {
         this.subTagBtn = false;
       });
     },
-    getLbsInfo(uid){
+    getLbsInfo(uid) {
       const flowId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/flow/findUserLbs",
-        data:{uid,flowId}
-      }).then(res=>{
+        url: "credit/web/sys/flow/findUserLbs",
+        data: { uid, flowId }
+      }).then(res => {
         this.lbsInfo = res.data;
-      })
+      });
     },
     getInfo() {
       const flowId = this.$route.query.id;
@@ -308,12 +362,13 @@ export default {
         let data = res.data;
         this.operatorId = res.data.infoData.operatorId;
         this.userInfo = data;
+        this.uid = res.data.uid;
         this.infoData = res.data.infoData;
         this.aduitHistory = res.data.aduitHistory;
-        if (this.aduitHistory&&this.aduitHistory.length) {
+        if (this.aduitHistory && this.aduitHistory.length) {
           const len = this.aduitHistory.length;
           this.tagType = this.aduitHistory[len - 1].tagType;
-        };
+        }
         if (
           !this.isEmpty(res.data.manualAuitMap) &&
           res.data.manualAuitMap.nodeId
@@ -325,8 +380,21 @@ export default {
           this.getChartData(res.data.infoData.operatorId);
           this.getContractData(res.data.infoData.operatorId);
           this.getNotMobileData(res.data.infoData.operatorId);
+          this.getUserCallRecord(1);
         }
-        this.getLbsInfo(res.data.uid);
+        this.getLbsInfo(this.uid);
+        this.getAddrList(1);
+      });
+    },
+    getUserCallRecord(pageNo) {
+      const flowId = this.$route.query.id;
+      const operatorId = this.operatorId;
+      const pageSize = this.pageSize;
+      this.ajax({
+        url: "credit/web/sys/rong/query/userWeekCallRecord",
+        data: { flowId, operatorId, pageNo, pageSize }
+      }).then(res => {
+        this.callRecord = res.data;
       });
     },
     getContractData(operatorId) {
@@ -334,7 +402,9 @@ export default {
       this.ajax({
         url: "credit/web/sys/rong/query/mobile",
         data: { operatorId, flowId }
-      }).then(res => [(this.contractData = res.data)]);
+      }).then(res => {
+        this.contractData = res.data;
+      });
     },
     getNotMobileData(operatorId) {
       this.ajax({
@@ -344,6 +414,19 @@ export default {
         }
       }).then(res => {
         this.noMobileData = res.data;
+      });
+    },
+    getAddrList(pageNo) {
+      //通讯录
+      const name = this.addrName;
+      const pageSize = this.pageSize;
+      const uid = this.uid;
+      this.ajax({
+        url: "credit/web/sys/tcontact/query",
+        data: { name,uid, pageNo, pageSize }
+      }).then(res => {
+        this.addrList = res.data.list;
+        this.addrListTotal = res.data.total;
       });
     },
     applyrefuse() {
@@ -370,6 +453,7 @@ export default {
         });
         this.refuseDialog = false;
         this.getInfo();
+        this.getAllRemark();
         this.pending = false;
       });
     },
@@ -391,23 +475,27 @@ export default {
         });
         this.passDialog = false;
         this.getInfo();
+        this.getAllRemark();
         this.pending = false;
       });
     },
     addRemark() {
-      const nodeId = this.manualAuitMap.nodeId;
-      const nodeCode = this.manualAuitMap.nodeCode;
+      const id = this.manualAuitMap.nodeId;
+      const status = this.manualAuitMap.status;
       const content = this.remarkContent;
       if (this.isEmpty(content)) {
         this.$message("请填写备注信息再提交");
         return false;
       }
+      if (content.length > 120) {
+        this.$message("备注信息不得超过120字");
+        return false;
+      }
       this.ajax({
-        url: "credit/web/sys/flow/node/add/remark",
+        url: "credit/web/sys/remark/insert/node",
         data: {
-          nodeId,
-          nodeCode,
-          type: 1,
+          id,
+          status,
           content
         }
       }).then(res => {
@@ -416,6 +504,8 @@ export default {
           type: "success"
         });
         this.addRemarkDialog = false;
+        this.remarkContent = "";
+        this.getAllRemark();
       });
     },
     getApplyList() {
@@ -432,13 +522,13 @@ export default {
       });
     },
     getRemark(row) {
-      const nodeId = row.id;
+      const id = row.id;
       const pageNo = 1;
       const pageSize = 1000;
       this.ajax({
-        url: "credit/web/sys/flow/node/remark",
+        url: "credit/web/sys/remark/query/nodeid",
         data: {
-          nodeId,
+          id,
           pageNo,
           pageSize
         }
@@ -465,9 +555,6 @@ export default {
 
 <style rel="stylesheet/scss" lang="scss">
 .flowDetail {
-  .el-col {
-    padding-left: 1em;
-  }
   .manual {
     line-height: 42px;
     .el-row {
@@ -494,16 +581,6 @@ export default {
           color: #fff;
           cursor: pointer;
         }
-      }
-    }
-  }
-  .info {
-    .el-row {
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      .el-col:last-child {
-        border-left: 1px solid #ccc;
       }
     }
   }

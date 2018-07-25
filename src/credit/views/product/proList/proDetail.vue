@@ -156,12 +156,10 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item label="费用">
-                            <el-input v-model="otherItem.value" placeholder="费用">
-                                <!-- <template slot="append">
-                                    <span v-if="otherItem.calMethod == 1">元</span>
-                                    <span v-else>%</span>
-                                </template> -->
-                            </el-input>
+                            <el-input v-model="otherItem.value" placeholder="费用"></el-input>
+                        </el-form-item>
+                        <el-form-item label="备注">
+                            <el-input v-model="otherItem.remark" placeholder="备注" @change="handleRemark"></el-input>
                         </el-form-item>
                         <el-button icon="delete" @click="delFee(index)"></el-button>
                     </li>
@@ -221,27 +219,27 @@ export default {
         colMethod: 2,
         value: ""
       },
-      managementFeeVal:"",
+      managementFeeVal: "",
       interest: {
         //利息
         calMethod: 1,
         colMethod: 2,
         value: ""
       },
-      interestVal:"",
+      interestVal: "",
       overdueFee: {
         //逾期管理费
         calMethod: 1,
         colMethod: 2,
         value: ""
       },
-      overdueFeeVal:"",
+      overdueFeeVal: "",
       overdueInterest: {
-          //逾期利息
+        //逾期利息
         value: "",
         colMethod: 2
       },
-      overdueInterestVal:"",
+      overdueInterestVal: "",
       otherFee: [],
       unitList: [
         {
@@ -269,17 +267,24 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict","btnApiList"]),
-    yearInterest() {//利息年化利率
-        if (this.proInfo.interest) {
-            return this.proInfo.interest.value*1000000*100*360/1000000
-        }
+    ...mapGetters(["dict", "btnApiList"]),
+    yearInterest() {
+      //利息年化利率
+      if (this.proInfo.interest) {
+        return this.proInfo.interest.value * 1000000 * 100 * 360 / 1000000;
+      }
     }
   },
   mounted() {
     this.getProInfo();
   },
   methods: {
+    handleRemark(value) {
+      if (value.length > 150) {
+        this.$message("备注字数不能超过150字");
+        return false;
+      }
+    },
     getProInfo() {
       const productId = this.$route.query.id;
       this.ajax({
@@ -293,25 +298,26 @@ export default {
         this.overdueFee = res.data.overdueFee;
         this.overdueInterest = res.data.overdueInterest;
         if (!this.isEmpty(res.data.otherFee)) {
-            this.otherFee = res.data.otherFee;
-        };
+          this.otherFee = res.data.otherFee;
+        }
         this.setValue();
       });
     },
-    addFee(){
-        if (this.otherFee.length < 5) {
-            this.otherFee.push({
-              title: "",
-              colMethod: "", //收取方式
-              calMethod: "", //计算方式
-              value: ""
-            });
-        }else{
-            this.$message("最多添加五项其他费用");
-        }
+    addFee() {
+      if (this.otherFee.length < 5) {
+        this.otherFee.push({
+          title: "",
+          colMethod: "", //收取方式
+          calMethod: "", //计算方式
+          value: "",
+          remark: ""
+        });
+      } else {
+        this.$message("最多添加五项其他费用");
+      }
     },
-    delFee(i){
-        this.otherFee.splice(i,1);
+    delFee(i) {
+      this.otherFee.splice(i, 1);
     },
     update() {
       const productId = this.$route.query.id;
@@ -320,7 +326,17 @@ export default {
       const interest = this.interest;
       const overdueFee = this.overdueFee;
       const overdueInterest = this.overdueInterest;
-      const otherFee = this.otherFee;
+      var otherFee
+      if (this.otherFee && this.otherFee.length) {
+        for (let i = 0; i < this.otherFee.length; i++) {
+            const element = this.otherFee[i];
+            if (element.remark.length > 150) {
+                this.$message("备注字数不得超过150字");
+                return false;
+            }
+        }
+        otherFee = this.otherFee;
+      }
       this.ajax({
         url: "credit/web/sys/product/update",
         data: {
@@ -334,42 +350,42 @@ export default {
           otherFee
         }
       }).then(res => {
-          this.$router.push('list');
+        this.$router.push("list");
       });
     },
-    manSelect(value){
-        if (this.managementFee.calMethod == 2) {
-            this.managementFee.value=(this.managementFeeVal)/100;
-        }else{
-            this.managementFee.value = this.managementFeeVal;
-        };
+    manSelect(value) {
+      if (this.managementFee.calMethod == 2) {
+        this.managementFee.value = this.managementFeeVal / 100;
+      } else {
+        this.managementFee.value = this.managementFeeVal;
+      }
     },
-    inSelect(value){
-        this.interest.value = String(this.interestVal / 100);
+    inSelect(value) {
+      this.interest.value = String(this.interestVal / 100);
     },
-    overSelect(value){
-        if (this.overdueFee.calMethod == 2) {
-            this.overdueFee.value=(this.overdueFeeVal)/100;
-        }else{
-            this.overdueFee.value = this.overdueFeeVal;
-        };
+    overSelect(value) {
+      if (this.overdueFee.calMethod == 2) {
+        this.overdueFee.value = this.overdueFeeVal / 100;
+      } else {
+        this.overdueFee.value = this.overdueFeeVal;
+      }
     },
-    overInSelect(value){
-        this.overdueInterest.value = (this.overdueInterestVal)/100;
+    overInSelect(value) {
+      this.overdueInterest.value = this.overdueInterestVal / 100;
     },
-    setValue(){
-        if (this.managementFee.calMethod == 2) {
-            this.managementFeeVal = (this.managementFee.value)*100;
-        }else{
-            this.managementFeeVal = this.managementFee.value;            
-        };
-        this.interestVal = Number(this.interest.value) * 100;
-        if (this.overdueFee.calMethod == 2) {
-            this.overdueFeeVal = (this.overdueFee.value)*100;
-        }else{
-            this.overdueFeeVal = this.overdueFee.value;            
-        };
-        this.overdueInterestVal = (this.overdueInterest.value)*100;
+    setValue() {
+      if (this.managementFee.calMethod == 2) {
+        this.managementFeeVal = this.managementFee.value * 100;
+      } else {
+        this.managementFeeVal = this.managementFee.value;
+      }
+      this.interestVal = Number(this.interest.value) * 100;
+      if (this.overdueFee.calMethod == 2) {
+        this.overdueFeeVal = this.overdueFee.value * 100;
+      } else {
+        this.overdueFeeVal = this.overdueFee.value;
+      }
+      this.overdueInterestVal = this.overdueInterest.value * 100;
     }
   }
 };

@@ -217,94 +217,6 @@ function filterBtnRouter(BtnList,RouterItem,code) {
         return {RouterMap,BtnList,ApiBtnList};
       }
     }
-
-    var mockRuleMenu = [{
-      "id": 136,
-      "code": "110001",
-      "name": "大盘分析",
-      "icon": "Overview",
-      "status": 1,
-      "subMenus": [{
-        "id": 137,
-        "code": "120001",
-        "name": "执行统计",
-        "url": "analyse/userCount",
-        "status": 1,
-        "subMenus": [],
-        "privilegeList": [],
-        "type": 1
-      },{
-        "id": 137,
-        "code": "120001",
-        "name": "执行记录",
-        "url": "analyse/list",
-        "status": 1,
-        "subMenus": [],
-        "privilegeList": [{
-          "id": 163,
-          "name": "查看",
-          "code": "B50001"
-        }],
-        "type": 1
-      }],
-      "privilegeList": [],
-      "type": 1
-    }, {
-      "id": 202,
-      "code": "110011",
-      "name": "策略配置",
-      "icon": "Institutions",
-      "status": 1,
-      "subMenus": [{
-        "id": 206,
-        "code": "120038",
-        "name": "策略集",
-        "url": "strategy/list/list",
-        "status": 1,
-        "subMenus": [],
-        "privilegeList": [{
-          "id": 163,
-          "name": "添加策略",
-          "code": "B50002"
-        }, {
-          "id": 155,
-          "name": "编辑",
-          "code": "B50004"
-        }, {
-          "id": 186,
-          "name": "查看",
-          "code": "B50003"
-        }, {
-          "id": 186,
-          "name": "删除",
-          "code": "B60001"
-        }, {
-          "id": 186,
-          "name": "发布",
-          "code": "B60002"
-        }, {
-          "id": 186,
-          "name": "下线",
-          "code": "B60003"
-        }],
-        "type": 1
-      },{
-        "id": 206,
-        "code": "120038",
-        "name": "规则库",
-        "url": "strategy/rule/list",
-        "status": 1,
-        "subMenus": [],
-        "privilegeList": [{
-          "id": 163,
-          "name": "查看",
-          "code": "B50005"
-        }],
-        "type": 1
-      }],
-      "privilegeList": [],
-      "type": 1
-    }]
     
     const permission = {
       state: {
@@ -333,8 +245,7 @@ function filterBtnRouter(BtnList,RouterItem,code) {
             store.clearAll(); //移除旧的系统路由
             data.menuList.forEach(function (element, index) {
               store.set(element.code, (element.subMenus))
-            });
-            // store.set("200001", mockRuleMenu);   
+            }); 
             filterMenuRouter(store.get(data.sysCode),data.sysCode);
             // console.log(MenuRouterMap);
             // console.log(BtnRouterMap);

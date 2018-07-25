@@ -4,7 +4,7 @@
           <el-form-item>
             <el-select v-model="searchForm.productId" placeholder="产品" clearable @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -64,7 +64,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "roleList", "btnGoList","productList","btnApiList"])
+    ...mapGetters(["dict", "roleList", "btnGoList","financeList","btnApiList"])
   },
   mounted() {
     this.getList(1);

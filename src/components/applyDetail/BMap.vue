@@ -77,9 +77,10 @@ export default {
         var marker;
         if (i == 0) {
           marker = new BMap.Marker(
-            new BMap.Point(local.location_longitude, local.location_latitude), { icon: addrIcon }
+            new BMap.Point(local.location_longitude, local.location_latitude),
+            { icon: addrIcon }
           ); // 创建标注
-        }else{
+        } else {
           marker = new BMap.Marker(
             new BMap.Point(local.location_longitude, local.location_latitude)
           ); // 创建标注
@@ -105,6 +106,7 @@ export default {
       if (!this.isEmpty(this.lbsInfo.liveCity)) {
         var liveGeo = new BMap.Geocoder();
         var liveAddr =
+          this.lbsInfo.liveProvince +
           this.lbsInfo.liveCity +
           this.lbsInfo.liveDistrict +
           this.lbsInfo.liveAddr;
@@ -121,6 +123,7 @@ export default {
       if (!this.isEmpty(this.lbsInfo.workCity)) {
         var workGeo = new BMap.Geocoder();
         var workAddr =
+          this.lbsInfo.workProvince +
           this.lbsInfo.workCity +
           this.lbsInfo.workDistrict +
           this.lbsInfo.workAddr;
@@ -133,7 +136,7 @@ export default {
           workIcon
         );
       }
-
+      
       function geocodeSearch(geo, add, city, label, Icon) {
         geo.getPoint(
           add,

@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -16,6 +16,16 @@
           </el-form-item>
           <el-form-item>
             <el-input v-model.number="searchForm.termIndex" placeholder="期数"></el-input>
+          </el-form-item>
+          <el-form-item>   
+            <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
+              <el-option
+                v-for="item in tagList"
+                :key="item.value"
+                :label="item.title"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item>
             <el-input v-model.number.trim="searchForm.overdueDaysStart" placeholder="逾期天数开始" @keyup.enter.native="getList(1)"></el-input>
@@ -48,6 +58,12 @@
                 <span v-else>逾期未还</span>      
               </template>
             </el-table-column>
+            <el-table-column label="催收标签">
+              <template scope="scope">
+                <span v-if="!isEmpty(scope.row.tagId)">{{getDictTit(scope.row.tagId,tagList)}}</span>
+                <span v-else>--</span>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" align="center" min-width="140">
               <template scope="scope">
                 <el-button type="text" v-if="hasBtnAuth('B20063',btnApiList)" v-text="getbtnName('B20063',btnApiList)" @click="handleBack(scope.row.drId)"></el-button>
@@ -61,10 +77,10 @@
           <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
         </div>
 
-        <el-dialog title="催收记录" :visible.sync="remarkDialog" size="tiny">
+        <el-dialog title="备注记录" :visible.sync="remarkDialog" size="tiny">
             <div>
               <li v-for="item in insertList" :key="item.createTime">
-                <h5>{{item.updateTime}}{{item.accountRealName}}</h5>
+                <h5>{{item.createTime}}  {{item.accName}}</h5>
                 <p>{{item.content||" "}}</p>
               </li>
             </div>
@@ -82,21 +98,22 @@ export default {
     return {
       searchForm: {
         productId: "",
-        mobile:"",
-        termIndex:null,
+        mobile: "",
+        termIndex: null,
         realRepayTimeStart: "",
         realRepayTimeEnd: "",
         overdueDaysStart: null,
-        overdueDaysEnd: null
+        overdueDaysEnd: null,
+        tagId: ""
       },
-      remarkDialog:false,
-      insertList:[],
+      remarkDialog: false,
+      insertList: [],
       userList: [],
       total: 0
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList","btnGoList","btnApiList"])
+    ...mapGetters(["dict", "financeList", "btnGoList", "btnApiList", "tagList"])
   },
   mounted() {
     this.getList(1);
@@ -117,36 +134,35 @@ export default {
           pageNo,
           ...this.searchForm
         }
-      })
-        .then(res => {
-          this.total = res.data.total;
-          this.userList = res.data.list;
-        })
+      }).then(res => {
+        this.total = res.data.total;
+        this.userList = res.data.list;
+      });
     },
-    getInsert(billId) {
+    getInsert(id) {
       this.ajax({
-        url: "credit/web/sys/collectionrecord/listbypage",
-        data: { billId, pageSize: 500, pageNo: 1 }
+        url: "credit/web/sys/remark/query/billid",
+        data: { id, pageSize: 500, pageNo: 1 }
       }).then(res => {
         if (res.data.total == 0) {
-          this.$message("该用户催收记录为空!")
-          return false
+          this.$message("该用户催收记录为空!");
+          return false;
         }
         this.remarkDialog = true;
         this.insertList = res.data.list;
       });
     },
-    handleBack(drId){
+    handleBack(drId) {
       this.ajax({
-        url:"credit/web/sys/bill/myover/cancel",
-        data:{drId}
-      }).then(res=>{
+        url: "credit/web/sys/bill/myover/cancel",
+        data: { drId }
+      }).then(res => {
         this.$message({
-          type:"success",
-          message:"退单成功"
+          type: "success",
+          message: "退单成功"
         });
         this.getList(1);
-      })
+      });
     }
   }
 };

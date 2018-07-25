@@ -1,7 +1,7 @@
 <template>
     <div class="proDetail">
       <h4>修改联合运营业务</h4>
-        <el-form :inline='true' label-width="100px">
+        <el-form :inline='true' label-width="90px">
           <el-form-item label="运营模式" required>
             <el-radio-group v-model="proInfo.operationMode">
               <el-radio label="100001">仅审核</el-radio>
@@ -162,6 +162,9 @@
                         <el-form-item label="费用">
                             <el-input v-model="otherItem.value" placeholder="费用"></el-input>
                         </el-form-item>
+                        <el-form-item label="备注">
+                            <el-input v-model="otherItem.remark" placeholder="备注:150字以内" @change="handleRemark"></el-input>
+                        </el-form-item>
                         <el-button icon="delete" @click="delFee(index)"></el-button>
                     </li>
                 </div>
@@ -257,11 +260,13 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict","btnApiList"]),
+    ...mapGetters(["dict", "btnApiList"]),
     yearInterest() {
       //利息年化利率
       if (this.proInfo.params) {
-        return this.proInfo.params.interest.value * 1000000 * 100 * 360 / 1000000;
+        return (
+          this.proInfo.params.interest.value * 1000000 * 100 * 360 / 1000000
+        );
       }
     }
   },
@@ -269,6 +274,12 @@ export default {
     this.getProInfo();
   },
   methods: {
+    handleRemark(value) {
+      if (value.length > 150) {
+          this.$message("备注字数不能超过150字")
+         return false 
+      }
+    },
     getProInfo() {
       const cpRelId = this.$route.query.cpRelId;
       this.ajax({
@@ -284,34 +295,42 @@ export default {
           this.overdueInterest = res.data.params.overdueInterest;
           if (res.data.params.otherFee) {
             this.otherFee = res.data.params.otherFee;
-          };
+          }
           this.setValue();
         }
       });
     },
-    addFee(){
+    addFee() {
       if (this.otherFee.length < 5) {
-            this.otherFee.push({
-              title: "",
-              colMethod: "", //收取方式
-              calMethod: "", //计算方式
-              value: ""
-            });
-        }else{
-            this.$message("最多添加五项其他费用");
-        }
+        this.otherFee.push({
+          title: "",
+          colMethod: "", //收取方式
+          calMethod: "", //计算方式
+          value: "",
+          remark: ""
+        });
+      } else {
+        this.$message("最多添加五项其他费用");
+      }
     },
-    delFee(i){
-        this.otherFee.splice(i,1);
+    delFee(i) {
+      this.otherFee.splice(i, 1);
     },
     update() {
       const cpRelId = this.$route.query.cpRelId;
       const proInfo = this.proInfo;
       const infos = this.infoValidity;
       this.inSelect();
-      if (this.otherFee&&this.otherFee.length) {
-          proInfo.params.otherFee = this.otherFee;
-      };
+      if (this.otherFee && this.otherFee.length) {
+        for (let i = 0; i < this.otherFee.length; i++) {
+            const element = this.otherFee[i];
+            if (element.remark.length > 150) {
+                this.$message("备注字数不得超过150字");
+                return false;
+            }
+        }
+        proInfo.params.otherFee = this.otherFee;
+      }
       this.ajax({
         url: "credit/web/sys/product/update/public",
         data: { cpRelId, infos, ...proInfo }

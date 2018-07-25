@@ -7,7 +7,7 @@
             v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
           </el-option>
         </el-select>
-        <el-button type="primary" @click="allotOk">确定</el-button>
+        <el-button type="primary" @click="allotOk" v-loading.fullscreen.lock="fullscreenLoading">确定</el-button>
         <router-link to="record" v-if="hasBtnAuth('B10013',btnGoList)" style="float:right">
           <el-button type="primary"  v-text="getbtnName('B10013',btnGoList)"></el-button>
         </router-link>
@@ -16,7 +16,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -81,6 +81,7 @@ export default {
         nodeCreateTimeEnd: "",
         nodeCode: ""
       },
+      fullscreenLoading:false,
       userList: [],
       total: 0,
       loading:true,
@@ -89,7 +90,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList", "roleList", "nodeCode","btnGoList"])
+    ...mapGetters(["dict", "financeList", "roleList", "nodeCode","btnGoList"])
   },
   mounted() {
     this.getList(1);
@@ -143,6 +144,7 @@ export default {
         this.$message('请选择要分配给的审核人员');
         return false
       };
+      this.fullscreenLoading = true;
       const nodeIds = JSON.stringify(this.selectedList);
       const auditorId = this.selectedAuditorId;
       this.ajax({
@@ -155,6 +157,8 @@ export default {
           message:"申请单分配成功",
           type:'success'
         });
+        this.selectedList = [];
+        this.fullscreenLoading = false;
         this.getList(1)
       })
     }

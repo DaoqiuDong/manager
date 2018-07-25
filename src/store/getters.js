@@ -10,6 +10,7 @@ const getters = {
   pageSize:state => state.app.pageSize,
   dict:state => state.app.dict,
   productList:state => state.app.productList,
+  financeList:state => state.app.financeList,
   nodeCode:state => state.app.nodeCode,
   roleList:state => state.app.roleList,
   addrList:state => state.app.addrList,
@@ -19,5 +20,6 @@ const getters = {
   strDict:state => state.app.strDict,
   refuseCodeDict:state => state.app.refuseCodeDict,
   payList:state => state.app.payList,
+  tagList:state => state.app.tagList,
 };
 export default getters;

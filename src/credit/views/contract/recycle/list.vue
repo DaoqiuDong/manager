@@ -47,6 +47,16 @@
               <el-option label="打款失败" value="7"></el-option>
             </el-select>
           </el-form-item>
+          <el-form-item>
+            <el-select clearable v-model="searchForm.expressStatus" placeholder="物流状态">
+              <el-option
+                v-for="item in dict.express_status"
+                :key="item.name"
+                :label="item.title"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
             <el-button type="primary" @click="getList(1)">查询</el-button>
             <div class="search">
               <el-switch v-model="searchForm.isInvalid" @change="handleFail" :on-value="1" :off-value="0"></el-switch>
@@ -71,6 +81,12 @@
                 <span v-else-if="scope.row.status == 5">待打款</span>
                 <span v-else-if="scope.row.status == 6">打款中</span>
                 <span v-else-if="scope.row.status == 7">打款失败</span>
+                <span v-else>--</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="物流状态">
+              <template scope="scope">
+                <span v-if="!isEmpty(scope.row.expressStatus)">{{getDictTit(scope.row.expressStatus,dict.express_status)}}</span>
                 <span v-else>--</span>
               </template>
             </el-table-column>
@@ -123,7 +139,8 @@ export default {
         mobile: "",
         orderCode: "",
         status: "",
-        isInvalid: 0
+        isInvalid: 0,
+        expressStatus:""
       },
       handleBrandId: "",
       proList: [],
@@ -147,7 +164,6 @@ export default {
       "roleList",
       "btnApiList",
       "btnGoList",
-      "productList"
     ])
   },
   mounted() {

@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -14,14 +14,11 @@
           <el-form-item>
             <el-input v-model="searchForm.mobile" placeholder="手机号" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.overdueDays" placeholder="逾期天数" @change="getList(1)">
-              <el-option label="逾期一周" value="0~7"></el-option>
-              <el-option label="逾期二周" value="7~14"></el-option>
-              <el-option label="逾期三周" value="14~21"></el-option>
-              <el-option label="逾期四周" value="21~28"></el-option>
-              <el-option label="逾期四周以上" value="28"></el-option>
-            </el-select>
+          <el-form-item>
+            <el-input v-model.number.trim="searchForm.overdueDaysStart" placeholder="逾期天数开始" @keyup.enter.native="getList(1)"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model.number.trim="searchForm.overdueDaysEnd" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
             <el-select clearable v-model="searchForm.billStatus" placeholder="账单状态" @change="getList(1)">
@@ -66,7 +63,7 @@
         <el-dialog title="催收记录" :visible.sync="remarkDialog" size="tiny">
             <div>
               <li v-for="item in insertList" :key="item.createTime">
-                <h5>{{item.updateTime}}  {{item.accountRealName}}</h5>
+                <h5>{{item.createTime}}  {{item.accName}}</h5>
                 <p>{{item.content||" "}}</p>
               </li>
             </div>
@@ -84,21 +81,22 @@ export default {
     return {
       searchForm: {
         productId: "",
-        mobile:"",
+        mobile: "",
         realRepayTimeStart: "",
         realRepayTimeEnd: "",
-        overdueDays: "",
+        overdueDaysStart:"",
+        overdueDaysEnd:"",
         billStatus: "5"
       },
-      remarkDialog:false,
-      insertList:[],
+      remarkDialog: false,
+      insertList: [],
       userList: [],
       total: 0,
-      loading:true
+      loading: true
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList","btnGoList","btnApiList"])
+    ...mapGetters(["dict", "financeList", "btnGoList", "btnApiList"])
   },
   mounted() {
     this.getList(1);
@@ -122,22 +120,21 @@ export default {
           pageNo,
           ...this.searchForm
         }
-      })
-        .then(res => {
-          this.loading = false;
-          this.total = res.data.total;
-          this.userList = res.data.list;
-        })
-    },
-    getInsert(billId) {
-      this.ajax({
-        url: "credit/web/sys/collectionrecord/listbypage",
-        data: { billId, pageSize: 500, pageNo: 1 }
       }).then(res => {
-        if (res.data&&res.data.list.length) {
+        this.loading = false;
+        this.total = res.data.total;
+        this.userList = res.data.list;
+      });
+    },
+    getInsert(id) {
+      this.ajax({
+        url: "credit/web/sys/remark/query/billid",
+        data: { id, pageSize: 500, pageNo: 1 }
+      }).then(res => {
+        if (res.data && res.data.list.length) {
           this.insertList = res.data.list;
           this.remarkDialog = true;
-        }else{
+        } else {
           this.$message("催收记录为空");
         }
       });

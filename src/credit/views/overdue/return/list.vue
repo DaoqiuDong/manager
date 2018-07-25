@@ -23,16 +23,6 @@
           <el-form-item>
             <el-input v-model.number.trim="searchForm.overdueDaysEnd" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
-              <el-option
-                v-for="item in tagList"
-                :key="item.value"
-                :label="item.title"
-                :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
           <el-form-item>
             <el-date-picker v-model="searchForm.realRepayTimeStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectRealRepayTimeStart"></el-date-picker>
           </el-form-item>
@@ -40,6 +30,7 @@
             <el-date-picker v-model="searchForm.realRepayTimeEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectRealRepayTimeEnd"></el-date-picker>
           </el-form-item>
             <el-button type="primary" @click="getList(1)">查询</el-button>
+            <el-button type="primary" @click="exportExcel" v-if="hasBtnAuth('B20079',btnApiList)" v-text="getbtnName('B20079',btnApiList)" :loading="btnLoading" :disabled="btnLoading"></el-button>
         </el-form>
         
         <div>
@@ -54,20 +45,22 @@
                 <span>{{scope.row.termIndex}}/{{scope.row.totalTrem}}期</span>
               </template>
             </el-table-column>
-            <el-table-column label="催收时间" prop="lastOverTime" :formatter="(row) => emptyOf(row.lastOverTime)" min-width="140"></el-table-column>
-            <el-table-column label="催收人员" prop="lastOverName" :formatter="(row) => emptyOf(row.lastOverName)"></el-table-column>
-            <el-table-column label="催收标签">
+            <el-table-column label="还款时间" prop="realRepayTime" :formatter="(row) => emptyOf(row.realRepayTime)" min-width="140"></el-table-column>
+            <el-table-column label="还款总金额" prop="realRepayAmount" :formatter="(row) => count(row.realRepayAmount,'元')"></el-table-column>
+            <el-table-column label="还款本金" prop="realRepayPrincipal" :formatter="(row) => count(row.realRepayPrincipal,'元')"></el-table-column>
+            <el-table-column label="还款方式">
               <template scope="scope">
-                <span v-if="!isEmpty(scope.row.tagId)">{{getDictTit(scope.row.tagId,tagList)}}</span>
-                <span v-else>--</span>
+                <span v-if="scope.row.repayType==3||scope.row.repayType==7">线下还款</span>
+                <span v-else>线上还款</span>
               </template>
             </el-table-column>
+            <el-table-column label="催收人员" prop="lastOverName" :formatter="(row) => emptyOf(row.lastOverName)"></el-table-column>
             <el-table-column label="操作" align="center" min-width="140">
               <template scope="scope">
-                <router-link :to="{path:'detail',query:{billId:scope.row.billId,flowId:scope.row.flowId,contractId:scope.row.contractId}}" v-if="hasBtnAuth('B10022',btnGoList)">
-                  <el-button type="text" v-text="getbtnName('B10022',btnGoList)"></el-button>
+                <router-link :to="{path:'detail',query:{billId:scope.row.billId,flowId:scope.row.flowId,contractId:scope.row.contractId}}" v-if="hasBtnAuth('B10061',btnGoList)">
+                  <el-button type="text" v-text="getbtnName('B10061',btnGoList)"></el-button>
                 </router-link>
-                <el-button type="text" @click="getInsert(scope.row.billId)" v-if="hasBtnAuth('B20065',btnApiList)" v-text="getbtnName('B20065',btnApiList)"></el-button>
+                <el-button type="text" @click="getInsert(scope.row.billId)" v-if="hasBtnAuth('B20078',btnApiList)" v-text="getbtnName('B20078',btnApiList)"></el-button>
               </template>
               </el-table-column>
           </el-table>
@@ -103,6 +96,7 @@ export default {
         overdueDaysEnd: null,
         tagId: ""
       },
+      btnLoading:false,
       remarkDialog: false,
       insertList: [],
       userList: [],
@@ -127,7 +121,7 @@ export default {
       this.loading = true;
       const pageSize = this.pageSize;
       this.ajax({
-        url: "credit/web/sys/bill/overdue/no/repay",
+        url: "credit/web/sys/bill/overdue/repay",
         data: {
           pageSize,
           pageNo,
@@ -151,6 +145,23 @@ export default {
           this.$message("催收记录为空");
         }
       });
+    },
+    exportExcel() {
+      this.btnLoading = true;
+      this.ajax({
+        url: "credit/web/sys/bill/overdue/repay/exportexcel",
+        data: { ...this.searchForm },
+        responseType: "blob"
+      })
+        .then(res => {
+          this.$message({
+            message: "导出成功",
+            type: "success"
+          });
+        })
+        .finally(() => {
+          this.btnLoading = false;
+        });
     }
   }
 };

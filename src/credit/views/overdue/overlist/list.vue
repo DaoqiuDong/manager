@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -50,16 +50,16 @@ export default {
     return {
       searchForm: {
         productId: "",
-        mobile:"",
+        mobile: "",
         graceDays: ""
       },
       list: [],
       total: 0,
-      loading:true
+      loading: true
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList","btnGoList"])
+    ...mapGetters(["dict", "financeList", "btnGoList"])
   },
   mounted() {
     this.getList(1);
@@ -75,12 +75,11 @@ export default {
           pageNo,
           ...this.searchForm
         }
-      })
-        .then(res => {
-          this.loading = false;
-          this.total = res.data.total;
-          this.list = res.data.list;
-        })
+      }).then(res => {
+        this.loading = false;
+        this.total = res.data.total;
+        this.list = res.data.list;
+      });
     }
   }
 };

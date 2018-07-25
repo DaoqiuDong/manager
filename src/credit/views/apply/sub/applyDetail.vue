@@ -121,7 +121,7 @@
                 <ImageInfo :Image="infoData"/>
               </el-tab-pane>
               <el-tab-pane label="联系人信息" name="Contract">
-                <Contract :operatorData="contractData" :operatorData2="noMobileData"/>
+                <Contract :operatorData="contractData" :operatorData2="noMobileData" :operatorData3="callRecord" @getRecord="getUserCallRecord"/>
               </el-tab-pane>
               <el-tab-pane label="通话详单" name="Mobile">
                 <Mobile :operatorData="chartData" :visibile="echartsVisibile"/>
@@ -132,23 +132,32 @@
               <el-tab-pane label="LBS信息" name="Map">
                 <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
               </el-tab-pane>
-              <!-- <el-tab-pane label="通讯录" name="fourth">
+              <el-tab-pane label="通讯录" name="fourth">
                   <h5>通讯录</h5>
+                  <el-form :inline='true'>
+                    <el-form-item>
+                      <el-autocomplete v-model="addrName" :fetch-suggestions="querySearch" placeholder="请输入内容"></el-autocomplete>
+                    </el-form-item>
+                    <el-button type="primary" @click="getAddrList(1)">查询</el-button>
+                  </el-form>
                   <el-table :data="addrList" stripe  border>
-                      <el-table-column label="姓名" prop="name"></el-table-column>
-                      <el-table-column label="联系电话1" prop="mobile"></el-table-column>
-                      <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
-                      <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
+                    <el-table-column label="姓名" prop="name"></el-table-column>
+                    <el-table-column label="联系电话1" prop="mobile"></el-table-column>
+                    <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
+                    <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
                   </el-table>
                   <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
-              </el-tab-pane> -->
+              </el-tab-pane>
+              <el-tab-pane label="备注详情" name="Remark">
+                <Remark :remarkList="allRemarkInfo"/>
+              </el-tab-pane>
             </el-tabs>
         </div>
 
         <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny" @close="remarkList = []">
             <div v-for="item in remarkList" :key="item.createTime">
                 <p>{{item.createTime}}{{item.accountName}}</p>
-                <p v-if="item.contentType">原因:{{getRefuse(item.contentType,refuseCodeDict)}}</p>
+                <p v-if="!isEmpty(item.field3)">原因:{{item.field3}}</p>
                 <p>备注:{{item.content||" "}}</p>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -162,7 +171,7 @@
             </el-input>
             <span slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="addRemark">确 定</el-button>
-                <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>    
+                <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>
             </span>
         </el-dialog>
 
@@ -178,7 +187,7 @@
 
         <el-dialog title="审核拒绝" :visible.sync="refuseDialog" @open="getRefuseDict">
             <p>是否确认拒绝{{realName}}的借款申请</p>
-            <el-cascader :options="refuseDict" :props="refuseOption" placeholder="请选择拒绝原因" v-model="refuseType" style="width:100%;margin-bottom:20px"></el-cascader>
+            <el-cascader :options="refuseDict"  placeholder="请选择拒绝原因" :props="refuseOption" v-model="refuseType" style="width:100%;margin-bottom:20px"></el-cascader>
             <el-input type="textarea" :rows="4" placeholder="请输入拒绝备注"  v-model="refuseRemark">
             </el-input>
             <span slot="footer" class="dialog-footer">
@@ -186,6 +195,7 @@
                 <el-button type="primary" @click="refuseDialog = false">取 消</el-button>    
             </span>
         </el-dialog>
+
     </div>
 </template>
 <script>
@@ -194,7 +204,9 @@ import {
   ImageInfo,
   Contract,
   Mobile,
-  Other,BMap
+  Other,
+  BMap,
+  Remark
 } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
@@ -202,10 +214,11 @@ let echarts = require("echarts");
 export default {
   data() {
     return {
-      lbsInfo:{},
-      mapVisible:false,
-      tagType: "",
+      callRecord: {},
+      lbsInfo: {},
+      mapVisible: false,
       subTagBtn: false,
+      tagType: "",
       echartsVisibile: false,
       activeName: "Info",
       operatorId: "",
@@ -233,12 +246,27 @@ export default {
       addrList: [],
       addrListTotal: 0,
       uid: "",
-      refuseDict:[],
-      refuseOption:{
-        value:"code",
-        label:"desc",
-        children:"subOptionList"
-      }
+      refuseDict: [],
+      allRemarkInfo: [],
+      addrName:"",
+      refuseOption: {
+        value: "code",
+        label: "desc",
+        children: "subOptionList"
+      },
+      suggestionData:[{
+        value:"信"
+      },{
+        value:"贷"
+      },{
+        value:"催"
+      },{
+        value:"金"
+      },{
+        value:"钱"
+      },{
+        value:"中介"
+      }]
     };
   },
   components: {
@@ -246,17 +274,34 @@ export default {
     ImageInfo,
     Contract,
     Mobile,
-    Other,BMap
+    Other,
+    BMap,
+    Remark
   },
   computed: {
-    ...mapGetters(["dict", "nodeCode", "btnApiList","refuseCodeDict"])
+    ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
   mounted() {
     this.getInfo();
     this.getApplyList();
     this.getRefuseList();
+    this.getAllRemark();
   },
   methods: {
+    querySearch(queryString, cb){
+      var data = queryString ? this.suggestionData.filter(obj=>obj.value.indexOf(queryString) > -1) : this.suggestionData;
+      cb(data)
+    },
+    getAllRemark() {
+      const flowId = this.$route.query.id;
+      const pageSize = 500;
+      this.ajax({
+        url: "credit/web/sys/remark/query/list",
+        data: { flowId, pageSize }
+      }).then(res => {
+        this.allRemarkInfo = res.data.list;
+      });
+    },
     tabswitch(tabpane) {
       if (tabpane.name == "Mobile") {
         this.echartsVisibile = true;
@@ -265,22 +310,22 @@ export default {
         this.mapVisible = true;
       }
     },
-    getRefuseList(){
+    getRefuseList() {
       if (this.refuseCodeDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/all/refusal/codes"
+          url: "credit/web/sys/all/refusal/codes"
         }).then(res => {
-          this.$store.dispatch('getRefuseCodeDict',res.data)
-        })
+          this.$store.dispatch("getRefuseCodeDict", res.data);
+        });
       }
     },
-    getRefuseDict(){
+    getRefuseDict() {
       if (this.refuseDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/refusal/codes"
+          url: "credit/web/sys/refusal/codes"
         }).then(res => {
           this.refuseDict = res.data;
-        })
+        });
       }
     },
     subTag() {
@@ -297,14 +342,14 @@ export default {
         this.subTagBtn = false;
       });
     },
-    getLbsInfo(uid){
+    getLbsInfo(uid) {
       const flowId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/flow/findUserLbs",
-        data:{uid,flowId}
-      }).then(res=>{
+        url: "credit/web/sys/flow/findUserLbs",
+        data: { uid, flowId }
+      }).then(res => {
         this.lbsInfo = res.data;
-      })
+      });
     },
     getInfo() {
       const flowId = this.$route.query.id;
@@ -314,29 +359,42 @@ export default {
           flowId
         }
       }).then(res => {
-        this.userInfo = res.data;
-        this.operatorId = this.userInfo.infoData.operatorId;
-        this.uid = this.userInfo.uid;
-        this.infoData = this.userInfo.infoData;
-        this.aduitHistory = this.userInfo.aduitHistory;
+        let data = res.data;
+        this.operatorId = res.data.infoData.operatorId;
+        this.userInfo = data;
+        this.uid = res.data.uid;
+        this.infoData = res.data.infoData;
+        this.aduitHistory = res.data.aduitHistory;
         if (this.aduitHistory && this.aduitHistory.length) {
           const len = this.aduitHistory.length;
           this.tagType = this.aduitHistory[len - 1].tagType;
         }
         if (
-          !this.isEmpty(this.userInfo.manualAuitMap) &&
-          this.userInfo.manualAuitMap.nodeId
+          !this.isEmpty(res.data.manualAuitMap) &&
+          res.data.manualAuitMap.nodeId
         ) {
           this.pending = true;
-          this.manualAuitMap = this.userInfo.manualAuitMap;
+          this.manualAuitMap = res.data.manualAuitMap;
         }
-        if (this.userInfo.infoData.operatorId) {
-          this.getChartData(this.userInfo.infoData.operatorId);
-          this.getContractData(this.userInfo.infoData.operatorId);
-          this.getNotMobileData(this.userInfo.infoData.operatorId);
+        if (res.data.infoData.operatorId) {
+          this.getChartData(res.data.infoData.operatorId);
+          this.getContractData(res.data.infoData.operatorId);
+          this.getNotMobileData(res.data.infoData.operatorId);
+          this.getUserCallRecord(1);
         }
         this.getLbsInfo(this.uid);
-        // this.getAddrList(1);
+        this.getAddrList(1);
+      });
+    },
+    getUserCallRecord(pageNo) {
+      const flowId = this.$route.query.id;
+      const operatorId = this.operatorId;
+      const pageSize = this.pageSize;
+      this.ajax({
+        url: "credit/web/sys/rong/query/userWeekCallRecord",
+        data: { flowId, operatorId, pageNo, pageSize }
+      }).then(res => {
+        this.callRecord = res.data;
       });
     },
     getContractData(operatorId) {
@@ -344,7 +402,9 @@ export default {
       this.ajax({
         url: "credit/web/sys/rong/query/mobile",
         data: { operatorId, flowId }
-      }).then(res => [(this.contractData = res.data)]);
+      }).then(res => {
+        this.contractData = res.data;
+      });
     },
     getNotMobileData(operatorId) {
       this.ajax({
@@ -358,11 +418,12 @@ export default {
     },
     getAddrList(pageNo) {
       //通讯录
+      const name = this.addrName;
       const pageSize = this.pageSize;
       const uid = this.uid;
       this.ajax({
         url: "credit/web/sys/tcontact/query",
-        data: { uid, pageNo, pageSize }
+        data: { name,uid, pageNo, pageSize }
       }).then(res => {
         this.addrList = res.data.list;
         this.addrListTotal = res.data.total;
@@ -390,8 +451,9 @@ export default {
           message: "已拒绝该申请",
           type: "success"
         });
-        this.refuseDialog = false;
         this.getInfo();
+        this.getAllRemark();
+        this.refuseDialog = false;
         this.pending = false;
       });
     },
@@ -411,25 +473,29 @@ export default {
           message: "已通过该申请",
           type: "success"
         });
-        this.passDialog = false;
         this.getInfo();
+        this.getAllRemark();
+        this.passDialog = false;
         this.pending = false;
       });
     },
     addRemark() {
-      const nodeId = this.manualAuitMap.nodeId;
-      const nodeCode = this.manualAuitMap.nodeCode;
+      const id = this.manualAuitMap.nodeId;
+      const status = this.manualAuitMap.status;
       const content = this.remarkContent;
       if (this.isEmpty(content)) {
         this.$message("请填写备注信息再提交");
         return false;
       }
+      if (content.length > 120) {
+        this.$message("备注信息不得超过120字");
+        return false;
+      }
       this.ajax({
-        url: "credit/web/sys/flow/node/add/remark",
+        url: "credit/web/sys/remark/insert/node",
         data: {
-          nodeId,
-          nodeCode,
-          type: 1,
+          id,
+          status,
           content
         }
       }).then(res => {
@@ -438,6 +504,8 @@ export default {
           type: "success"
         });
         this.addRemarkDialog = false;
+        this.remarkContent = "";
+        this.getAllRemark();
       });
     },
     getApplyList() {
@@ -454,13 +522,13 @@ export default {
       });
     },
     getRemark(row) {
-      const nodeId = row.id;
+      const id = row.id;
       const pageNo = 1;
       const pageSize = 1000;
       this.ajax({
-        url: "credit/web/sys/flow/node/remark",
+        url: "credit/web/sys/remark/query/nodeid",
         data: {
-          nodeId,
+          id,
           pageNo,
           pageSize
         }

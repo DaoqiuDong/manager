@@ -6,7 +6,7 @@
           <el-option v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
           </el-option>
         </el-select>
-        <el-button type="primary" @click="allotOk">确定</el-button>
+        <el-button type="primary" @click="allotOk" v-loading.fullscreen.lock="fullscreenLoading">确定</el-button>
         <router-link to="record" v-if="hasBtnAuth('B10023',btnGoList)" style="float:right">
           <el-button type="primary" v-text="getbtnName('B10023',btnGoList)"></el-button>
         </router-link>
@@ -15,7 +15,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -75,6 +75,7 @@ export default {
         realRepayTimeStart: "",
         realRepayTimeEnd: ""
       },
+      fullscreenLoading:false,
       list: [],
       total: 0,
       billIds: [],
@@ -82,7 +83,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList", "roleList","btnGoList"])
+    ...mapGetters(["dict", "financeList", "roleList","btnGoList"])
   },
   mounted() {
     this.getList(1);
@@ -134,6 +135,7 @@ export default {
         this.$message('请选择要分配给的审核人员');
         return false
       };
+      this.fullscreenLoading = true;
       const billIds = this.billIds;
       const auditorId = this.auditorId;
       this.ajax({
@@ -146,6 +148,8 @@ export default {
           message:"申请单分配成功",
           type:'success'
         });
+        this.fullscreenLoading = false;
+        this.billIds = [];
         this.getList(1)
       })
     }

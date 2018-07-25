@@ -123,6 +123,8 @@ export const btnMap = {
   B10057: "brand/hot/config", //热门回收配置
   B10058: "brand/hot/addhot", //热门回收添加
   B10059: "contract/recycle/detail", //回收订单详情
+  B10060: "overdue/allot/sucList", //催收工作分配已摧回
+  B10061: "overdue/return/detail", //逾期已还详情
   B50001: "analyse/detail", //执行记录详情
   B50002: "strategy/list/addstr", //添加策略
   B50003: "strategy/list/detail", //查看策略
@@ -205,4 +207,6 @@ B20074退单（催收分配管理退单）
 B20075确认回收（回收订单确认回收）
 B20076导出（回收订单导出）
 B20077确定（品质回收配置修改）
+B20078备注（逾期已还备注）
+B20079导出（逾期已还导出）
  */

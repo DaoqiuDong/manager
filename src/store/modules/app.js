@@ -1,17 +1,16 @@
-import Cookies from 'js-cookie';
-import store from 'store';
-
 const app = {
   state: {
     dict: {},
     productList: [],
+    financeList:[],
     nodeCode: [],
     roleList: [],
     addrList:[],
     sourceList:[],
     strDict:{},
     refuseCodeDict:[],
-    payList:[]
+    payList:[],
+    tagList:[]
   },
   mutations: {
     PUSH_DICT: (state, list) => {
@@ -19,6 +18,9 @@ const app = {
     },
     PUSH_PROLIST: (state, arr) => {
       state.productList = arr;
+    },
+    PUSH_FINPROLIST: (state, arr) => {
+      state.financeList = arr;
     },
     PUSH_NODECODE: (state, obj) => {
       state.nodeCode = obj;
@@ -41,12 +43,20 @@ const app = {
     PUSH_PAYLIST:(state,arr) => {
       state.payList = arr;
     },
+    PUSH_TAGLIST:(state,arr) => {
+      state.tagList = arr;
+    },
   },
   actions: {
     getDict({
       commit
     }, list) {
       commit('PUSH_DICT', list);
+    },
+    getFinProList({
+      commit
+    }, arr) {
+      commit('PUSH_FINPROLIST', arr)
     },
     getProList({
       commit
@@ -87,6 +97,11 @@ const app = {
       commit
     }, arr) {
       commit('PUSH_PAYLIST', arr)
+    },
+    getTagList({
+      commit
+    }, arr) {
+      commit('PUSH_TAGLIST', arr)
     },
   }
 };

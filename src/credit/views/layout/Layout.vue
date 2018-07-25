@@ -24,45 +24,60 @@ export default {
     this.getDict();
     this.getNodeCode();
     this.getPayList();
+    this.getTagList();
   },
   methods: {
+    getFinanceList(){
+      this.ajax({
+        url: "credit/web/sys/product/query/dict/finance"
+      }).then(res => {
+        this.$store.dispatch("getFinProList", res.data);
+      });
+    },
     getDict() {
       this.ajax({
         url: "credit/web/sys/dictlist"
-      })
-        .then(res => {
-          this.$store.dispatch("getDict", res.data);
-          this.getProList();
-          this.getAddrList();
-        })
-    },
-    getProList(){
-      this.ajax({
-        url:"credit/web/sys/product/queryproductdict"
       }).then(res => {
-        this.$store.dispatch('getProList',res.data)
-      })
+        this.$store.dispatch("getDict", res.data);
+        this.getProList();
+        this.getFinanceList();
+        this.getAddrList();
+      });
     },
-    getNodeCode(){
+    getProList() {
       this.ajax({
-        url:"credit/web/sys/flowcode/dict"
+        url: "credit/web/sys/product/queryproductdict"
       }).then(res => {
-        this.$store.dispatch('getNodeCode',res.data);
-      })
+        this.$store.dispatch("getProList", res.data);
+      });
     },
-    getAddrList(){
+    getNodeCode() {
       this.ajax({
-        url:"credit/web/sys/addr/all"
+        url: "credit/web/sys/flowcode/dict"
       }).then(res => {
-          this.$store.dispatch('getAddrList',res.data)
-      })
+        this.$store.dispatch("getNodeCode", res.data);
+      });
     },
-    getPayList(){
+    getAddrList() {
       this.ajax({
-        url:"credit/web/sys/pay/channel"
+        url: "credit/web/sys/addr/all"
       }).then(res => {
-          this.$store.dispatch('getPayList',res.data.list)
-      })
+        this.$store.dispatch("getAddrList", res.data);
+      });
+    },
+    getPayList() {
+      this.ajax({
+        url: "credit/web/sys/pay/channel"
+      }).then(res => {
+        this.$store.dispatch("getPayList", res.data.list);
+      });
+    },
+    getTagList() {
+      this.ajax({
+        url: "credit/web/sys/tag/query"
+      }).then(res => {
+        this.$store.dispatch("getTagList", res.data);
+      });
     }
   }
 };

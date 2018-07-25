@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -26,6 +26,16 @@
               <el-option label="逾期未还" value="5"></el-option>         
             </el-select>
           </el-form-item>
+          <el-form-item>   
+            <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
+              <el-option
+                v-for="item in tagList"
+                :key="item.value"
+                :label="item.title"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <el-date-picker v-model="searchForm.realRepayTimeStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectRealRepayTimeStart"></el-date-picker>
           </el-form-item>
@@ -33,6 +43,9 @@
             <el-date-picker v-model="searchForm.realRepayTimeEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectRealRepayTimeEnd"></el-date-picker>
           </el-form-item>
             <el-button type="primary" @click="getList(1)">查询</el-button>
+            <router-link  v-if="hasBtnAuth('B10060',btnGoList)" :to="{path:'sucList',query:{id:$route.query.id}}">
+              <el-button type="primary" v-text="getbtnName('B10060',btnGoList)"></el-button>
+            </router-link>
         </el-form>
         
         <div>
@@ -48,6 +61,12 @@
                 <span v-else>逾期未还</span>      
               </template>
             </el-table-column>
+            <el-table-column label="催收标签">
+              <template scope="scope">
+                <span v-if="!isEmpty(scope.row.tagId)">{{getDictTit(scope.row.tagId,tagList)}}</span>
+                <span v-else>--</span>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" align="center" min-width="140">
               <template scope="scope">
                 <el-button type="text" v-if="hasBtnAuth('B20074',btnApiList)" v-text="getbtnName('B20074',btnApiList)" @click="handleBack(scope.row.drId)"></el-button>
@@ -56,7 +75,6 @@
           </el-table>
           <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
         </div>
-
     </div>
 </template>
 <script>
@@ -67,19 +85,20 @@ export default {
     return {
       searchForm: {
         productId: "",
-        mobile:"",
+        mobile: "",
         realRepayTimeStart: "",
         realRepayTimeEnd: "",
         overdueDaysStart: null,
         overdueDaysEnd: null,
-        billStatus: "5"
+        billStatus: "5",
+        tagId: ""
       },
       userList: [],
       total: 0
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList","btnGoList","btnApiList"])
+    ...mapGetters(["dict", "financeList", "btnGoList", "btnApiList", "tagList"])
   },
   mounted() {
     this.getList(1);
@@ -102,23 +121,23 @@ export default {
           pageNo,
           ...this.searchForm
         }
-      })
-        .then(res => {
-          this.total = res.data.total;
-          this.userList = res.data.list;
-        })
+      }).then(res => {
+        this.total = res.data.total;
+        this.userList = res.data.list;
+      });
     },
-    handleBack(drId){
+    handleBack(drId) {
       const auditorId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/bill/admin/cancel",
-        data:{drId,auditorId}
-      }).then(res=>{
+        url: "credit/web/sys/bill/admin/cancel",
+        data: { drId, auditorId }
+      }).then(res => {
         this.$message({
-          type:"success",
-          message:"退单成功"
-        })
-      })
+          type: "success",
+          message: "退单成功"
+        });
+        this.getList(1);
+      });
     }
   }
 };

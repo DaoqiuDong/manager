@@ -171,7 +171,7 @@
         <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny" @close="remarkList = []">
             <div v-for="item in remarkList" :key="item.createTime">
                 <p>{{item.createTime}}{{item.accountName}}</p>
-                <p v-if="item.contentType">原因:{{getRefuse(item.contentType,refuseCodeDict)}}</p>
+                <p v-if="!isEmpty(item.field3)">原因:{{item.field3}}</p>
                 <p>备注:{{item.content||" "}}</p>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -332,13 +332,13 @@ export default {
       });
     },
     getRemark(row) {
-      const nodeId = row.id;
+      const id = row.id;
       const pageNo = 1;
       const pageSize = 1000;
       this.ajax({
-        url: "credit/web/sys/flow/node/remark",
+        url: "credit/web/sys/remark/query/nodeid",
         data: {
-          nodeId,
+          id,
           pageNo,
           pageSize
         }

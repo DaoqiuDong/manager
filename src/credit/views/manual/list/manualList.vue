@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -102,9 +102,9 @@
         <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny">
             <div>
               <li v-for="item in handleRow.list" :key="item.createTime">
-                <h5>{{item.updateTime}}  {{item.accountName}}</h5>
+                <h5>{{item.createTime}}  {{item.accName}}</h5>
+                <p v-show="!isEmpty(item.field3)">{{item.field3}}</p>
                 <p>{{item.content||" "}}</p>
-                <p v-if="item.contentType">{{getRefuse(item.contentType,refuseCodeDict)}}</p>
               </li>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -139,7 +139,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["productList","roleList","nodeCode","btnGoList","refuseCodeDict"])
+    ...mapGetters(["financeList","roleList","nodeCode","btnGoList","refuseCodeDict"])
   },
   mounted() {
     this.getList(1);
@@ -183,10 +183,10 @@ export default {
         });
     },
     getAllRemark(row){
-      const nodeId = row.nodeId;
+      const id = row.nodeId;
       this.ajax({
-        url:"credit/web/sys/flow/node/remark",
-        data:{nodeId,pageNo:1,pageSize:1000}
+        url:"credit/web/sys/remark/query/nodeid",
+        data:{id,pageNo:1,pageSize:1000}
       }).then(res => {
         if (!this.isEmpty(res.data.list)) {
           this.remarkDialog = true;

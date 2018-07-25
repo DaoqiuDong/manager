@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -40,12 +40,12 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-select clearable v-model="searchForm.auditorId" placeholder="审核员" @change="getList(1)">
+            <el-select clearable v-model="searchForm.tagType" placeholder="标签状态" @change="getList(1)">
               <el-option
-                v-for="item in roleList"
-                :key="item.accountId"
-                :label="item.accountRealName"
-                :value="item.accountId">
+                v-for="tag in dict.tag_type"
+                :key="tag.name"
+                :label="tag.title"
+                :value="tag.value">
               </el-option>
             </el-select>
           </el-form-item>
@@ -78,6 +78,12 @@
               </template>
             </el-table-column>
             <el-table-column label="审核完成时间" prop="auditorTime" :formatter="(row) => emptyOf(row.auditorTime)"></el-table-column>
+            <el-table-column label="标签状态">
+              <template scope="scope">
+                <span v-if="!isEmpty(scope.row.tagType)&&scope.row.tagType!=0">{{getDictTit(scope.row.tagType,dict.tag_type)}}</span>
+                <span v-else>无标签</span>
+              </template>
+            </el-table-column>
             <el-table-column label="审核人员">
               <template scope="scope">
                 <span v-if="scope.row.auditorName">{{scope.row.auditorName}}</span>
@@ -100,9 +106,9 @@
         <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny">
             <div>
               <li v-for="item in handleRow.list" :key="item.createTime">
-                <h5>{{item.updateTime}}  {{item.accountName}}</h5>
+                <h5>{{item.createTime}}  {{item.accName}}</h5>
+                <p v-show="!isEmpty(item.field3)">{{item.field3}}</p>
                 <p>{{item.content||" "}}</p>
-                <p v-if="item.contentType">{{getRefuse(item.contentType,refuseCodeDict)}}</p>
               </li>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -119,35 +125,42 @@ export default {
     return {
       searchForm: {
         productId: "",
-        scoreStart:"",
-        scoreEnd:"",
+        scoreStart: "",
+        scoreEnd: "",
         nodeCreateTimeStart: "",
         nodeCreateTimeEnd: "",
         nodeCode: "",
         nodeStatus: "",
-        auditorId: "",
-        mobile:""
+        mobile: "",
+        tagType: ""
       },
-      handleRow:{},
-      remarkDialog:false,
+      handleRow: {},
+      remarkDialog: false,
       userList: [],
       total: 0,
-      loading:true
+      loading: true
     };
   },
   computed: {
-    ...mapGetters(["dict","productList","roleList","nodeCode","btnGoList","btnApiList","refuseCodeDict"])
+    ...mapGetters([
+      "dict",
+      "financeList",
+      "nodeCode",
+      "btnGoList",
+      "btnApiList",
+      "refuseCodeDict"
+    ])
   },
   mounted() {
     this.getList(1);
-    this.getRefuseDict()
+    this.getRefuseDict();
   },
   methods: {
-    selectStartTime(time){
+    selectStartTime(time) {
       this.searchForm.nodeCreateTimeStart = time;
       this.getList(1);
     },
-    selectEndTime(time){
+    selectEndTime(time) {
       this.searchForm.nodeCreateTimeEnd = time;
       this.getList(1);
     },
@@ -161,8 +174,7 @@ export default {
           pageNo,
           ...this.searchForm
         }
-      })
-        .then(res => {
+      }).then(res => {
           this.loading = false;
           this.total = res.data.total;
           this.userList = res.data.list;
@@ -171,49 +183,57 @@ export default {
           console.log(err);
         });
     },
-    cancelBack(row){
+    cancelBack(row) {
       //退单
-      this.$confirm("确定退回"+row.applyName+"的申请单吗，退单后申请单会返回到待分配列表中","退单",{
-        confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-      }).then(() => {
-        const drId = row.drId;
-        this.ajax({
-          url:"credit/web/sys/flow/distribution/cancel",
-          data:{drId}
-        }).then(res => {
-          this.$message({
-            message:"退单成功",
-            type:"success"
+      this.$confirm(
+        "确定退回" +
+          row.applyName +
+          "的申请单吗，退单后申请单会返回到待分配列表中",
+        "退单",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      )
+        .then(() => {
+          const drId = row.drId;
+          this.ajax({
+            url: "credit/web/sys/flow/distribution/cancel",
+            data: { drId }
+          }).then(res => {
+            this.$message({
+              message: "退单成功",
+              type: "success"
+            });
+            this.getList(1);
           });
-          this.getList(1);
         })
-      }).catch(() => {
-        this.$message("已取消退单");
-      })
+        .catch(() => {
+          this.$message("已取消退单");
+        });
     },
-    getAllRemark(row){
-      const nodeId = row.nodeId;
+    getAllRemark(row) {
+      const id = row.nodeId;
       this.ajax({
-        url:"credit/web/sys/flow/node/remark",
-        data:{nodeId,pageNo:1,pageSize:1000}
+        url: "credit/web/sys/remark/query/nodeid",
+        data: { id, pageNo: 1, pageSize: 1000 }
       }).then(res => {
         if (!this.isEmpty(res.data.list)) {
           this.remarkDialog = true;
           this.handleRow = res.data;
-        }else{
-          this.$message("该申请单无备注信息")
+        } else {
+          this.$message("该申请单无备注信息");
         }
-      })
+      });
     },
-    getRefuseDict(){
+    getRefuseDict() {
       if (this.refuseCodeDict.length == 0) {
         this.ajax({
-          url:"credit/web/sys/all/refusal/codes"
+          url: "credit/web/sys/all/refusal/codes"
         }).then(res => {
-          this.$store.dispatch('getRefuseCodeDict',res.data)
-        })
+          this.$store.dispatch("getRefuseCodeDict", res.data);
+        });
       }
     }
   }

@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -18,10 +18,10 @@
             <el-input v-model.trim="searchForm.flowCode" placeholder="申请单号" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-date-picker v-model="searchForm.flowStartTime" type="date" placeholder="申请开始时间" format="yyyy-MM-dd" @change="selectflowStartTime"></el-date-picker>
+            <el-date-picker v-model="searchForm.flowStartTime" type="date" placeholder="申请开始时间" format="yyyy-MM-dd" @change="selectflowStartTime" :picker-options="startTimeOption"></el-date-picker>
           </el-form-item>
           <el-form-item>
-            <el-date-picker v-model="searchForm.flowEndTime" type="date" placeholder="申请结束时间"  format="yyyy-MM-dd"  @change="selectflowEndTime"></el-date-picker>
+            <el-date-picker v-model="searchForm.flowEndTime" type="date" placeholder="申请结束时间"  format="yyyy-MM-dd"  @change="selectflowEndTime" :picker-options="endTimeOption"></el-date-picker>
           </el-form-item>
           <el-form-item>
             <el-select clearable v-model="searchForm.nodeCode" placeholder="当前节点" @change="getList(1)">
@@ -95,6 +95,7 @@ import { mapGetters } from "vuex";
 
 export default {
   data() {
+    let _this = this;
     return {
       searchForm: {
         productId: "",
@@ -106,6 +107,19 @@ export default {
         flowCode: "",
         isInvalid: 0
       },
+      startTimeOption: {
+        disabledDate(time) {
+          return time.getTime() > Date.now()||time.getTime() > new Date(_this.searchForm.flowEndTime).getTime() - 8.64e7;
+        }
+      },
+      endTimeOption: {
+        disabledDate(time) {
+          return (
+            time.getTime() > Date.now() ||
+            time.getTime() < new Date(_this.searchForm.flowStartTime).getTime()
+          ); 
+        }
+      },
       showText: "隐藏失效申请单",
       applyList: [],
       total: 0,
@@ -113,7 +127,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList", "nodeCode", "btnGoList"])
+    ...mapGetters(["dict", "financeList", "nodeCode", "btnGoList"])
   },
   mounted() {
     this.getList(1);

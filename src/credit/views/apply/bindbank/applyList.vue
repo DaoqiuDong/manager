@@ -4,7 +4,7 @@
           <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
-                v-for="item in productList"
+                v-for="item in financeList"
                 :key="item.productId"
                 :label="item.productName"
                 :value="item.productId">
@@ -18,10 +18,10 @@
             <el-input v-model.trim="searchForm.flowCode" placeholder="申请单号" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-date-picker v-model="searchForm.nodeStartTime" type="date" placeholder="节点开始时间" format="yyyy-MM-dd" @change="selectnodeStartTime"></el-date-picker>
+            <el-date-picker v-model="searchForm.nodeStartTime" type="date" placeholder="节点开始时间" format="yyyy-MM-dd" @change="selectnodeStartTime" :picker-options="startTimeOption"></el-date-picker>
           </el-form-item>
           <el-form-item>
-            <el-date-picker v-model="searchForm.nodeEndTime" type="date" placeholder="节点结束时间"  format="yyyy-MM-dd"  @change="selectnodeEndTime"></el-date-picker>
+            <el-date-picker v-model="searchForm.nodeEndTime" type="date" placeholder="节点结束时间"  format="yyyy-MM-dd"  @change="selectnodeEndTime" :picker-options="endTimeOption"></el-date-picker>
           </el-form-item>
           <el-form-item>
             <el-select clearable v-model="searchForm.nodeStatus" placeholder="节点状态" @change="getList(1)">
@@ -57,7 +57,7 @@
                 <span v-else-if="scope.row.nodeStatus == 1">进行中</span>
                 <span v-else-if="scope.row.nodeStatus == 2">通过</span>
                 <span v-else-if="scope.row.nodeStatus == 3">拒绝</span>
-                <span v-else>--</span>                
+                <span v-else>--</span>
               </template>
             </el-table-column>
             <el-table-column label="完成时间" prop="nodeFinishTime" min-width="120" :formatter="(row) => emptyOf(row.nodeFinishTime)"></el-table-column>
@@ -67,7 +67,7 @@
                   <el-button type="text" v-text="getbtnName('B10010',btnGoList)"></el-button>
                 </router-link>
               </template>
-            </el-table-column>        
+            </el-table-column>
           </el-table>
           <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
           </el-pagination>
@@ -79,6 +79,7 @@ import { mapGetters } from "vuex";
 
 export default {
   data() {
+    let _this = this;
     return {
       searchForm: {
         productId: "",
@@ -89,6 +90,19 @@ export default {
         flowCode: "",
         isInvalid:0
       },
+      startTimeOption: {
+        disabledDate(time) {
+          return time.getTime() > Date.now()||time.getTime() > new Date(_this.searchForm.nodeEndTime).getTime() - 8.64e7;
+        }
+      },
+      endTimeOption: {
+        disabledDate(time) {
+          return (
+            time.getTime() > Date.now()||
+            time.getTime() < new Date(_this.searchForm.nodeStartTime).getTime()
+          ); 
+        }
+      },
       showText:"隐藏失效申请单",
       applyList: [],
       total: 0,
@@ -96,7 +110,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "productList", "btnGoList"])
+    ...mapGetters(["dict", "financeList", "btnGoList"])
   },
   mounted() {
     this.getList(1);
