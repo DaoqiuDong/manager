@@ -7,10 +7,12 @@ export { default as Contract } from './ContractInfo';
 
 export { default as Mobile } from './MobileInfo';
 
-export { default as Rule } from './RuleInfo';
+export { default as Relate } from './Relate';
 
 export { default as Other } from './Other';
 
 export { default as BMap } from './BMap';
 
 export { default as Remark } from './RemarkInfo';
+
+export { default as Detail } from './Detail';

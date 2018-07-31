@@ -140,6 +140,30 @@
                     </el-input>
                 </el-form-item><br/>
                 <p><i>*所有费率精确至小数点后六位(百万分位)，所有费用计算只进不舍</i></p>
+
+                <div>
+                    <h4>
+                        <span>贷前支付费用</span>
+                        <el-button type="primary" icon="plus" @click="addPreFee">添加</el-button>
+                    </h4>
+                    <li v-for="(preFee,index) in preFeeList" :key="index">
+                        <el-form-item label="费用名称">
+                            <el-input v-model="preFee.title" placeholder="费用名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="计算方式">
+                            <el-select v-model="preFee.calMethod" placeholder="计算方式">
+                                <el-option :label="cal.title" :value="cal.value" v-for="cal in dict.cal_method" :key="cal.name"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="费用">
+                            <el-input v-model="preFee.value" placeholder="费用"></el-input>
+                        </el-form-item>
+                        <el-form-item label="备注">
+                            <el-input v-model="preFee.remark" placeholder="备注:150字以内" @change="handleRemark"></el-input>
+                        </el-form-item>
+                        <el-button icon="delete" @click="delPreFee(index)"></el-button>
+                    </li>
+                </div>
                 <div>
                     <h4>
                         <span>其他费用</span>
@@ -155,7 +179,7 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item label="计算方式">
-                            <el-select v-model="otherItem.calMethod" placeholder="收取方式">
+                            <el-select v-model="otherItem.calMethod" placeholder="计算方式">
                                 <el-option :label="cal.title" :value="cal.value" v-for="cal in dict.cal_method" :key="cal.name"></el-option>
                             </el-select>
                         </el-form-item>
@@ -168,8 +192,8 @@
                         <el-button icon="delete" @click="delFee(index)"></el-button>
                     </li>
                 </div>
-          </div>
-          <div>
+            </div>
+            <div>
             <!-- <el-form-item label="征信审核费">
                 <el-input v-model="proInfo.adfee" placeholder="征信审核费">
                     <template slot="append">
@@ -253,6 +277,7 @@ export default {
         value: "",
         colMethod: 2
       },
+      preFeeList: [],
       overdueInterestVal: "",
       otherFee: [],
       other: {},
@@ -276,8 +301,8 @@ export default {
   methods: {
     handleRemark(value) {
       if (value.length > 150) {
-          this.$message("备注字数不能超过150字")
-         return false 
+        this.$message("备注字数不能超过150字");
+        return false;
       }
     },
     getProInfo() {
@@ -293,8 +318,11 @@ export default {
           this.interest = res.data.params.interest;
           this.overdueFee = res.data.params.overdueFee;
           this.overdueInterest = res.data.params.overdueInterest;
-          if (res.data.params.otherFee) {
+          if (res.data.params.otherFee&&!this.isEmpty(res.data.params.otherFee)) {
             this.otherFee = res.data.params.otherFee;
+          }
+          if (res.data.params.preFee&&!this.isEmpty(res.data.params.preFee)&&Array.isArray(res.data.params.preFee)) {
+              this.preFeeList = res.data.params.preFee;
           }
           this.setValue();
         }
@@ -313,8 +341,24 @@ export default {
         this.$message("最多添加五项其他费用");
       }
     },
+    addPreFee() {
+      if (this.preFeeList.length < 5) {
+        this.preFeeList.push({
+          title: "",
+        //   colMethod: "", //收取方式
+          calMethod: "", //计算方式
+          value: "",
+          remark: ""
+        });
+      } else {
+        this.$message("最多添加五项贷前支付费用");
+      }
+    },
     delFee(i) {
       this.otherFee.splice(i, 1);
+    },
+    delPreFee(i) {
+      this.preFeeList.splice(i, 1);
     },
     update() {
       const cpRelId = this.$route.query.cpRelId;
@@ -323,14 +367,15 @@ export default {
       this.inSelect();
       if (this.otherFee && this.otherFee.length) {
         for (let i = 0; i < this.otherFee.length; i++) {
-            const element = this.otherFee[i];
-            if (element.remark.length > 150) {
-                this.$message("备注字数不得超过150字");
-                return false;
-            }
+          const element = this.otherFee[i];
+          if (element.remark.length > 150) {
+            this.$message("备注字数不得超过150字");
+            return false;
+          }
         }
         proInfo.params.otherFee = this.otherFee;
       }
+      proInfo.params.preFee = this.preFeeList;
       this.ajax({
         url: "credit/web/sys/product/update/public",
         data: { cpRelId, infos, ...proInfo }

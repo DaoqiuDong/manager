@@ -1602,7 +1602,7 @@ export default {
             return true;
         },
         Vue.prototype.hasBtnAuth = function (code,btnList) {
-            if (btnList&&btnList.length) {
+            if (code&&btnList&&btnList.length) {
                 return btnList.some( btnItem => {
                     return btnItem[code]
                 });

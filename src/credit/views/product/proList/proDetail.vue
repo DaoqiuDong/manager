@@ -138,6 +138,30 @@
 
                 <div>
                     <h4>
+                        <span>贷前支付费用</span>
+                        <el-button type="primary" icon="plus" @click="addPreFee">添加</el-button>
+                    </h4>
+                    <li v-for="(preFee,index) in preFeeList" :key="index">
+                        <el-form-item label="费用名称">
+                            <el-input v-model="preFee.title" placeholder="费用名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="计算方式">
+                            <el-select v-model="preFee.calMethod" placeholder="计算方式">
+                                <el-option :label="cal.title" :value="cal.value" v-for="cal in dict.cal_method" :key="cal.name"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="费用">
+                            <el-input v-model="preFee.value" placeholder="费用"></el-input>
+                        </el-form-item>
+                        <el-form-item label="备注">
+                            <el-input v-model="preFee.remark" placeholder="备注:150字以内" @change="handleRemark"></el-input>
+                        </el-form-item>
+                        <el-button icon="delete" @click="delPreFee(index)"></el-button>
+                    </li>
+                </div>
+
+                <div>
+                    <h4>
                         <span>其他费用</span>
                         <el-button type="primary" icon="plus" @click="addFee">添加</el-button>
                     </h4>
@@ -239,6 +263,7 @@ export default {
         value: "",
         colMethod: 2
       },
+      preFeeList: [],
       overdueInterestVal: "",
       otherFee: [],
       unitList: [
@@ -297,9 +322,12 @@ export default {
         this.interest = res.data.interest;
         this.overdueFee = res.data.overdueFee;
         this.overdueInterest = res.data.overdueInterest;
-        if (!this.isEmpty(res.data.otherFee)) {
-          this.otherFee = res.data.otherFee;
-        }
+        if (res.data.otherFee&&!this.isEmpty(res.data.otherFee)) {
+            this.otherFee = res.data.otherFee;
+          }
+          if (res.data.preFee&&!this.isEmpty(res.data.preFee)&&Array.isArray(res.data.preFee)) {
+              this.preFeeList = res.data.preFee;
+          }
         this.setValue();
       });
     },
@@ -316,8 +344,24 @@ export default {
         this.$message("最多添加五项其他费用");
       }
     },
+    addPreFee() {
+      if (this.preFeeList.length < 5) {
+        this.preFeeList.push({
+          title: "",
+        //   colMethod: "", //收取方式
+          calMethod: "", //计算方式
+          value: "",
+          remark: ""
+        });
+      } else {
+        this.$message("最多添加五项贷前支付费用");
+      }
+    },
     delFee(i) {
       this.otherFee.splice(i, 1);
+    },
+    delPreFee(i) {
+      this.preFeeList.splice(i, 1);
     },
     update() {
       const productId = this.$route.query.id;
@@ -337,6 +381,7 @@ export default {
         }
         otherFee = this.otherFee;
       }
+      const preFee = this.preFeeList;
       this.ajax({
         url: "credit/web/sys/product/update",
         data: {
@@ -347,6 +392,7 @@ export default {
           overdueInterest,
           infos,
           productId,
+          preFee,
           otherFee
         }
       }).then(res => {
