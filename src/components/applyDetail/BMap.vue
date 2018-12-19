@@ -1,19 +1,19 @@
 <template>
-    <div>
-      <el-row v-if="!isEmpty(lbsInfo)">
-        <el-col :span="12">
-          <p>最近登录时间: <span>{{lbsInfo.location[0].location_time}}</span></p>
-        </el-col>
-        <el-col :span="12">
-          <p>最近登录地点: <span>{{lbsInfo.location[0].addr}}</span></p>
-        </el-col>
-      </el-row>
-        <el-table :data="deviceInfo" :stripe='true'>
-            <el-table-column label="手机品牌" prop="brand"></el-table-column>
-            <el-table-column label="手机型号" prop="model"></el-table-column>
-        </el-table>
-        <div id="baiduMap"></div>
-    </div>
+  <div>
+    <el-row v-if="!isEmpty(lbsInfo)">
+      <el-col :span="12">
+        <p>最近登录时间: <span>{{lbsInfo.location[0].location_time}}</span></p>
+      </el-col>
+      <el-col :span="12">
+        <p>最近登录地点: <span>{{lbsInfo.location[0].addr}}</span></p>
+      </el-col>
+    </el-row>
+    <el-table :data="deviceInfo" :stripe='true'>
+      <el-table-column label="手机品牌" prop="brand"></el-table-column>
+      <el-table-column label="手机型号" prop="model"></el-table-column>
+    </el-table>
+    <div id="baiduMap"></div>
+  </div>
 </template>
 <script>
 import home from "@/assets/home.png";

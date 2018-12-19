@@ -1,8 +1,11 @@
 <template>
-  <Detail passCode="B20029" remarkCode="B20028" refuseCode="B20030"/>
+  <div>
+    <Quota passCode="B20029" remarkCode="B20028" refuseCode="B20030" :applyType="$route.query.type" v-if="$route.query.type == 4||$route.query.type == 5"/>
+    <Detail v-else passCode="B20029" remarkCode="B20028" refuseCode="B20030"/>
+  </div>
 </template>
 <script>
-import {Detail} from "@/components/applyDetail";
+import {Detail,Quota} from "@/components/applyDetail";
 export default {
 
   data(){
@@ -11,7 +14,7 @@ export default {
     }
   },
   components:{
-    Detail
+    Detail,Quota
   }
 }
 </script>

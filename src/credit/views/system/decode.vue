@@ -1,84 +1,72 @@
 <template>
-    <div>
-        <el-form :inline='true' class="cache_form">
-            <el-form-item label="Key">  
-                <!-- <el-input v-model="searchKey"></el-input> -->
-                <el-autocomplete class="inline-input" v-model="searchKey" :fetch-suggestions="querySearch" placeholder="请输入缓存Key"></el-autocomplete>
-            </el-form-item>
-            <el-button type="primary" @click="getData">查询</el-button>
-        </el-form>
-        <div class="cacheData">{{cacheData}}</div>
-        <el-button type="primary" @click="delCache" v-if="!isEmpty(cacheData)">删除</el-button>        
-    </div>
+  <div>
+    <el-form :inline="true">
+      <el-form-item>
+        <el-select v-model="searchForm.source" placeholder="系统">
+          <el-option label="信贷系统" value="credit"></el-option>
+          <el-option label="数据系统" value="data"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select v-model="searchForm.logType" placeholder="日志类型">
+          <el-option label="本地" value="open"></el-option>
+          <el-option label="远端" value="remote"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select v-model="searchForm.paramType" placeholder="出入参">
+          <el-option label="入参" value="in"></el-option>
+          <el-option label="出参" value="out"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-input placeholder="日志key" v-model="searchForm.key"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="getData">查询</el-button>
+      </el-form-item>
+    </el-form>
+    <div class="queryData">{{queryData}}</div>
+  </div>
 </template>
 <script>
-
 export default {
-
-    data(){
-        return {
-            searchKey:'',
-            cacheData:"",
-            option:[{
-                label:"按钮",
-                value:"pdx_acc_pri"
-            },{
-                label:"菜单",
-                value:"pdx_acc_menus"
-            }]
+  data() {
+    return {
+      searchForm: {
+        source:"credit",
+        logType:"open",
+        paramType:"in",
+        key:""
+      },
+      queryData:{}
+    };
+  },
+  methods: {
+    getData() {
+      if (this.isEmpty(this.searchForm.key)) {
+        this.$message("key值不能为空")
+        return 
+      }
+      this.ajax({
+        url: "credit/web/sys/log/findLogContent",
+        data: {
+          ...this.searchForm
         }
-    },
-    methods:{
-        getData(){
-            const key = this.searchKey;
-            if (this.isEmpty(key)) {
-                this.$message("请输入要查询的key")
-                return false
-            };
-            this.ajax({
-                url:"credit/web/sys/cache/find",
-                data:{
-                    key
-                }
-            }).then(res => {
-                this.cacheData = res.data.value||"--"
-            })
-        },
-        delCache(){
-            const key = this.searchKey;            
-            this.ajax({
-                url:"credit/web/sys/cache/delete",
-                data:{
-                    key
-                }
-            }).then(res => {
-                this.$message({
-                    message:"删除成功",
-                    type:"success"
-                });
-                this.searchKey = '';
-                this.cacheData = '';
-            })
-        },
-        querySearch(queryString, cb){
-            cb(this.option);
-        }
+      }).then(res => {
+        this.queryData = res.data.content||"--";
+      });
     }
-}
+  }
+};
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-.cache_form{
-    .el-input{
-        width: 360px;
-    }
+.queryData {
+  border: 1px solid #ccc;
+  height: 420px;
+  padding: 1em;
+  margin-bottom: 20px;
+  overflow-y: scroll;
 }
-.cacheData{
-    border:1px solid #ccc;
-    height: 420px;
-    padding: 1em;
-    margin-bottom: 20px;
-    overflow-y: scroll;
-}
-
 </style>

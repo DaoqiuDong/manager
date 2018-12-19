@@ -1,222 +1,235 @@
 <template>
   <div>
-      <div class="clearfix">
-          <h4  style="float:left">账单基本信息</h4>
-          <div class="addtag" style="float:right;margin-top:1em;">
-            <span>催收标签:</span>
-            <el-select v-model="tagType" clearable placeholder="催收标签" @change="handleTag">
-              <el-option
-                v-for="tag in tagList"
-                :key="tag.name"
-                :label="tag.title"
-                :value="tag.value">
-              </el-option>
-            </el-select>
-            <el-button type="primary" v-if="subTagBtn" @click="subTag">确定</el-button>
-          </div>
+    <div class="clearfix">
+      <h4  style="float:left">账单基本信息</h4>
+      <div class="addtag" style="float:right;margin-top:1em;">
+        <span>催收标签:</span>
+        <el-select v-model="tagType" clearable placeholder="催收标签" @change="handleTag">
+          <el-option
+            v-for="tag in tagList"
+            :key="tag.name"
+            :label="tag.title"
+            :value="tag.value">
+          </el-option>
+        </el-select>
+        <el-button type="primary" v-if="subTagBtn" @click="subTag">确定</el-button>
       </div>
+    </div>
+    <el-row type="flex">
+      <el-col :span="8">
+        <div>
+          <p>逾期合同:{{billInfo.contractCode}}</p>
+          <p>借款时间:{{billInfo.loanDate}}</p>
+          <p>到期时间:{{billInfo.repayDate}}</p>
+          <p>到期应还:{{billInfo.repayAmount}}元</p>
+        </div>
+      </el-col>
+      <el-col :span="8">
+        <div>
+          <p>账单编号：{{billInfo.billCode}}</p>
+          <p>借款金额:{{billInfo.amount}}元</p>
+          <p v-show="!isEmpty(billInfo.overdueDays)">逾期天数:{{billInfo.overdueDays}}天</p>
+          <p>还款方式：{{billInfo.bankCard}}({{billInfo.bankName}})</p>
+        </div>
+      </el-col>
+      <el-col :span="8">
+        <div>
+          <p>账单状态:{{getDictTit(billInfo.billStatus,dict.bill_status)}}</p>
+          <p>借款人:{{billInfo.name}}</p>
+          <p>借款期限:{{billInfo.termBorrow}}{{getDictTit(billInfo.termUnit,dict.term_unit)}}</p>
+        </div>
+      </el-col>
+    </el-row>
+    <div>
+      <h4>已还款账单</h4>
       <el-row type="flex">
-          <el-col :span="8">
-              <div>
-                  <p>逾期合同:{{billInfo.contractCode}}</p>
-                  <p>借款时间:{{billInfo.loanDate}}</p>
-                  <p>到期时间:{{billInfo.repayDate}}</p>
-              </div>
-          </el-col>
-          <el-col :span="8">
-              <div>
-                  <p>账单状态:{{getDictTit(billInfo.billStatus,dict.bill_status)}}</p>
-                  <p>借款金额:{{billInfo.amount}}元</p>
-                  <p v-show="!isEmpty(billInfo.overdueDays)">逾期天数:{{billInfo.overdueDays}}天</p>
-              </div>
-          </el-col>
-          <el-col :span="8">
-              <div>
-                  <p>借款人:{{billInfo.name}}</p>
-                  <p>借款期限:{{billInfo.termBorrow}}{{getDictTit(billInfo.termUnit,dict.term_unit)}}</p>
-                  <p>到期应还:{{billInfo.repayAmount}}元</p>
-              </div>
-          </el-col>
+        <el-col :span="8">
+          <div>
+            <p v-show="!isEmpty(billInfo.realRepayOverdueFee)">逾期管理费:{{billInfo.realRepayOverdueFee}}元</p>
+            <p v-show="!isEmpty(billInfo.realRepayInterest)">利息:{{billInfo.realRepayInterest}}元</p>
+            <p>实际还款:{{billInfo.realRepayAmount}}元</p>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div>
+            <p v-show="!isEmpty(billInfo.realRepayOverduInterest)">逾期利息:{{billInfo.realRepayOverduInterest}}元</p>
+            <p>还款时间:{{billInfo.realRepayDate}}</p>
+          </div>
+        </el-col>
+        <el-col :span="8">
+          <div>
+            <p>本金利息减免:{{billInfo.realDiscountF}}元</p>
+            <p>逾期费用减免:{{billInfo.realDiscountOverdue}}元</p>
+          </div>
+        </el-col>
       </el-row>
-      <div v-if="billInfo.billStatus == 2||billInfo.billStatus == 4">
-          <h4>已还款账单</h4>
-          <el-row type="flex">
-              <el-col :span="8">
-                  <div>
-                      <p v-show="!isEmpty(billInfo.realRepayOverdueFee)">逾期管理费:{{billInfo.realRepayOverdueFee}}元</p>
-                      <p>实际还款:{{billInfo.realRepayAmount}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p v-show="!isEmpty(billInfo.realRepayInterest)">利息:{{billInfo.realRepayInterest}}元</p>
-                      <p v-show="!isEmpty(billInfo.realRepayOverduInterest)">逾期利息:{{billInfo.realRepayOverduInterest}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p>还款时间:{{billInfo.realRepayDate}}</p>
-                  </div>
-              </el-col>
-          </el-row>
-      </div>
-      <div v-else>
-          <h4>未还款账单</h4>
-          <el-row type="flex" align="bottom">
-              <el-col :span="8">
-                  <div>
-                      <p>逾期管理费:{{billInfo.curRepayOverdueFee}}元</p>
-                      <p>利息:{{billInfo.curRepayInterest}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p>逾期利息:{{billInfo.curRepayOverduInterest}}元</p>
-                      <p>当前应还:{{billInfo.curRepayAmount}}元</p>
-                  </div>
-              </el-col>
-          </el-row>
-      </div>
-      <li class="clearfix"><el-button type="primary" style="float:right" @click="addRemarkDialog = true">添加备注</el-button></li>
+    </div>
+    <li class="clearfix"><el-button type="primary" style="float:right" @click="addRemarkDialog = true">添加备注</el-button></li>
 
-      <div>
-          <el-tabs v-model="activeName" @tab-click="tabswitch">
-              <el-tab-pane label="用户信息" name="first">
-                  <Info :info="userInfo"/>
-                  <ImageInfo :Image="infoData"/>
-              </el-tab-pane>
-              <el-tab-pane label="联系人信息" name="second">
-                  <h5>最近一周通话清单</h5>
-                  <el-table :data="callRecord.list" stripe  border>
-                      <el-table-column label="通话号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="通话号码归属地" prop="operator" :formatter="(row)=>emptyOf(row.operator)"></el-table-column>
-                      <el-table-column label="总时长(秒)" prop="tradeTime"></el-table-column>
-                      <el-table-column label="主叫次数" prop="caller"></el-table-column>
-                      <el-table-column label="主叫时长(秒)" prop="callerTime"></el-table-column>
-                      <el-table-column label="最近主叫时间" prop="lastCaller" :formatter="(row)=>emptyOf(row.lastCaller)"></el-table-column>
-                      <el-table-column label="被叫次数" prop="called"></el-table-column>
-                      <el-table-column label="被叫时长(秒)" prop="calledTime"></el-table-column>
-                      <el-table-column label="最近被叫时间" prop="lastCalled" :formatter="(row)=>emptyOf(row.lastCalled)"></el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="callRecord.total" @current-change="i => getUserCallRecord(i)"></el-pagination>
+    <div v-if="billInfo.billType != 3">
+      <el-tabs v-model="activeName" @tab-click="tabswitch">
+        <el-tab-pane label="用户信息" name="first">
+          <Info :info="userInfo"/>
+          <ImageInfo :Image="infoData"/>
+        </el-tab-pane>
+        <el-tab-pane label="联系人信息" name="second">
+          <h5>最近一周通话清单</h5>
+          <el-table :data="callRecord.list" stripe  border>
+            <el-table-column label="通话号码" prop="receivePhone"></el-table-column>
+            <el-table-column label="通话号码归属地" prop="operator" :formatter="(row)=>emptyOf(row.operator)"></el-table-column>
+            <el-table-column label="总时长(秒)" prop="tradeTime"></el-table-column>
+            <el-table-column label="主叫次数" prop="caller"></el-table-column>
+            <el-table-column label="主叫时长(秒)" prop="callerTime"></el-table-column>
+            <el-table-column label="最近主叫时间" prop="lastCaller" :formatter="(row)=>emptyOf(row.lastCaller)"></el-table-column>
+            <el-table-column label="被叫次数" prop="called"></el-table-column>
+            <el-table-column label="被叫时长(秒)" prop="calledTime"></el-table-column>
+            <el-table-column label="最近被叫时间" prop="lastCalled" :formatter="(row)=>emptyOf(row.lastCalled)"></el-table-column>
+          </el-table>
+          <el-pagination layout="prev, pager, next" :total="callRecord.total" @current-change="i => getUserCallRecord(i)"></el-pagination>
 
-                  <h5>联系人信息({{mobileInfo.startDate}}至{{mobileInfo.endDate}})</h5>
-                  <el-table :data="contractList" stripe  border>
-                      <el-table-column label="关系">
-                      <template scope="scope">
-                          <span v-if="scope.row.rel">{{getDictTit(scope.row.rel,dict.user_society_rel)}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="姓名">
-                      <template scope="scope">
-                          <span v-if="scope.row.name">{{scope.row.name}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="手机号" prop="phone" min-width="100"></el-table-column>
-                      <el-table-column label="手机归属地" min-width="140">
-                      <template scope="scope">
-                          <span v-if="scope.row.corpName">{{scope.row.province}}{{scope.row.city}}{{scope.row.corpName}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="总次数(有效)">
-                      <template scope="scope">
-                          <span>{{scope.row.totalCount||'0'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="总时长(分)">
-                      <template scope="scope">
-                          <span>{{scope.row.totalTime||'0'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="首次通话时间" min-width="140">
-                      <template scope="scope">
-                          <span>{{scope.row.firstTime||'--'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="最近通话时间" min-width="140">
-                      <template scope="scope">
-                          <span>{{scope.row.latelyTime||'--'}}</span>
-                      </template>
-                      </el-table-column>
-                  </el-table>
-                  <h5>呼出TOP10</h5>
-                  <el-table :data="dialingList" stripe  border>
-                      <el-table-column label="号码" prop="callPhone"></el-table-column>
-                      <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
-                      <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
-                      <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
-                      <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
-                      <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
-                  </el-table>
-                  <h5>呼入TOP10</h5>
-                  <el-table :data="callTopList" stripe  border>
-                      <el-table-column label="号码" prop="callPhone"></el-table-column>
-                      <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
-                      <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
-                      <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
-                      <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
-                      <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
-                  </el-table>
-              </el-tab-pane>
-              <el-tab-pane label="通话详单" name="third">
-                  <h5>通话详单</h5>
-                  <el-table :data="callList" stripe  border>
-                      <el-table-column label="用户号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="对方号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="通话时间" prop="callTime"></el-table-column>
-                      <el-table-column label="通话时长" prop="tradeTime"></el-table-column>
-                      <el-table-column label="通话地" prop="tradeAddr"></el-table-column>
-                      <el-table-column label="通讯类型">
-                          <template scope="scope">
-                              <span>{{scope.row.tradeType,tradeTypeList}}</span>
-                          </template>
-                      </el-table-column>
-                      <el-table-column label="通话类型">
-                          <template scope="scope">
-                              <span>{{getDictTit(scope.row.callType,callTypeList)}}</span>
-                          </template>
-                      </el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="callTotal" @current-change="(i) => getCallList(i)"></el-pagination>
-              </el-tab-pane>
-              <el-tab-pane label="通讯录" name="fourth">
-                  <h5>通讯录</h5>
-                  <el-table :data="addrList" stripe  border>
-                      <el-table-column label="姓名" prop="name"></el-table-column>
-                      <el-table-column label="联系电话1" prop="mobile"></el-table-column>
-                      <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
-                      <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
-              </el-tab-pane>
-              <el-tab-pane label="其他信息" name="Other">
-                  <Other :info="userInfo.otherInfoData"/>
-              </el-tab-pane>
-              <el-tab-pane label="LBS信息" name="Map">
-                  <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
-              </el-tab-pane>
-              <el-tab-pane label="备注详情" name="Remark">
-                <Remark :remarkList="allRemarkInfo"/>
-              </el-tab-pane>  
-          </el-tabs>
-      </div>
+          <h5>联系人信息({{mobileInfo.startDate}}至{{mobileInfo.endDate}})</h5>
+          <el-table :data="contractList" stripe  border>
+              <el-table-column label="关系">
+              <template scope="scope">
+                <span v-if="scope.row.rel">{{getDictTit(scope.row.rel,dict.user_society_rel)}}</span>
+                <span v-else>--</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="姓名">
+              <template scope="scope">
+                <span v-if="scope.row.name">{{scope.row.name}}</span>
+                <span v-else>--</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="手机号" prop="phone" min-width="100"></el-table-column>
+              <el-table-column label="手机归属地" min-width="140">
+              <template scope="scope">
+                <span v-if="scope.row.corpName">{{scope.row.province}}{{scope.row.city}}{{scope.row.corpName}}</span>
+                <span v-else>--</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="总次数(有效)">
+              <template scope="scope">
+                <span>{{scope.row.totalCount||'0'}}</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="总时长(分)">
+              <template scope="scope">
+                <span>{{scope.row.totalTime||'0'}}</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="首次通话时间" min-width="140">
+              <template scope="scope">
+                <span>{{scope.row.firstTime||'--'}}</span>
+              </template>
+              </el-table-column>
+              <el-table-column label="最近通话时间" min-width="140">
+              <template scope="scope">
+                <span>{{scope.row.latelyTime||'--'}}</span>
+              </template>
+              </el-table-column>
+          </el-table>
+          <h5>呼出TOP10</h5>
+          <el-table :data="dialingList" stripe  border>
+            <el-table-column label="号码" prop="callPhone"></el-table-column>
+            <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
+            <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
+            <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
+            <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
+            <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
+          </el-table>
+          <h5>呼入TOP10</h5>
+          <el-table :data="callTopList" stripe  border>
+            <el-table-column label="号码" prop="callPhone"></el-table-column>
+            <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
+            <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
+            <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
+            <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
+            <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
+          </el-table>
+        </el-tab-pane>
+        <el-tab-pane label="通话详单" name="third">
+          <h5>通话详单</h5>
+          <el-table :data="callList" stripe  border>
+            <el-table-column label="用户号码" prop="receivePhone"></el-table-column>
+            <el-table-column label="对方号码" prop="receivePhone"></el-table-column>
+            <el-table-column label="通话时间" prop="callTime"></el-table-column>
+            <el-table-column label="通话时长" prop="tradeTime"></el-table-column>
+            <el-table-column label="通话地" prop="tradeAddr"></el-table-column>
+            <el-table-column label="通讯类型">
+              <template scope="scope">
+                  <span>{{scope.row.tradeType,tradeTypeList}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="通话类型">
+              <template scope="scope">
+                <span>{{getDictTit(scope.row.callType,callTypeList)}}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-pagination layout="prev, pager, next" :total="callTotal" @current-change="(i) => getCallList(i)"></el-pagination>
+        </el-tab-pane>
+        <el-tab-pane label="通讯录" name="fourth">
+          <h5>通讯录</h5>
+          <el-table :data="addrList" stripe  border>
+            <el-table-column label="姓名" prop="name"></el-table-column>
+            <el-table-column label="联系电话1" prop="mobile"></el-table-column>
+            <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
+            <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
+          </el-table>
+          <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
+        </el-tab-pane>
+        <el-tab-pane label="其他信息" name="Other">
+          <Other :info="userInfo.otherInfoData"/>
+        </el-tab-pane>
+        <el-tab-pane label="LBS信息" name="Map">
+          <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
+        </el-tab-pane>
+        <el-tab-pane label="备注详情" name="Remark">
+          <Remark :remarkList="allRemarkInfo"/>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
 
-        <el-dialog title="添加备注" :visible.sync="addRemarkDialog" size="tiny">
-          <p>正在给{{billInfo.name}}添加备注</p>
-          <el-input type="textarea" :rows="4" placeholder="添加备注，120字以内"  v-model="remarkContent">
-          </el-input>
-          <span slot="footer" class="dialog-footer">
-              <el-button type="primary" @click="addRemark">确 定</el-button>
-              <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>
-          </span>
-      </el-dialog>
+    <div v-else>
+      <el-tabs v-model="activeName">
+        <el-tab-pane label="基础信息" name="first">
+          <BasicInfo :info="infoData"/>
+        </el-tab-pane>
+        <el-tab-pane label="图像信息" name="Lender">
+          <Lender :Image="infoData"/>
+        </el-tab-pane>
+        <el-tab-pane label="备注详情" name="Remark">
+          <Remark :remarkList="allRemarkInfo"/>
+        </el-tab-pane>
+        <el-tab-pane label="提现用途" name="Usage">
+          <Usage :info="infoData"></Usage>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <el-dialog title="添加备注" :visible.sync="addRemarkDialog" size="tiny">
+      <p>正在给{{billInfo.name}}添加备注</p>
+      <el-input type="textarea" :rows="4" placeholder="添加备注，120字以内"  v-model="remarkContent">
+      </el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="addRemark">确 定</el-button>
+        <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
-import { Info, ImageInfo, Other, BMap, Remark } from "@/components/applyDetail";
+import {
+  Info,
+  ImageInfo,
+  Other,
+  BMap,
+  Remark,
+  BasicInfo,
+  Lender,
+  Usage
+} from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 export default {
   data() {
@@ -258,7 +271,10 @@ export default {
     ImageInfo,
     Other,
     BMap,
-    Remark
+    Remark,
+    BasicInfo,
+    Lender,
+    Usage
   },
   computed: {
     ...mapGetters(["dict", "tagList"])
@@ -361,12 +377,14 @@ export default {
         this.infoData = res.data.infoData;
         this.operatorId = res.data.infoData.operatorId;
         this.uid = res.data.uid;
-        this.getContractList(res.data.infoData.operatorId);
-        this.getCallTop(res.data.infoData.operatorId);
-        this.getCallList(1);
-        this.getAddrList(1);
-        this.getLbsInfo(this.uid);
-        this.getUserCallRecord(1);
+        if (res.data.billType != 3) {
+          this.getContractList(res.data.infoData.operatorId);
+          this.getCallTop(res.data.infoData.operatorId);
+          this.getCallList(1);
+          this.getAddrList(1);
+          this.getLbsInfo(this.uid);
+          this.getUserCallRecord(1);
+        }
       });
     },
     getUserCallRecord(pageNo) {

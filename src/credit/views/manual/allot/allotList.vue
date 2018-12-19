@@ -1,71 +1,82 @@
 <template>
-    <div>
-      <div style="margin:20px 0">
-        <span>当前待人工审核合同共{{total}}条，已选中{{selectedList.length}}条分配给</span>
-        <el-select clearable filterable v-model="selectedAuditorId" placeholder="审核人员">
+  <div>
+    <div style="margin:20px 0">
+      <span>当前待人工审核合同共{{total}}条，已选中{{selectedList.length}}条分配给</span>
+      <el-select clearable filterable v-model="selectedAuditorId" placeholder="审核人员">
+        <el-option
+          v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
+        </el-option>
+      </el-select>
+      <el-button type="primary" @click="allotOk" v-loading.fullscreen.lock="fullscreenLoading">确定</el-button>
+      <router-link to="record" v-if="hasBtnAuth('B10013',btnGoList)" style="float:right">
+        <el-button type="primary"  v-text="getbtnName('B10013',btnGoList)"></el-button>
+      </router-link>
+    </div>
+    <el-form :inline='true'>
+      <el-form-item>
+        <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
           <el-option
-            v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
+            v-for="item in allCorpList"
+            :key="item.corpId"
+            :label="item.corpName"
+            :value="item.corpId">
           </el-option>
         </el-select>
-        <el-button type="primary" @click="allotOk" v-loading.fullscreen.lock="fullscreenLoading">确定</el-button>
-        <router-link to="record" v-if="hasBtnAuth('B10013',btnGoList)" style="float:right">
-          <el-button type="primary"  v-text="getbtnName('B10013',btnGoList)"></el-button>
-        </router-link>
-      </div>
-        <el-form :inline='true'>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.productId" placeholder="产品">
-              <el-option
-                v-for="item in financeList"
-                :key="item.productId"
-                :label="item.productName"
-                :value="item.productId">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model.trim="searchForm.scoreStart" placeholder="评分下限" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model.trim="searchForm.scoreEnd" placeholder="评分上限" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.nodeCreateTimeStart" type="date" placeholder="进入节点开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.nodeCreateTimeEnd" type="date" placeholder="进入节点结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.nodeCode" placeholder="当前节点">
-              <el-option label="人工初审" value="firstTrialManual"></el-option>
-              <el-option label="人工终审" value="finalTrialManual"></el-option>
-            </el-select>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-        </el-form>
-        <div>
-          <el-table :data="userList"  v-loading.body="loading" :stripe='true' @selection-change="handleSelected">
-            <el-table-column type="selection" width="55"></el-table-column>
-            <el-table-column label="产品名称" prop="productName"></el-table-column>
-            <el-table-column label="手机号" prop="mobile"></el-table-column>
-            <el-table-column label="借款人" prop="applyName"></el-table-column>
-            <el-table-column label="进入人工审核时间" prop="nodeCreateTime"></el-table-column>
-            <el-table-column label="系统评分">
-              <template scope="scope">
-                <span v-if="!isEmpty(scope.row.score)" :class="getClass(scope.row.score)">{{scope.row.score}}分</span>
-                  <span v-else>--</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="当前节点">
-              <template scope="scope">
-                <span v-if="scope.row.nodeCode == 'firstTrialManual'" class="firstTrialManual">人工初审</span>
-                <span v-else class="finalTrialManual">人工终审</span>
-              </template>
-            </el-table-column>          
-          </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
-        </div>
+      </el-form-item>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.productId" placeholder="产品">
+          <el-option
+            v-for="item in financeList"
+            :key="item.productId"
+            :label="item.productName"
+            :value="item.productId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model.trim="searchForm.scoreLow" placeholder="评分下限" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model.trim="searchForm.scoreHigh" placeholder="评分上限" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.nodeCreateTimeStart" type="date" placeholder="进入节点开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.nodeCreateTimeEnd" type="date" placeholder="进入节点结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.nodeCode" placeholder="当前节点">
+          <el-option label="人工初审" value="firstTrialManual"></el-option>
+          <el-option label="人工终审" value="finalTrialManual"></el-option>
+        </el-select>
+      </el-form-item>
+        <el-button type="primary" @click="getList(1)">查询</el-button>
+    </el-form>
+    <div>
+      <el-table :data="userList"  v-loading.body="loading" :stripe='true' @selection-change="handleSelected">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column label="所属机构" prop="corpName"></el-table-column>
+        <el-table-column label="产品名称" prop="productName"></el-table-column>
+        <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="借款人" prop="applyName"></el-table-column>
+        <el-table-column label="进入人工审核时间" prop="nodeCreateTime"></el-table-column>
+        <el-table-column label="系统评分">
+          <template scope="scope">
+            <span v-if="!isEmpty(scope.row.score)" :class="getClass(scope.row.score)">{{scope.row.score}}分</span>
+              <span v-else>--</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="当前节点">
+          <template scope="scope">
+            <span v-if="scope.row.nodeCode == 'firstTrialManual'" class="firstTrialManual">人工初审</span>
+            <span v-else class="finalTrialManual">人工终审</span>
+          </template>
+        </el-table-column>          
+      </el-table>
+      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
     </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -74,12 +85,13 @@ export default {
   data() {
     return {
       searchForm: {
-        scoreStart:"",
-        scoreEnd:"",
+        scoreLow:"",
+        scoreHigh:"",
         productId: "",
         nodeCreateTimeStart: "",
         nodeCreateTimeEnd: "",
-        nodeCode: ""
+        nodeCode: "",
+        corpId:""
       },
       fullscreenLoading:false,
       userList: [],
@@ -90,7 +102,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "financeList", "roleList", "nodeCode","btnGoList"])
+    ...mapGetters(["dict", "financeList", "roleList", "nodeCode","btnGoList","allCorpList"])
   },
   mounted() {
     this.getList(1);

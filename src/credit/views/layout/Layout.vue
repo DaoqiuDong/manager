@@ -42,6 +42,8 @@ export default {
         this.getProList();
         this.getFinanceList();
         this.getAddrList();
+        this.getCorpList();
+        this.getRoleList();
       });
     },
     getProList() {
@@ -78,6 +80,20 @@ export default {
       }).then(res => {
         this.$store.dispatch("getTagList", res.data);
       });
+    },
+    getCorpList() {
+      this.ajax({
+        url: "credit/web/sys/corp/product/dict"
+      }).then(res => {
+        this.$store.dispatch("getCorpList", res.data.list);
+      });
+    },
+    getRoleList(){
+      this.ajax({
+        url:"credit/web/sys/dict/role/list"
+      }).then(res => {
+        this.$store.dispatch("getAllRoleList", res.data.role_type);
+      })
     }
   }
 };

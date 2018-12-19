@@ -1,66 +1,65 @@
 <template>
-    <div class="roledetail">
-        <el-form label-position="left">
-            <el-form-item label="角色名称">
-                <el-input v-model="name" placeholder="输入角色名称，8个字以内"></el-input>
-            </el-form-item>
-            <el-form-item label="角色类型">
-                <el-select v-model="type" placeholder="角色类型">
-                  <el-option label="全局" :value="1"></el-option>
-                  <el-option label="机构级" :value="2"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="角色备注">
-                <el-input v-model="remark" placeholder="输入角色备注，20个字以内"></el-input>
-            </el-form-item>
-        </el-form>
-        <!-- 权限 -->
-        <div class="auth">
-            <el-checkbox-group v-model="selectedAuth">
-            <div v-for="item in allMenu" :key="item.code" style="border-bottom:1px solid #ccc">
-                <h4>{{item.name}}</h4>
-                <el-row v-for="sys in item.subMenus" type="flex" justify="center" align="middle" :key="sys.id">
-                    <el-col :span="6">
-                        <div>
-                            <el-checkbox :label="sys.code" @change="(e) => selectMenu1(e,sys,item)">{{sys.name}}</el-checkbox>
-                        </div>
-                    </el-col>
-                    <el-col :span="18">
-                        <div>
-                            <el-row  v-for="sys2 in sys.subMenus" type="flex" justify="center" align="middle" :key="sys2.id"  v-if="sys.subMenus&&sys.subMenus.length">
-                                <el-col :span="8">
-                                    <div>
-                                        <el-checkbox :label="sys2.code"  @change="(e) => selectMenu2(e,sys2,sys,item)">{{sys2.name}}</el-checkbox>
-                                    </div>
-                                </el-col>
-                                <el-col :span="16" style="border-left:1px solid #ccc">
-                                    <div>
-                                        <li v-for="btn in sys2.privilegeList" :key="btn.id"  v-if="sys2.privilegeList&&sys2.privilegeList.length">
-                                            <el-checkbox :label="btn.code"  @change="(e) => selectBtn(e,btn,sys2,sys,item)">{{btn.name}}({{btn.remark||"--"}})</el-checkbox>
-                                        </li>
-                                    </div>
-                                </el-col>
-                            </el-row>
-                            <el-row v-for="btn in sys.privilegeList" :key="btn.id" v-if="sys.privilegeList&&sys.privilegeList.length">
-                              <el-col :span="24">
-                                <li>
-                                    <el-checkbox :label="btn.code"  @change="(e) => selectBtn(e,btn,sys,item)">{{btn.name}}({{btn.remark||"--"}})</el-checkbox>
-                                </li>
-                              </el-col>
-                            </el-row>
-                        </div>
-                    </el-col>
-                </el-row>
+  <div class="roledetail">
+    <el-form label-position="left">
+      <el-form-item label="角色名称">
+        <el-input v-model="name" placeholder="输入角色名称，8个字以内"></el-input>
+      </el-form-item>
+      <el-form-item label="角色类型">
+        <el-select v-model="type" placeholder="角色类型">
+          <el-option :label="role.title" :value="role.value" v-for="role in allRoleList" :key="role.name"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="角色备注">
+        <el-input v-model="remark" placeholder="输入角色备注，20个字以内"></el-input>
+      </el-form-item>
+    </el-form>
+    <!-- 权限 -->
+    <div class="auth">
+      <el-checkbox-group v-model="selectedAuth">
+      <div v-for="item in allMenu" :key="item.code" style="border-bottom:1px solid #ccc">
+        <h4>{{item.name}}</h4>
+        <el-row v-for="sys in item.subMenus" type="flex" justify="center" align="middle" :key="sys.id">
+          <el-col :span="6">
+            <div>
+              <el-checkbox :label="sys.code" @change="(e) => selectMenu1(e,sys,item)">{{sys.name}}</el-checkbox>
             </div>
-            </el-checkbox-group>
-            <div style="margin-top:40px">
-              <el-button type="primary" @click="subAuth" v-if="hasBtnAuth('B20059',btnApiList)" v-text="getbtnName('B20059',btnApiList)"></el-button>
-              <router-link to="list">
-                <el-button>取消</el-button>
-              </router-link>   
+          </el-col>
+          <el-col :span="18">
+            <div>
+              <el-row  v-for="sys2 in sys.subMenus" type="flex" justify="center" align="middle" :key="sys2.id"  v-if="sys.subMenus&&sys.subMenus.length">
+                <el-col :span="8">
+                  <div>
+                    <el-checkbox :label="sys2.code"  @change="(e) => selectMenu2(e,sys2,sys,item)">{{sys2.name}}</el-checkbox>
+                  </div>
+                </el-col>
+                <el-col :span="16" style="border-left:1px solid #ccc">
+                  <div>
+                    <li v-for="btn in sys2.privilegeList" :key="btn.id"  v-if="sys2.privilegeList&&sys2.privilegeList.length">
+                      <el-checkbox :label="btn.code"  @change="(e) => selectBtn(e,btn,sys2,sys,item)">{{btn.name}}({{btn.remark||"--"}})</el-checkbox>
+                    </li>
+                  </div>
+                </el-col>
+              </el-row>
+              <el-row v-for="btn in sys.privilegeList" :key="btn.id" v-if="sys.privilegeList&&sys.privilegeList.length">
+                <el-col :span="24">
+                  <li>
+                    <el-checkbox :label="btn.code"  @change="(e) => selectBtn(e,btn,sys,item)">{{btn.name}}({{btn.remark||"--"}})</el-checkbox>
+                  </li>
+                </el-col>
+              </el-row>
             </div>
-        </div>
+          </el-col>
+        </el-row>
+      </div>
+      </el-checkbox-group>
+      <div style="margin-top:40px">
+        <el-button type="primary" @click="subAuth" v-if="hasBtnAuth('B20059',btnApiList)" v-text="getbtnName('B20059',btnApiList)"></el-button>
+        <router-link to="list">
+          <el-button>取消</el-button>
+        </router-link>   
+      </div>
     </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -80,7 +79,7 @@ export default {
     this.getMenu();
   },
   computed:{
-    ...mapGetters(["btnApiList"]),
+    ...mapGetters(["btnApiList","allRoleList"]),
     selectedAuth(){
       return (this.menuAuth.concat(this.privilegesAuth))
     }

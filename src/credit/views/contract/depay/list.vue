@@ -1,70 +1,81 @@
 <template>
+  <div>
+    <el-form :inline='true'>
+      <el-form-item>
+        <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
+          <el-option
+            v-for="item in allCorpList"
+            :key="item.corpId"
+            :label="item.corpName"
+            :value="item.corpId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.code" placeholder="合同号" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.billCode" placeholder="账单号" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.mobile" placeholder="手机号" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.repayDate" type="date" placeholder="还款日期" format="yyyy-MM-dd" @change="selectTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.loanDateStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.loanDateEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
+      </el-form-item>
+        <el-button type="primary" @click="getList(1)">查询</el-button>
+    </el-form>
     <div>
-        <el-form :inline='true'>
-          <el-form-item>
-            <el-input v-model="searchForm.code" placeholder="合同号" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="searchForm.billCode" placeholder="账单号" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="searchForm.mobile" placeholder="手机号" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.repayDate" type="date" placeholder="还款日期" format="yyyy-MM-dd" @change="selectTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.loanDateStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.loanDateEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-        </el-form>
-        <div>
-          <el-table :data="list" :stripe='true' v-loading.body="loading">
-            <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
-            <el-table-column label="借款人" prop="name"></el-table-column>
-            <el-table-column label="手机号" prop="mobile"></el-table-column>
-            <el-table-column label="产品名称" prop="productName"></el-table-column>
-            <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
-            <el-table-column label="账单号" prop="billCode" min-width="140"></el-table-column>
-            <el-table-column label="账单状态">
-              <template scope="scope">
-                <span v-if="scope.row.billStatus">{{getDictTit(scope.row.billStatus,dict.bill_status)}}</span>
-                <span v-else>--</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" align="center" min-width="180">
-              <template scope="scope">
-                <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10021',btnGoList)">
-                  <el-button type="text" v-text="getbtnName('B10021',btnGoList)"></el-button>
-                </router-link>
-                <el-button type="text" @click="handleRepay(scope.row)"  v-if="scope.row.billStatus != 2&&hasBtnAuth('B20035',btnApiList)" v-text="getbtnName('B20035',btnApiList)"></el-button>
-              </template>
-              </el-table-column>            
-          </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
-        </div>
-
-        <el-dialog title="确认还款" :visible.sync="repayDialog" size="tiny">
-            <div>
-              <h4>您正在确认{{handleBill.name}}的还款</h4>
-              <el-form label-width="80px" label-position="left">
-                <el-form-item label="还款金额">
-                  <el-input v-model="repayForm.amount" placeholder="输入还款金额"></el-input>
-                </el-form-item>
-                <el-form-item label="还款时间">
-                  <el-date-picker v-model="repayForm.realRepayTime" type="date" placeholder="输入还款时间" format="yyyy-MM-dd" @change="selectRepayTime"></el-date-picker>
-                </el-form-item>
-              </el-form>
-            </div>
-            <span slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="subRepay">确定</el-button>
-                <el-button @click="repayDialog = false">取消</el-button>
-            </span>
-        </el-dialog>
+      <el-table :data="list" :stripe='true' v-loading.body="loading">
+        <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
+        <el-table-column label="借款人" prop="name"></el-table-column>
+        <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="所属机构" prop="corpName"></el-table-column>
+        <el-table-column label="产品名称" prop="productName"></el-table-column>
+        <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
+        <el-table-column label="账单号" prop="billCode" min-width="140"></el-table-column>
+        <el-table-column label="账单状态">
+          <template scope="scope">
+            <span v-if="scope.row.billStatus">{{getDictTit(scope.row.billStatus,dict.bill_status)}}</span>
+            <span v-else>--</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" min-width="180">
+          <template scope="scope">
+            <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10021',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10021',btnGoList)"></el-button>
+            </router-link>
+            <el-button type="text" @click="handleRepay(scope.row)"  v-if="scope.row.billStatus != 2&&hasBtnAuth('B20035',btnApiList)" v-text="getbtnName('B20035',btnApiList)"></el-button>
+          </template>
+          </el-table-column>            
+      </el-table>
+      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
     </div>
+
+    <el-dialog title="确认还款" :visible.sync="repayDialog" size="tiny">
+      <div>
+        <h4>您正在确认{{handleBill.name}}的还款</h4>
+        <el-form label-width="80px" label-position="left">
+          <el-form-item label="还款金额">
+            <el-input v-model="repayForm.amount" placeholder="输入还款金额"></el-input>
+          </el-form-item>
+          <el-form-item label="还款时间">
+            <el-date-picker v-model="repayForm.realRepayTime" type="date" placeholder="输入还款时间" format="yyyy-MM-dd" @change="selectRepayTime"></el-date-picker>
+          </el-form-item>
+        </el-form>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="subRepay">确定</el-button>
+        <el-button @click="repayDialog = false">取消</el-button>
+      </span>
+    </el-dialog>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -78,7 +89,8 @@ export default {
         loanDateEnd: "",
         repayDate:"",
         code: "",
-        billCode:""
+        billCode:"",
+        corpId:""
       },
       repayForm:{
         amount:"",
@@ -94,7 +106,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict", "roleList", "btnGoList","btnApiList"])
+    ...mapGetters(["dict", "roleList", "btnGoList","btnApiList","allCorpList"])
   },
   mounted() {
     this.getList(1);

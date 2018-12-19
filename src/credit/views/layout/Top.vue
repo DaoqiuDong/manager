@@ -106,7 +106,7 @@ export default {
     text-align: center;
     img {
       width: 120px;
-      margin: 20px 0;
+      margin: 30px 0;
     }
   }
   .entry {

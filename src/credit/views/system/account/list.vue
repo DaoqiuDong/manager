@@ -1,64 +1,70 @@
 <template>
+  <div>
+    <el-form :inline='true'>
+      <el-form-item>
+        <el-select clearable v-model="searchForm.corpId" placeholder="机构">
+          <el-option
+            v-for="v in allCorpList"
+            :key="v.corpId"
+            :label="v.corpName"
+            :value="v.corpId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.realName" placeholder="姓名"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable v-model="searchForm.roleId" placeholder="角色">
+          <el-option
+            v-for="v in allRoleList"
+            :key="v.id"
+            :label="v.name"
+            :value="v.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+        <el-button type="primary" @click="getList(1)">查询</el-button>
+        <router-link :to="{path:'addacc'}"  style="float:right" v-if="hasBtnAuth('B10036',btnGoList)">
+          <el-button type="primary" v-text="getbtnName('B10036',btnGoList)"></el-button>
+        </router-link>
+    </el-form>
     <div>
-        <el-form :inline='true'>
-          <el-form-item>
-            <el-select clearable v-model="searchForm.corpId" placeholder="机构">
-              <el-option
-                v-for="v in allCorpList"
-                :key="v.corpId"
-                :label="v.corpName"
-                :value="v.corpId">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="searchForm.realName" placeholder="姓名"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-select clearable v-model="searchForm.roleId" placeholder="角色">
-              <el-option
-                v-for="v in allRoleList"
-                :key="v.id"
-                :label="v.name"
-                :value="v.id">
-              </el-option>
-            </el-select>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-            <router-link :to="{path:'addacc'}"  style="float:right" v-if="hasBtnAuth('B10036',btnGoList)">
-              <el-button type="primary" v-text="getbtnName('B10036',btnGoList)"></el-button>
+      <el-table :data="list" :stripe='true'  v-loading.body="loading">
+        <el-table-column label="公司" prop="corpName" :formatter="(row) => emptyOf(row.corpName)"></el-table-column>
+        <el-table-column label="姓名" prop="realName"></el-table-column>
+        <el-table-column label="角色" prop="roleName"></el-table-column>
+        <el-table-column label="账号" prop="loginName"></el-table-column>
+        <el-table-column label="最近次登录时间" prop="lastLoginTime" :formatter="(row) => emptyOf(row.lastLoginTime)" min-width="100px"></el-table-column>
+        <el-table-column label="在线状态">
+          <template scope="scope">
+            <span v-if="scope.row.live == 1">在线</span>
+            <span v-else>下线</span>
+          </template>
+        </el-table-column>  
+        <el-table-column label="操作" min-width="140px" align="center">
+          <template scope="scope">
+            <router-link :to="{path:'accdetail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10034',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10034',btnGoList)"></el-button>
             </router-link>
-        </el-form>
-        <div>
-          <el-table :data="list" :stripe='true'  v-loading.body="loading">
-            <el-table-column label="公司" prop="corpName" :formatter="(row) => emptyOf(row.corpName)"></el-table-column>
-            <el-table-column label="姓名" prop="realName"></el-table-column>
-            <el-table-column label="角色" prop="roleName"></el-table-column>
-            <el-table-column label="账号" prop="loginName"></el-table-column>            
-            <el-table-column label="最近次登录时间" prop="loginTime" :formatter="(row) => emptyOf(row.loginTime)" min-width="100px"></el-table-column>
-            <el-table-column label="操作" min-width="140px" align="center">
-              <template scope="scope">
-                <router-link :to="{path:'accdetail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10034',btnGoList)">
-                  <el-button type="text" v-text="getbtnName('B10034',btnGoList)"></el-button>
-                </router-link>
-                <el-button type="text" @click="delAcc(scope.row)" v-if="hasBtnAuth('B20042',btnApiList)" v-text="getbtnName('B20042',btnApiList)"></el-button>
-                <el-button type="text" @click="showDialog(scope.row)" v-if="hasBtnAuth('B20043',btnApiList)" v-text="getbtnName('B20043',btnApiList)"></el-button>
-              </template>
-            </el-table-column> 
-          </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
-          </el-pagination>
-        </div>
-        
-        <el-dialog title="修改密码" :visible.sync="changepwdDialog" size="tiny">
-          <p>正在修改{{selectAccount.realName}}的登录密码</p>
-          <el-input type="password" v-model="newPassword" placeholder="输入新密码" :minlength="6" :maxlength="16"></el-input>
-          <span slot="footer" class="dialog-footer">
-            <el-button @click="changepwdDialog = false">取 消</el-button>
-            <el-button type="primary" @click="updatepwd">确 定</el-button>
-          </span>
-        </el-dialog>
+            <el-button type="text" @click="delAcc(scope.row)" v-if="hasBtnAuth('B20042',btnApiList)" v-text="getbtnName('B20042',btnApiList)"></el-button>
+            <el-button type="text" @click="showDialog(scope.row)" v-if="hasBtnAuth('B20043',btnApiList)" v-text="getbtnName('B20043',btnApiList)"></el-button>
+          </template>
+        </el-table-column> 
+      </el-table>
+      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
+      </el-pagination>
     </div>
+    
+    <el-dialog title="修改密码" :visible.sync="changepwdDialog" size="tiny">
+      <p>正在修改{{selectAccount.realName}}的登录密码</p>
+      <el-input type="password" v-model="newPassword" placeholder="输入新密码" :minlength="6" :maxlength="16"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="changepwdDialog = false">取 消</el-button>
+        <el-button type="primary" @click="updatepwd">确 定</el-button>
+      </span>
+    </el-dialog>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";

@@ -27,9 +27,6 @@ service.interceptors.request.use(
 // respone拦截器处理响应参数
 service.interceptors.response.use(
   response => {
-    /**
-     * code为非0是抛错 可结合自己业务进行修改
-     */
     if (
       response.headers &&
       response.headers["content-type"].indexOf("application/x-download") > -1

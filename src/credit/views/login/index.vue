@@ -1,8 +1,7 @@
 <template>
   <div class="login-container">
     <div class="header-container">
-      <img :src="logosrc" alt="logo">
-      <span>派大薪后台管理中心</span>
+      <span>信贷后台管理中心</span>
     </div>
     <div class="form-container">
       <img :src="picsrc" alt="pic" style="width:50%">
@@ -31,9 +30,6 @@
           </el-form-item>
         </el-form>
       </div>
-    </div>
-    <div class="footer-container">
-      <p>Copyright©2018 元气弹(深圳)科技 版权所有</p>
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-    <div>产品配置详情</div>
+  <div>产品配置详情</div>
 </template>
 <script>
     

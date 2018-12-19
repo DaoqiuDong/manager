@@ -1,6 +1,16 @@
 <template>
     <div>
         <el-form :inline='true'>
+          <el-form-item>
+            <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
+              <el-option
+                v-for="item in allCorpList"
+                :key="item.corpId"
+                :label="item.corpName"
+                :value="item.corpId">
+              </el-option>
+            </el-select>
+          </el-form-item>
             <el-form-item>   
             <el-select clearable v-model="searchForm.productId" placeholder="产品" @change="getList(1)">
               <el-option
@@ -14,14 +24,14 @@
           <el-form-item>
             <el-input v-model.trim="searchForm.mobile" placeholder="手机号" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
-           <el-form-item>
+          <el-form-item>
             <el-input v-model.trim="searchForm.flowCode" placeholder="申请单号" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-input v-model.trim="searchForm.scoreStart" placeholder="评分下限" @keyup.enter.native="getList(1)"></el-input>
+            <el-input v-model.trim="searchForm.scoreLow" placeholder="评分下限" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-input v-model.trim="searchForm.scoreEnd" placeholder="评分上限" @keyup.enter.native="getList(1)"></el-input>
+            <el-input v-model.trim="searchForm.scoreHigh" placeholder="评分上限" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
           <el-form-item>
             <el-date-picker v-model="searchForm.nodeStartTime" type="date" placeholder="节点开始时间" format="yyyy-MM-dd" @change="selectnodeStartTime" :picker-options="startTimeOption"></el-date-picker>
@@ -46,6 +56,7 @@
           <el-table :data="applyList" v-loading.body="loading" :stripe='true'>
             <el-table-column label="申请单号" prop="flowCode" min-width="120"></el-table-column>
             <el-table-column label="手机号" prop="mobile" min-width="100"></el-table-column>
+            <el-table-column label="所属机构" prop="corpName"></el-table-column>
             <el-table-column label="申请产品" prop="productName"></el-table-column>
             <el-table-column label="借款金额" prop="amount" :formatter="(row) => count(row.amount,'元')"></el-table-column>
             <el-table-column label="借款期限">
@@ -78,7 +89,7 @@
             <el-table-column label="完成时间" prop="nodeFinishTime" min-width="120" :formatter="(row) => emptyOf(row.nodeFinishTime)"></el-table-column>
             <el-table-column label="操作" v-if="hasBtnAuth('B10052',btnGoList)" align="center">
               <template scope="scope">
-                <router-link :to="{path:'applyDetail',query:{id:scope.row.flowId,code:scope.row.flowCode}}">
+                <router-link :to="{path:'applyDetail',query:{id:scope.row.flowId,code:scope.row.flowCode,type:scope.row.flowType}}">
                   <el-button type="text" v-text="getbtnName('B10052',btnGoList)"></el-button>
                 </router-link>
               </template>
@@ -99,13 +110,14 @@ export default {
       searchForm: {
         productId: "",
         mobile: "",
-        scoreStart:"",
-        scoreEnd:"",
+        scoreLow:"",
+        scoreHigh:"",
         nodeStartTime: "",
         nodeEndTime: "",
         nodeStatus: "",
         flowCode:"",
-        isInvalid:0
+        isInvalid:0,
+        corpId:""
       },
       startTimeOption: {
         disabledDate(time) {
@@ -127,7 +139,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["dict","nodeCode", "financeList","btnGoList"])
+    ...mapGetters(["dict","nodeCode", "financeList","btnGoList","allCorpList"])
   },
   mounted() {
     this.getList(1);

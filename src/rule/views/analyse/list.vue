@@ -11,6 +11,7 @@
                 :key="item.code"
                 :label="item.name"
                 :value="item.id">
+                <span>{{item.name}}({{item.code}})</span>
               </el-option>
             </el-select>
           </el-form-item>

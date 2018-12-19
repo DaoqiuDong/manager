@@ -1,37 +1,36 @@
 <template>
+  <div>
+    <el-form :inline='true'>
+      <el-form-item>   
+        <el-select clearable filterable v-model="searchForm.auditorId" placeholder="审核人员">
+          <el-option v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.dateStart" type="date" placeholder="开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.dateEnd" type="date" placeholder="结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
+      </el-form-item>
+        <el-button type="primary" @click="getList(1)">查询</el-button>
+    </el-form>
     <div>
-        <el-form :inline='true'>
-          <el-form-item>   
-            <el-select clearable filterable v-model="searchForm.auditorId" placeholder="审核人员">
-                <el-option
-                    v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
-                </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.dateStart" type="date" placeholder="开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.dateEnd" type="date" placeholder="结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-        </el-form>
-        <div>
-          <el-table :data="list"  v-loading.body="loading" stripe>
-            <el-table-column label="审核人员" prop="realName"></el-table-column>
-            <el-table-column label="正在审核数量" prop="curr"></el-table-column>
-            <el-table-column label="总审核数量" prop="manage"></el-table-column>
-            <el-table-column label="操作">
-              <template scope="scope">
-                  <router-link :to="{path:'mylist',query:{id:scope.row.auditorId}}" v-if="hasBtnAuth('B10050',btnGoList)">
-                    <el-button type="text" v-text="getbtnName('B10050',btnGoList)"></el-button>
-                  </router-link>
-              </template>
-            </el-table-column>          
-          </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
-        </div>
+      <el-table :data="list"  v-loading.body="loading" stripe>
+        <el-table-column label="审核人员" prop="realName"></el-table-column>
+        <el-table-column label="正在审核数量" prop="curr"></el-table-column>
+        <el-table-column label="总审核数量" prop="manage"></el-table-column>
+        <el-table-column label="操作">
+          <template scope="scope">
+            <router-link :to="{path:'mylist',query:{id:scope.row.auditorId}}" v-if="hasBtnAuth('B10050',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10050',btnGoList)"></el-button>
+            </router-link>
+          </template>
+        </el-table-column>          
+      </el-table>
+      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
     </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";

@@ -63,8 +63,11 @@
     <p>您正在添加策略树，请选择要添加的策略树和该策略树的父节点规则{{selectedNode.ruleName}}的触发条件</p>
     <el-form label-position="left">
       <el-form-item label="选择添加的策略">
-        <el-select placeholder="选择添加的策略" v-model="selectedStrId">
-          <el-option v-for="item in allStrList" :key="item.code" :label="item.name" :value="item.id"></el-option>
+        <el-select placeholder="选择添加的策略" v-model="selectedStrId" filterable>
+          <el-option v-for="item in allStrList" :key="item.code" :label="item.name" :value="item.id">
+            <span v-if="item.type == 1">{{item.name}}({{item.code}})(基础)</span>
+            <span v-else>{{item.name}}({{item.code}})</span>
+          </el-option>
         </el-select>
       </el-form-item>
       <p>父节点规则{{selectedNode.ruleCode}}{{selectedNode.ruleName}}</p>
@@ -194,11 +197,11 @@ const option = {
           var element = paramData.factorParam[i];
           if (element.type == 0) {
             //输入框
-            res += "<p>输入因子 :" + element.name + ":" + element.value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + element.value + "</p>";
           } else if (element.type == 1) {
             //下拉单选
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           } else if (element.type == 2 && element.selectList) {
             //下拉多选
             element.value =
@@ -206,14 +209,14 @@ const option = {
                 ? element.value.split(",")
                 : element.value;
             var name = multipleTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + name + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + name + "</p>";
           } else if (element.type == 3 && element.selectList) {
             //级联
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           } else {
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           }
         }
       }
@@ -455,7 +458,6 @@ export default {
       this.Chart.on("click", this.eventlisten);
     },
     eventlisten(param) {
-      console.log(param.data);
       this.selectedNode = param.data;
       this.recursionSelected(option.series[0].data, this.selectedNode);
       this.Chart.setOption(option, true);
@@ -577,7 +579,7 @@ export default {
     getStrList() {
       const id = this.$route.query.id;
       this.ajax({
-        url: "rule/web/strategy/findStrategySelect",
+        url: "rule/web/strategy/findStrategySelectAll",
         data: { pageNo: 1, pageSize: 100, id }
       }).then(res => {
         this.allStrList = res.data.list;

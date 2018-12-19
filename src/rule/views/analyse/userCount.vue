@@ -1,64 +1,65 @@
 <template>
-    <div>
-       <div class="rulecount-row clearfix">
-               <div class="count-items" style="border-left:5px solid #8693f3;">
-                <h4>今日拒绝事件</h4>
-                <p>{{countData.countRefuse||0}}</p>
-                <el-progress :percentage="countData.refuseRate||0"></el-progress>
-               </div>
-               <div class="count-items" style="border-left:5px solid #bc8dee;">
-                <h4>今日人工审核事件</h4>
-                <p>{{countData.countAudit||0}}</p>
-                <el-progress :percentage="countData.auditRate||0"></el-progress>
-               </div>
-               <div class="count-items" style="border-left:5px solid #ffa897;">
-                <h4>今日通过事件</h4>
-                <p>{{countData.countPass||0}}</p>
-                <el-progress :percentage="countData.passRate||0"></el-progress>
-               </div>
-               <div class="count-items" style="border-left:5px solid #89c3f8;">
-                <h4>今日事件总计</h4>
-                <p>{{countData.countAll||0}}</p>
-               </div>
-       </div>
-        <div class="clearfix">
-          <el-form :inline="true" style="margin:20px 0;float:right">
-                <el-form-item>
-                  <el-select clearable v-model="searchForm.strategy" placeholder="选择策略">
-                    <el-option
-                      v-for="item in strList"
-                      :key="item.code"
-                      :label="item.name"
-                      :value="item.id">
-                    </el-option>
-                  </el-select>
-              </el-form-item>
-              <el-form-item>
-                  <el-select clearable v-model="searchForm.product" placeholder="选择产品">
-                    <el-option
-                      v-for="item in strDict.productList"
-                      :key="item.name"
-                      :label="item.title"
-                      :value="item.value">
-                    </el-option>
-                  </el-select>
-              </el-form-item>
-              <el-form-item>
-                <el-select clearable v-model="searchForm.selDate" placeholder="选择时间段">
-                    <el-option
-                      v-for="item in dateList"
-                      :key="item.value"
-                      :label="item.name"
-                      :value="item.value">
-                    </el-option>
-                  </el-select>
-              </el-form-item>
-              <el-button type="primary" @click="getRes()">查询</el-button>
-          </el-form>
-        </div>
-
-       <div id="barchart" style="height:560px;"></div>
+  <div>
+    <div class="rulecount-row clearfix">
+      <div class="count-items" style="border-left:5px solid #8693f3;">
+      <h4>今日拒绝事件</h4>
+      <p>{{countData.countRefuse||0}}</p>
+      <el-progress :percentage="countData.refuseRate||0"></el-progress>
+      </div>
+      <div class="count-items" style="border-left:5px solid #bc8dee;">
+      <h4>今日人工审核事件</h4>
+      <p>{{countData.countAudit||0}}</p>
+      <el-progress :percentage="countData.auditRate||0"></el-progress>
+      </div>
+      <div class="count-items" style="border-left:5px solid #ffa897;">
+      <h4>今日通过事件</h4>
+      <p>{{countData.countPass||0}}</p>
+      <el-progress :percentage="countData.passRate||0"></el-progress>
+      </div>
+      <div class="count-items" style="border-left:5px solid #89c3f8;">
+      <h4>今日事件总计</h4>
+      <p>{{countData.countAll||0}}</p>
+      </div>
     </div>
+    <div class="clearfix">
+      <el-form :inline="true" style="margin:20px 0;float:right">
+        <el-form-item>
+          <el-select clearable v-model="searchForm.strategy" placeholder="选择策略">
+            <el-option
+              v-for="item in strList"
+              :key="item.code"
+              :label="item.name"
+              :value="item.id">
+              <span>{{item.name}}({{item.code}})</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-select clearable v-model="searchForm.product" placeholder="选择产品">
+            <el-option
+              v-for="item in strDict.productList"
+              :key="item.name"
+              :label="item.title"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+        <el-select clearable v-model="searchForm.selDate" placeholder="选择时间段">
+          <el-option
+            v-for="item in dateList"
+            :key="item.value"
+            :label="item.name"
+            :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-button type="primary" @click="getRes()">查询</el-button>
+      </el-form>
+    </div>
+
+    <div id="barchart" style="height:560px;"></div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";

@@ -1,432 +1,221 @@
 <template>
-  <div>
-      <div class="clearfix">
-          <h4  style="float:left">账单基本信息</h4>
-          <div class="addtag" style="float:right;margin-top:1em;">
-            <span>催收标签:</span>
-            <el-select v-model="tagType" clearable placeholder="催收标签" @change="handleTag">
-              <el-option
-                v-for="tag in tagList"
-                :key="tag.name"
-                :label="tag.title"
-                :value="tag.value">
-              </el-option>
-            </el-select>
-            <el-button type="primary" v-if="subTagBtn" @click="subTag">确定</el-button>
-          </div>
+  <div class="contractDetail">
+    <el-row type="flex" align="middle">
+      <el-col :span="4">
+        <div class="title">
+          <p>合同编号</p>
+          <p>借款时间</p>
+          <p>借款人</p>
+          <p>借款金额(元)</p>
+          <p>放款方式</p>
+        </div>
+      </el-col>
+      <el-col :span="8">
+        <div>
+          <p>{{contractInfo.contractCode}}</p>
+          <p>{{contractInfo.loanDate}}</p>
+          <p>{{contractInfo.name}}</p>
+          <p>{{contractInfo.amount}}元</p>
+          <p>{{contractInfo.loanCard}}</p>
+        </div>
+      </el-col>
+      <el-col :span="4">
+        <div class="title">
+          <p>合同状态</p>
+          <p>手机号</p>
+          <p>身份证号</p>
+          <p>借款期限</p>
+          <p  v-if="contractInfo.repayCard">还款方式</p>
+        </div>
+      </el-col>
+      <el-col :span="8">
+        <div>
+          <p v-if="contractInfo.contractStatus">{{getDictTit(contractInfo.contractStatus,dict.contract_status)}}</p>
+          <p>{{contractInfo.mobile}}</p>
+          <p>{{contractInfo.idcard}}</p>
+          <p>{{contractInfo.termBorrow}}{{getDictTit(contractInfo.termUnit,dict.term_unit)}}</p>
+          <p v-if="contractInfo.repayCard">{{contractInfo.repayCard}}</p>
+        </div>
+      </el-col>
+    </el-row>
+    <h4>约定费用</h4>
+    <div class="clearfix">
+      <div class="clearfix" style="width:50%;float:left" v-for="param in contractInfo.paramList" :key="param.name">
+        <div style="width:33.3%;float:left;line-height:40px" class="title"><p>{{param.title}}</p></div>
+        <div style="width:66.4%;float:left;line-height:40px"><p>{{valueMap(param)}}</p></div>
       </div>
-      <el-row type="flex">
-          <el-col :span="8">
-              <div>
-                  <p>逾期合同:{{billInfo.contractCode}}</p>
-                  <p>借款时间:{{billInfo.loanDate}}</p>
-                  <p>到期时间:{{billInfo.repayDate}}</p>
+    </div>
+    <li class="clearfix"><el-button type="primary" style="float:right" @click="addRemarkDialog = true">添加备注</el-button></li>
+    <el-tabs type="card" v-model="avtiveTab">
+      <el-tab-pane label="账单" name="Bill">
+        <div v-show="!isEmpty(billList)">
+          <h4>已出账单</h4>
+          <el-row v-for="billItem in billList" :key="billItem.termIndex" type="flex"  align="middle">
+            <el-col :span="4">
+              <div class="title">
+                <p>账单编号</p>
+                <p>应还金额</p>
+                <p v-if="billItem.billStatus == 4">实际还款</p>
+                <p v-else>当前应还</p>
+                <p v-if="billItem.billStatus == 4">实际还款时间</p>
               </div>
-          </el-col>
-          <el-col :span="8">
+            </el-col>
+            <el-col :span="8">
               <div>
-                  <p>账单状态:{{getDictTit(billInfo.billStatus,dict.bill_status)}}</p>
-                  <p>借款金额:{{billInfo.amount}}元</p>
-                  <p v-show="!isEmpty(billInfo.overdueDays)">逾期天数:{{billInfo.overdueDays}}天</p>
+                <p>{{billItem.billCode}}</p>
+                <p>{{billItem.repayAmount}}元</p>
+                <p v-if="billItem.billStatus == 4">{{billItem.realRepayAmount}}元</p>
+                <p v-else>{{billItem.curRepayAmount}}元</p>
+                <p v-if="billItem.billStatus == 4">{{billItem.realRepayDate}}</p>
               </div>
-          </el-col>
-          <el-col :span="8">
+            </el-col>
+            <el-col :span="4">
+              <div class="title">
+                <p>账单状态</p>
+                <p>账单期数</p>
+                <p>到期日期</p>
+              </div>
+            </el-col>
+            <el-col :span="8">
               <div>
-                  <p>借款人:{{billInfo.name}}</p>
-                  <p>借款期限:{{billInfo.termBorrow}}{{getDictTit(billInfo.termUnit,dict.term_unit)}}</p>
-                  <p>到期应还:{{billInfo.repayAmount}}元</p>
+                <p><span v-if="billItem.renewalStatus == 1">(展期)</span>{{getDictTit(billItem.billStatus,dict.bill_status)}}</p>
+                <p>{{billItem.termIndex}}期</p>
+                <p>{{billItem.repayDate}}</p>
               </div>
-          </el-col>
-      </el-row>
-      <div v-if="billInfo.billStatus == 2||billInfo.billStatus == 4">
-          <h4>已还款账单</h4>
-          <el-row type="flex">
-              <el-col :span="8">
-                  <div>
-                      <p v-show="!isEmpty(billInfo.realRepayOverdueFee)">逾期管理费:{{billInfo.realRepayOverdueFee}}元</p>
-                      <p>实际还款:{{billInfo.realRepayAmount}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p v-show="!isEmpty(billInfo.realRepayInterest)">利息:{{billInfo.realRepayInterest}}元</p>
-                      <p v-show="!isEmpty(billInfo.realRepayOverduInterest)">逾期利息:{{billInfo.realRepayOverduInterest}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p>还款时间:{{billInfo.realRepayDate}}</p>
-                  </div>
-              </el-col>
+            </el-col>
           </el-row>
-      </div>
-      <div v-else>
-          <h4>未还款账单</h4>
-          <el-row type="flex" align="bottom">
-              <el-col :span="8">
-                  <div>
-                      <p>逾期管理费:{{billInfo.curRepayOverdueFee}}元</p>
-                      <p>利息:{{billInfo.curRepayInterest}}元</p>
-                  </div>
-              </el-col>
-              <el-col :span="8">
-                  <div>
-                      <p>逾期利息:{{billInfo.curRepayOverduInterest}}元</p>
-                      <p>当前应还:{{billInfo.curRepayAmount}}元</p>
-                  </div>
-              </el-col>
-          </el-row>
-      </div>
-      <li class="clearfix"><el-button type="primary" style="float:right" @click="addRemarkDialog = true">添加备注</el-button></li>
-
-      <div>
-          <el-tabs v-model="activeName" @tab-click="tabswitch">
-              <el-tab-pane label="用户信息" name="first">
-                  <Info :info="userInfo"/>
-                  <ImageInfo :Image="infoData"/>
-              </el-tab-pane>
-              <el-tab-pane label="联系人信息" name="second">
-                  <h5>最近一周通话清单</h5>
-                  <el-table :data="callRecord.list" stripe  border>
-                      <el-table-column label="通话号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="通话号码归属地" prop="operator" :formatter="(row)=>emptyOf(row.operator)"></el-table-column>
-                      <el-table-column label="总时长(秒)" prop="tradeTime"></el-table-column>
-                      <el-table-column label="主叫次数" prop="caller"></el-table-column>
-                      <el-table-column label="主叫时长(秒)" prop="callerTime"></el-table-column>
-                      <el-table-column label="最近主叫时间" prop="lastCaller" :formatter="(row)=>emptyOf(row.lastCaller)"></el-table-column>
-                      <el-table-column label="被叫次数" prop="called"></el-table-column>
-                      <el-table-column label="被叫时长(秒)" prop="calledTime"></el-table-column>
-                      <el-table-column label="最近被叫时间" prop="lastCalled" :formatter="(row)=>emptyOf(row.lastCalled)"></el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="callRecord.total" @current-change="i => getUserCallRecord(i)"></el-pagination>
-
-                  <h5>联系人信息({{mobileInfo.startDate}}至{{mobileInfo.endDate}})</h5>
-                  <el-table :data="contractList" stripe  border>
-                      <el-table-column label="关系">
-                      <template scope="scope">
-                          <span v-if="scope.row.rel">{{getDictTit(scope.row.rel,dict.user_society_rel)}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="姓名">
-                      <template scope="scope">
-                          <span v-if="scope.row.name">{{scope.row.name}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="手机号" prop="phone" min-width="100"></el-table-column>
-                      <el-table-column label="手机归属地" min-width="140">
-                      <template scope="scope">
-                          <span v-if="scope.row.corpName">{{scope.row.province}}{{scope.row.city}}{{scope.row.corpName}}</span>
-                          <span v-else>--</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="总次数(有效)">
-                      <template scope="scope">
-                          <span>{{scope.row.totalCount||'0'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="总时长(分)">
-                      <template scope="scope">
-                          <span>{{scope.row.totalTime||'0'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="首次通话时间" min-width="140">
-                      <template scope="scope">
-                          <span>{{scope.row.firstTime||'--'}}</span>
-                      </template>
-                      </el-table-column>
-                      <el-table-column label="最近通话时间" min-width="140">
-                      <template scope="scope">
-                          <span>{{scope.row.latelyTime||'--'}}</span>
-                      </template>
-                      </el-table-column>
-                  </el-table>
-                  <h5>呼出TOP10</h5>
-                  <el-table :data="dialingList" stripe  border>
-                      <el-table-column label="号码" prop="callPhone"></el-table-column>
-                      <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
-                      <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
-                      <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
-                      <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
-                      <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
-                  </el-table>
-                  <h5>呼入TOP10</h5>
-                  <el-table :data="callTopList" stripe  border>
-                      <el-table-column label="号码" prop="callPhone"></el-table-column>
-                      <el-table-column label="号码归属地" prop="addr" :formatter="(row) => emptyOf(row.addr)"></el-table-column>
-                      <el-table-column label="呼入总次数" prop="callCount"></el-table-column>
-                      <el-table-column label="首次通话时间" prop="firstTime"></el-table-column>
-                      <el-table-column label="最近通话时间" prop="latelyTime"></el-table-column>
-                      <el-table-column label="标签" prop="callCenter" :formatter="(row) => count(row.callCenter)"></el-table-column>
-                  </el-table>
-              </el-tab-pane>
-              <el-tab-pane label="通话详单" name="third">
-                  <h5>通话详单</h5>
-                  <el-table :data="callList" stripe  border>
-                      <el-table-column label="用户号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="对方号码" prop="receivePhone"></el-table-column>
-                      <el-table-column label="通话时间" prop="callTime"></el-table-column>
-                      <el-table-column label="通话时长" prop="tradeTime"></el-table-column>
-                      <el-table-column label="通话地" prop="tradeAddr"></el-table-column>
-                      <el-table-column label="通讯类型">
-                          <template scope="scope">
-                              <span>{{scope.row.tradeType,tradeTypeList}}</span>
-                          </template>
-                      </el-table-column>
-                      <el-table-column label="通话类型">
-                          <template scope="scope">
-                              <span>{{getDictTit(scope.row.callType,callTypeList)}}</span>
-                          </template>
-                      </el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="callTotal" @current-change="(i) => getCallList(i)"></el-pagination>
-              </el-tab-pane>
-              <el-tab-pane label="通讯录" name="fourth">
-                  <h5>通讯录</h5>
-                  <el-table :data="addrList" stripe  border>
-                      <el-table-column label="姓名" prop="name"></el-table-column>
-                      <el-table-column label="联系电话1" prop="mobile"></el-table-column>
-                      <el-table-column label="联系电话2" prop="mobile2"></el-table-column>
-                      <el-table-column label="联系电话3" prop="mobile3"></el-table-column>
-                  </el-table>
-                  <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
-              </el-tab-pane>
-              <el-tab-pane label="其他信息" name="Other">
-                  <Other :info="userInfo.otherInfoData"/>
-              </el-tab-pane>
-              <el-tab-pane label="LBS信息" name="Map">
-                  <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
-              </el-tab-pane>
-              <el-tab-pane label="备注详情" name="Remark">
-                <Remark :remarkList="allRemarkInfo"/>
-              </el-tab-pane>  
-          </el-tabs>
-      </div>
-
-        <el-dialog title="添加备注" :visible.sync="addRemarkDialog" size="tiny">
-          <p>正在给{{billInfo.name}}添加备注</p>
-          <el-input type="textarea" :rows="4" placeholder="添加备注，120字以内"  v-model="remarkContent">
-          </el-input>
-          <span slot="footer" class="dialog-footer">
-              <el-button type="primary" @click="addRemark">确 定</el-button>
-              <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>    
-          </span>
-      </el-dialog>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="备注详情" name="Remark">
+        <Remark :remarkList="allRemarkInfo"/>
+      </el-tab-pane>            
+    </el-tabs>
+    <el-dialog title="添加备注" :visible.sync="addRemarkDialog" size="tiny">
+      <p>正在给{{contractInfo.name}}添加备注</p>
+      <el-input type="textarea" :rows="4" placeholder="添加备注，120字以内"  v-model="remarkContent">
+      </el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="addRemark">确 定</el-button>
+        <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>    
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
-import { Info, ImageInfo, Other, BMap, Remark } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
+import { Remark } from "@/components/applyDetail";
+
 export default {
   data() {
     return {
-      callRecord: "",
-      firstInto: true,
-      subTagBtn: false,
-      tagType: "",
-      lbsInfo: {},
-      mapVisible: false,
-      activeName: "first",
-      billInfo: {},
-      userInfo: {},
-      operatorId: "",
-      uid: "",
-      infoData: {},
-      contractList: [],
-      mobileInfo: {},
-      dialingList: [], //主叫
-      callTopList: [], //被叫
-      userCallInfo: {},
-      addrList: [],
-      addrListTotal: 0,
-      callList: [],
-      callTotal: 0,
-      tradeTypeList: [
-        { title: "本地", value: 1 },
-        { title: "国内漫游", value: 2 },
-        { title: "其他", value: 3 }
-      ],
-      callTypeList: [{ title: "主叫", value: 1 }, { title: "被叫", value: 2 }],
-      allRemarkInfo: [],
-      addRemarkDialog: false,
-      remarkContent: ""
+      contractInfo: {},
+      billList: [],
+      avtiveTab: "Bill",
+      allRemarkInfo:[],
+      addRemarkDialog:false,
+      remarkContent:""
     };
   },
+  computed: {
+    ...mapGetters(["dict"])
+  },
   components: {
-    Info,
-    ImageInfo,
-    Other,
-    BMap,
     Remark
   },
-  computed: {
-    ...mapGetters(["dict", "tagList"])
-  },
   mounted() {
-    this.getBillInfo();
-    this.getUserInfo();
+    this.getConInfo();
   },
   methods: {
-    addRemark() {
-      const content = this.remarkContent;
-      if (this.isEmpty(content)) {
-        this.$message("备注信息不能为空");
-        return false;
+    valueMap(param) {
+      var name = param.name,
+        value;
+      switch (name) {
+        case "overdueInterest":
+          value = "固定利息" + param.value * 100 + "%";
+          break;
+        case "overdueFee":
+          if (param.calMethod == 1) {
+            value = "固定费用" + param.value + "元";
+            break;
+          } else if (param.calMethod == 2) {
+            value = "固定费率" + param.value * 100 + "%";
+            break;
+          }
+        case "managementFee":
+          if (param.calMethod == 1) {
+            value = "固定费用" + param.value + "元";
+            break;
+          } else if (param.calMethod == 2) {
+            value = "固定费率" + param.value * 100 + "%";
+            break;
+          }
+        case "interest":
+          if (param.calMethod == 3) {
+            value = "日利息" + param.value * 100 + "%";
+            break;
+          } else if (param.calMethod == 4) {
+            value = "日利率" + param.value * 100 + "%";
+            break;
+          }
+        case "otherFee":
+          if (param.calMethod != 1) {
+            value =
+              this.getDictTit(param.calMethod, this.dict.cal_method) +
+              param.value +
+              "%";
+          } else {
+            value = "固定费用" + param.value + "元";
+          }
+          break;
+        default:
+          value = param.value;
+          break;
       }
-      if (content.length > 120) {
-        this.$message("备注信息不得超过120字");
-        return false;
-      }
-      const id = this.$route.query.billId;
-      const status = this.billInfo.billStatus;
-      this.ajax({
-        url: "credit/web/sys/remark/insert/bill",
-        data: { id, status, content }
-      }).then(res => {
-        this.$message({
-          message: "添加备注成功",
-          type: "success"
-        });
-        this.getAllRemark();
-        this.remarkContent = "";
-        this.addRemarkDialog = false;
-      });
+      return value;
     },
-    getAllRemark() {
-      const flowId = this.$route.query.flowId;
+    addRemark(){
+        const content = this.remarkContent;
+        if (this.isEmpty(content)) {
+            this.$message("备注信息不能为空");
+            return false
+        }
+        if (content.length > 120) {
+            this.$message("备注信息不得超过120字")
+            return false
+        }
+        const id = this.$route.query.id;
+        const status = this.contractInfo.contractStatus;
+        this.ajax({
+            url:"credit/web/sys/remark/insert/contract",
+            data:{id,status,content}
+        }).then(res => {
+            this.$message({
+                message:"合同添加备注成功",
+                type:"success"
+            });
+            this.getAllRemark(this.contractInfo.flowId);
+            this.remarkContent = "";
+            this.addRemarkDialog = false;
+        })
+    },
+    getAllRemark(flowId){
       const pageSize = 500;
       this.ajax({
-        url: "credit/web/sys/remark/query/list",
-        data: { flowId, pageSize }
+        url:"credit/web/sys/remark/query/list",
+        data:{flowId,pageSize}
       }).then(res => {
         this.allRemarkInfo = res.data.list;
-      });
+      })
     },
-    tabswitch(tabpane) {
-      if (tabpane.name == "Map") {
-        this.mapVisible = true;
-      }
-    },
-    handleTag() {
-      if (this.firstInto) {
-        this.subTagBtn = false;
-      } else {
-        this.subTagBtn = true;
-      }
-      this.firstInto = false;
-    },
-    subTag() {
-      const billId = this.$route.query.billId;
-      const tagId = this.tagType;
+    getConInfo() {
+      const contractId = this.$route.query.id;
       this.ajax({
-        url: "credit/web/sys/tag/bill/update",
-        data: { billId, tagId }
+        url: "credit/web/sys/contract/detail",
+        data: { contractId }
       }).then(res => {
-        this.$message({
-          message: "添加标签成功",
-          type: "success"
-        });
-        this.subTagBtn = false;
-      });
-    },
-    getBillInfo() {
-      const billId = this.$route.query.billId;
-      this.ajax({
-        url: "credit/web/sys/bill/detail",
-        data: { billId }
-      }).then(res => {
-        this.billInfo = res.data;
-        this.tagType = res.data.tagId;
-        this.subTagBtn = false;
-        this.getAllRemark();
-      });
-    },
-    getLbsInfo(uid) {
-      const flowId = this.$route.query.flowId;
-      this.ajax({
-        url: "credit/web/sys/flow/findUserLbs",
-        data: { uid, flowId }
-      }).then(res => {
-        this.lbsInfo = res.data;
-      });
-    },
-    getUserInfo() {
-      const flowId = this.$route.query.flowId;
-      this.ajax({
-        url: "credit/web/sys/flow/querydetail",
-        data: { flowId, nodeCodeList: "loanInfo,userInfo" }
-      }).then(res => {
-        this.userInfo = res.data;
-        this.infoData = res.data.infoData;
-        this.operatorId = res.data.infoData.operatorId;
-        this.uid = res.data.uid;
-        this.getContractList(res.data.infoData.operatorId);
-        this.getCallTop(res.data.infoData.operatorId);
-        this.getCallList(1);
-        this.getAddrList(1);
-        this.getLbsInfo(this.uid);
-        this.getUserCallRecord(1);
-      });
-    },
-    getUserCallRecord(pageNo) {
-      const flowId = this.$route.query.flowId;
-      const operatorId = this.operatorId;
-      const pageSize = this.pageSize;
-      this.ajax({
-        url: "credit/web/sys/rong/query/userWeekCallRecord",
-        data: { flowId, operatorId, pageNo, pageSize }
-      }).then(res => {
-        this.callRecord = res.data;
-      });
-    },
-    getContractList(operatorId) {
-      const flowId = this.$route.query.flowId;
-      this.ajax({
-        url: "credit/web/sys/rong/query/mobile",
-        data: { flowId, operatorId }
-      }).then(res => {
-        if (res.data.otherList && res.data.otherList.length) {
-          this.contractList = res.data.linkList.concat(res.data.otherList);
-        } else {
-          this.contractList = res.data.linkList;
-        }
-        this.mobileInfo = res.data;
-      });
-    },
-    getCallTop(operatorId) {
-      this.ajax({
-        url: "credit/web/sys/rong/query/calltop",
-        data: { operatorId }
-      }).then(res => {
-        if (!this.isEmpty(res.data)) {
-          this.dialingList = res.data.dialingTop;
-          this.callTopList = res.data.calledTop;
-        }
-      });
-    },
-    getCallList(pageNo) {
-      const pageSize = this.pageSize;
-      const operatorId = this.operatorId;
-      this.ajax({
-        url: "credit/web/sys/operator/query",
-        data: { operatorId, pageNo, pageSize }
-      }).then(res => {
-        this.userCallInfo = res.data;
-        this.callList = res.data.list;
-        this.callTotal = res.data.total;
-      });
-    },
-    getAddrList(pageNo) {
-      //通讯录
-      const pageSize = this.pageSize;
-      const uid = this.uid;
-      this.ajax({
-        url: "credit/web/sys/tcontact/query",
-        data: { uid, pageNo, pageSize }
-      }).then(res => {
-        this.addrList = res.data.list;
-        this.addrListTotal = res.data.total;
+        this.contractInfo = res.data;
+        this.billList = res.data.billList;
+        this.getAllRemark(this.contractInfo.flowId);
       });
     }
   }
@@ -434,8 +223,4 @@ export default {
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
-.insert_wrapper {
-  max-height: 600px;
-  overflow-y: scroll;
-}
 </style>

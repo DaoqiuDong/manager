@@ -21,5 +21,7 @@ const getters = {
   refuseCodeDict:state => state.app.refuseCodeDict,
   payList:state => state.app.payList,
   tagList:state => state.app.tagList,
+  allCorpList:state => state.app.corpList,
+  allRoleList:state => state.app.allRoleList,
 };
 export default getters;

@@ -10,7 +10,9 @@ const app = {
     strDict:{},
     refuseCodeDict:[],
     payList:[],
-    tagList:[]
+    tagList:[],
+    corpList:[],
+    allRoleList:[]
   },
   mutations: {
     PUSH_DICT: (state, list) => {
@@ -45,6 +47,12 @@ const app = {
     },
     PUSH_TAGLIST:(state,arr) => {
       state.tagList = arr;
+    },
+    PUSH_CORPLIST:(state,arr) => {
+      state.corpList = arr;
+    },
+    PUSH_ALLROLELIST:(state,arr) => {
+      state.allRoleList = arr;
     },
   },
   actions: {
@@ -102,6 +110,16 @@ const app = {
       commit
     }, arr) {
       commit('PUSH_TAGLIST', arr)
+    },
+    getCorpList({
+      commit
+    }, arr) {
+      commit('PUSH_CORPLIST', arr)
+    },
+    getAllRoleList({
+      commit
+    }, arr) {
+      commit('PUSH_ALLROLELIST', arr)
     },
   }
 };

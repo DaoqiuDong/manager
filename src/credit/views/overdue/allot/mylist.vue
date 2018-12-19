@@ -1,81 +1,98 @@
 <template>
+  <div>
+    <el-form :inline='true'>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.productId" placeholder="产品">
+          <el-option
+            v-for="item in financeList"
+            :key="item.productId"
+            :label="item.productName"
+            :value="item.productId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.mobile" placeholder="手机号"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model.number.trim="searchForm.overdueDaysLow" placeholder="逾期天数开始" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model.number.trim="searchForm.overdueDaysHigh" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable v-model="searchForm.billStatus" placeholder="账单状态">
+          <el-option label="逾期已还" value="4"></el-option>
+          <el-option label="逾期未还" value="5"></el-option>         
+        </el-select>
+      </el-form-item>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
+          <el-option
+            v-for="item in tagList"
+            :key="item.value"
+            :label="item.title"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.realRepayTimeStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectRealRepayTimeStart"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.realRepayTimeEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectRealRepayTimeEnd"></el-date-picker>
+      </el-form-item>
+      <el-button type="primary" @click="getList(1)">查询</el-button>
+      <router-link  v-if="hasBtnAuth('B10060',btnGoList)" :to="{path:'sucList',query:{id:$route.query.id}}">
+        <el-button type="primary" v-text="getbtnName('B10060',btnGoList)"></el-button>
+      </router-link>
+    </el-form>
+    
     <div>
-        <el-form :inline='true'>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.productId" placeholder="产品">
-              <el-option
-                v-for="item in financeList"
-                :key="item.productId"
-                :label="item.productName"
-                :value="item.productId">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model="searchForm.mobile" placeholder="手机号"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model.number.trim="searchForm.overdueDaysStart" placeholder="逾期天数开始" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-input v-model.number.trim="searchForm.overdueDaysEnd" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-select clearable v-model="searchForm.billStatus" placeholder="账单状态">
-              <el-option label="逾期已还" value="4"></el-option>
-              <el-option label="逾期未还" value="5"></el-option>         
-            </el-select>
-          </el-form-item>
-          <el-form-item>   
-            <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
-              <el-option
-                v-for="item in tagList"
-                :key="item.value"
-                :label="item.title"
-                :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.realRepayTimeStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectRealRepayTimeStart"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.realRepayTimeEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectRealRepayTimeEnd"></el-date-picker>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-            <router-link  v-if="hasBtnAuth('B10060',btnGoList)" :to="{path:'sucList',query:{id:$route.query.id}}">
-              <el-button type="primary" v-text="getbtnName('B10060',btnGoList)"></el-button>
-            </router-link>
-        </el-form>
-        
-        <div>
-          <el-table :data="userList" :stripe='true'>
-            <el-table-column label="产品名称" prop="productName"></el-table-column>
-            <el-table-column label="借款人" prop="name"></el-table-column>
-            <el-table-column label="手机号" prop="mobile" min-width="100"></el-table-column>
-            <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
-            <el-table-column label="逾期天数" prop="overdueDays" :formatter="(row)=>count(row.overdueDays,'天')"></el-table-column>
-            <el-table-column label="账单状态">
-              <template scope="scope">
-                <span v-if="scope.row.billStatus == 4">逾期已还</span>
-                <span v-else>逾期未还</span>      
-              </template>
-            </el-table-column>
-            <el-table-column label="催收标签">
-              <template scope="scope">
-                <span v-if="!isEmpty(scope.row.tagId)">{{getDictTit(scope.row.tagId,tagList)}}</span>
-                <span v-else>--</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" align="center" min-width="140">
-              <template scope="scope">
-                <el-button type="text" v-if="hasBtnAuth('B20074',btnApiList)" v-text="getbtnName('B20074',btnApiList)" @click="handleBack(scope.row.drId)"></el-button>
-              </template>
-              </el-table-column>            
-          </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
-        </div>
+      <el-table :data="list"  v-loading.body="loading" :stripe='true'>
+        <el-table-column type="expand">
+          <template scope="props">
+            <el-table :data="props.row.billList">
+              <el-table-column label="期数" prop="termIndex"></el-table-column>
+              <el-table-column label="状态">
+                <template scope="scope">
+                  <span v-if="!isEmpty(scope.row.status)">{{getDictTit(scope.row.status,dict.bill_status)}}</span>
+                  <span v-else>--</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="逾期天数" prop="overdueDays"></el-table-column>
+              <el-table-column label="到期应还" prop="repayAmount" :formatter="(row) =>count(row.repayAmount,'元')"></el-table-column>
+              <el-table-column label="实际还款" prop="realRepayAmount" :formatter="(row) =>count(row.realRepayAmount,'元')"></el-table-column>
+              <el-table-column label="逾期利息" prop="overdueInterest"></el-table-column>
+              <el-table-column label="逾期管理费" prop="overdueFee"></el-table-column>
+              <el-table-column label="还款时间" prop="realRepayTime" min-width="140"></el-table-column>
+              <el-table-column label="还款方式">
+                <template scope="scope">
+                  <span v-if="scope.row.repayMethod==3||scope.row.repayMethod==7">线下还款</span>
+                  <span v-else>线上还款</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </template>
+        </el-table-column>
+        <el-table-column label="借款人" prop="name"></el-table-column>
+        <el-table-column label="产品名称" prop="productName"></el-table-column>
+        <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
+        <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
+        <el-table-column label="逾期天数" prop="overdueDays" :formatter="(row)=>count(row.overdueDays,'天')"></el-table-column>
+        <el-table-column label="催收时间" prop="lastOverTime" :formatter="(row) => emptyOf(row.lastOverTime)" min-width="140"></el-table-column>
+        <el-table-column label="催收人员" prop="lastOverName" :formatter="(row) => emptyOf(row.lastOverName)"></el-table-column>
+        <el-table-column label="催收标签" prop="tagName"></el-table-column>
+        <el-table-column label="操作" align="center" min-width="140">
+          <template scope="scope">
+            <el-button type="text" @click="handleBack(scope.row)" v-if="hasBtnAuth('B20074',btnApiList)" v-text="getbtnName('B20074',btnApiList)"></el-button>
+          </template>
+          </el-table-column>
+      </el-table>
+      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
     </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -88,12 +105,12 @@ export default {
         mobile: "",
         realRepayTimeStart: "",
         realRepayTimeEnd: "",
-        overdueDaysStart: null,
-        overdueDaysEnd: null,
-        billStatus: "5",
+        overdueDaysLow: "",
+        overdueDaysHigh: "",
         tagId: ""
       },
-      userList: [],
+      loading:true,
+      list: [],
       total: 0
     };
   },
@@ -114,7 +131,7 @@ export default {
       const pageSize = this.pageSize;
       const auditorId = this.$route.query.id;
       this.ajax({
-        url: "credit/web/sys/bill/admin/over",
+        url: "credit/web/sys/contract/overdue/admin",
         data: {
           auditorId,
           pageSize,
@@ -123,21 +140,30 @@ export default {
         }
       }).then(res => {
         this.total = res.data.total;
-        this.userList = res.data.list;
+        this.list = res.data.list;
+        this.loading = false;
       });
     },
-    handleBack(drId) {
-      const auditorId = this.$route.query.id;
-      this.ajax({
-        url: "credit/web/sys/bill/admin/cancel",
-        data: { drId, auditorId }
-      }).then(res => {
-        this.$message({
-          type: "success",
-          message: "退单成功"
-        });
-        this.getList(1);
-      });
+    handleBack(row) {
+      this.$confirm("操作退单后，借款人"+row.name+"(手机号:"+row.mobile+")在当前产品下其他催收记录将一并退回，是否继续？","退单提醒",{
+        confirmButtonText: '确定退单',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(()=>{
+        const contractId = row.id;
+        this.ajax({
+          url:"credit/web/sys/contract/overdue/admin/cancel",
+          data:{contractId}
+        }).then(res => {
+          this.$message({
+            message:"退单成功",
+            type:"success"
+          });
+          this.getList(1);
+        })
+      }).catch(()=>{
+        this.$message("已取消退单")
+      })
     }
   }
 };

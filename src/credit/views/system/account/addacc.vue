@@ -1,51 +1,55 @@
 <template>
-    <div>
-        <el-form label-width="120px">
-        <el-form-item label="账户名称" required>
-          <el-input v-model="accInfo.loginName" placeholder="账户名称"></el-input>
-        </el-form-item>
-        <el-form-item label="手机号码" required>
-          <el-input v-model="accInfo.mobile" placeholder="账户手机号码"></el-input>
-        </el-form-item>
-        <el-form-item label="姓名" required>
-          <el-input v-model="accInfo.realName" placeholder="姓名"></el-input>
-        </el-form-item>
-        <div class="corp_wrapper">
-          <div v-for="(item,index) in corpProList" :key="index">
-            <el-form-item :label="'机构'+(index+1)+'名称'" required>
-              <el-select v-model="item.id" placeholder="请选择账户所属机构" @change="(id) => getProList(id,index)">
-                <el-option label="全选" :value="0" v-if="corpType == 1">全选</el-option>
-                <el-option :label="corp.corpName" :value="corp.corpId" :key="corp.corpId" v-for="corp in allCorpList" :disabled="hasItem(corp.corpId,corpProList)"></el-option>
-              </el-select>
-              <el-button icon="delete" @click="deleteCorp(index)" v-show="delBtnVisibile">删除</el-button>
-            </el-form-item>
-
-            <el-form-item label="机构产品" required v-show="proSelect[index]">
-              <el-checkbox-group v-model="item.proList">
-                <el-checkbox v-for="pro in allProList[index]" :label="pro.productId" :key="pro.productId">{{pro.productName}}</el-checkbox>
-              </el-checkbox-group>
-            </el-form-item>
-          </div>
-          <!-- <el-button type="primary" @click="addCorp" class="addCorpBtn" :disabled="addCorpBtn">新增机构</el-button> -->
+  <div>
+    <el-form label-width="120px">
+      <el-form-item label="账户名称" required>
+        <el-input v-model="accInfo.loginName" placeholder="账户名称"></el-input>
+      </el-form-item>
+      <el-form-item label="手机号码" required>
+        <el-input v-model="accInfo.mobile" :maxlength="11" placeholder="账户手机号码"></el-input>
+      </el-form-item>
+      <el-form-item label="姓名" required>
+        <el-input v-model="accInfo.realName" placeholder="姓名"></el-input>
+      </el-form-item>
+      <div class="corp_wrapper">
+        <div v-for="(item,index) in corpProList" :key="index">
+          <el-form-item :label="'机构'+(index+1)+'名称'" required>
+            <el-select v-model="item.id" placeholder="请选择账户所属机构" @change="(id) => getProList(id,index)">
+              <el-option label="全选" :value="0" v-if="corpType == 1">全选</el-option>
+              <el-option :label="corp.corpName" :value="corp.corpId" :key="corp.corpId" v-for="corp in allCorpList" :disabled="hasItem(corp.corpId,corpProList)"></el-option>
+            </el-select>
+            <el-button icon="delete" v-show="delBtnVisibile" @click="delCorp(index)"></el-button>
+          </el-form-item>
+          <el-form-item label="机构产品" required v-show="proSelect[index]">
+            <el-checkbox-group v-model="item.proList">
+              <el-checkbox v-for="pro in allProList[index]" :label="pro.productId" :key="pro.productId">{{pro.productName}}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
         </div>
-        <el-form-item label="角色筛选" required>
-          <el-select clearable v-model="accInfo.roleId" placeholder="角色">
-            <el-option v-for="v in allRoleList" :key="v.id" :label="v.name" :value="v.id">
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="登录密码" required>
-          <el-input v-model="accInfo.password" placeholder="登录密码" type="password"></el-input>
-        </el-form-item>
-        <el-form-item label="重复密码" required>
-          <el-input v-model="accInfo.againpassword" placeholder="重复密码" type="password"></el-input>
-        </el-form-item>
-        <el-button type="primary" @click="addAcc" style="margin-left:120px"  v-loading.fullscreen.lock="fullscreenLoading">保存</el-button>
-        <router-link to="list">
-          <el-button>取消</el-button>          
-        </router-link>
-      </el-form>
-    </div>
+        <el-button type="primary" class="addCorpBtn" :disabled="addCorpBtn" @click="addCorp">添加机构</el-button>
+      </div>
+      <el-form-item label="角色筛选" required>
+        <el-select clearable v-model="accInfo.roleId" placeholder="角色">
+          <el-option v-for="v in allRoleList" :key="v.id" :label="v.name" :value="v.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="登录密码" required>
+        <el-input v-model="accInfo.password" placeholder="登录密码" type="password"></el-input>
+      </el-form-item>
+      <el-form-item label="重复密码" required>
+        <el-input v-model="accInfo.againpassword" placeholder="重复密码" type="password"></el-input>
+      </el-form-item>
+      <el-form-item label="渠道设置">
+        <el-select v-model="accInfo.channelList" placeholder="选择渠道" multiple>
+          <el-option v-for="channel in allChannelList" :key="channel.code" :value="channel.code" :label="channel.name"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-button type="primary" @click="addAcc" style="margin-left:120px"  v-loading.fullscreen.lock="fullscreenLoading">保存</el-button>
+      <router-link to="list">
+        <el-button>取消</el-button>
+      </router-link>
+    </el-form>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -61,7 +65,8 @@ export default {
         roleId:"",
         corps:1,
         password:"",
-        againpassword:""
+        againpassword:"",
+        channelList:[]
       },
       fullscreenLoading:false,
       corpType:"",
@@ -72,7 +77,8 @@ export default {
       proList:[],
       allRoleList:[],//可选择的角色列表
       allProList:[],//机构下可选择的产品列表
-      allCorpList:[]//可选择的机构列表
+      allCorpList:[],//可选择的机构列表
+      allChannelList:[]
     };
   },
   computed: {
@@ -84,8 +90,16 @@ export default {
   mounted() {
     this.getRoleList();
     this.getCorpList();
+    this.getChannelList();
   },
   methods: {
+    getChannelList(){
+      this.ajax({
+        url:"credit/web/sys/source/all"
+      }).then(res => {
+        this.allChannelList = res.data;
+      })
+    },
     addAcc() {
       if (this.isEmpty(this.accInfo.loginName)) {
         this.$message({
@@ -144,15 +158,6 @@ export default {
         this.fullscreenLoading = false;
       })
     },
-    addCorp(){
-      if (this.corpProList.every((element) => {
-        return element.id
-      })) {
-        this.corpProList.push({'id':'','proList':[]});
-      }else{
-          this.$message("请先选择机构再新增机构")
-      }
-    },
     hasItem(id,idList){
       for (let index = 0; index < idList.length; index++) {
         const element = idList[index];
@@ -168,14 +173,12 @@ export default {
         this.allRoleList = res.data.list;
       })
     },
-    deleteCorp(index){
-      this.corpProList.splice(index,1);
-    },
     getProList(corpId,index){
       if (corpId == 0) {
         this.accInfo.corps = 1;
         this.corpProList = [{'id':0,'proList':[]}];
         this.addCorpBtn = true;
+        this.proSelect[index] = false;  
       }else{
         this.addCorpBtn = false;        
         this.accInfo.corps = 2;        
@@ -199,6 +202,12 @@ export default {
         this.allCorpList = res.data.list;
         this.corpType = res.data.corps;
       })
+    },
+    addCorp(){
+      this.corpProList.push({id:"",proList:[]})
+    },
+    delCorp(index){
+      this.corpProList.splice(index,1);
     }
   }
 };

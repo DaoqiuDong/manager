@@ -3,10 +3,6 @@ import Router from "vue-router";
 const _import = require("./_import_" + process.env.NODE_ENV);
 // in development env not use Lazy Loading,because Lazy Loading large page will cause webpack hot update too slow.so only in production use Lazy Loading
 
-/* layout */
-// import Layout from '../credit/views/layout/Layout';
-// import CreditLayout from '@/credit/views/layout/Layout';
-// import RuleLayout from '@/rule/views/layout/Layout';
 const Layout = _import("layout/Layout");
 /* login */
 const Login = _import("login/index");
@@ -125,11 +121,22 @@ export const btnMap = {
   B10059: "contract/recycle/detail", //回收订单详情
   B10060: "overdue/allot/sucList", //催收工作分配已摧回
   B10061: "overdue/return/detail", //逾期已还详情
+  B10062: "contract/overdue/billDetail",//逾期未还列表账单详情
+  B10063: "overdue/myallot/billDetail",//我的催收列表账单详情
+  B10064: "overdue/overdue/billDetail",//逾期合同列表账单详情
+  B10065: "brand/brandList/payConfig",//机构产品支付配置页面
+  B10066: "apply/autopay/applyDetail",//授信申请单详情
+  B10067: "apply/autopay/applyDetail",//注册用户授信申请单详情
+  B10068: "apply/autopay/applyDetail",//签约用户授信申请单详情
+  B10069: "product/proList/applyConfig",//签约用户授信申请单详情
   B50001: "analyse/detail", //执行记录详情
   B50002: "strategy/list/addstr", //添加策略
   B50003: "strategy/list/detail", //查看策略
   B50004: "strategy/list/editor", //编辑策略
-  B50005: "strategy/rule/detail" //规则详情
+  B50005: "strategy/rule/detail", //规则详情
+  B50006: "strategy/list/perform", //执行记录
+  B50007: "strategy/module/detail", //查看策略
+  B50008: "strategy/module/editor", //编辑策略
 };
 
 
@@ -209,4 +216,38 @@ B20076导出（回收订单导出）
 B20077确定（品质回收配置修改）
 B20078备注（逾期已还备注）
 B20079导出（逾期已还导出）
+B20080本金利息减免（逾期合同本金利息减免）
+B20081逾期费用减免（逾期合同逾期费用减免）
+B20082本金利息减免（逾期未还本金利息减免）
+B20083逾期费用减免（逾期未还逾期费用减免）
+B20084本金利息减免（我的催收本金利息减免）
+B20085逾期费用减免（我的催收逾期费用减免）
+B20086保存（机构产品支付配置保存）
+"B20087"            "添加备注"          "授信申请添加备注"
+"B20088"            "通过"          "授信申请通过"
+"B20089"            "拒绝"          "授信申请拒绝"
+B20090调整(授信额度调整)
+B20091冻结(注册用户授信冻结)
+B20092解冻(注册用户授信解冻)
+B10067详情(注册用户授信详情)
+B20093冻结(签约用户授信冻结)
+B20094解冻(签约用户授信解冻)
+B10068详情(签约用户授信详情)
+B20095调整(人工审核列表授信额度调整)
+B20096调整(我的审核授信额度调整)
+B20097确定(联合运营产品申请配置确定)
+B20098渠道停用（渠道停用）
+B20099渠道启用（渠道启用）
+B20100加载（平台统计加载）
+B20101平台运营统计（平台运营统计图表）
+B20102机构产品支付白名单（机构产品支付白名单）
+B20103产品申请白名单（产品申请白名单）
+B20104重新放款（放款失败合同重新放款）
+B20105申请拒绝导流配置（申请拒绝导流配置）
+B20106机构产品提额配置（机构产品提额配置）
+B20107产品列表产品提额配置（产品列表产品提额配置）
+B20108机构产品展期配置（机构产品展期配置）
+B20109产品列表产品展期配置（产品列表产品展期配置）
+B60004删除策略（策略模块删除）
+B60005添加策略（添加策略模块）
  */

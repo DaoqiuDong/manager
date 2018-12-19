@@ -1,73 +1,73 @@
 <template>
-    <el-form :inline='true' label-width="100px">
-        <h3>准入配置</h3>
-        <el-form-item label="机构名称">
-            <el-select v-model="selectCorp" style="width:320px" @change="hackcId">
-                    <el-option v-for="item in allCorpList" :key="item.corpId" :label="item.corpName" :value="item" :value-key="item.corpId"></el-option>
-                </el-select>
-        </el-form-item><br/>
-        <div v-if="configVisibile">
+  <el-form :inline='true' label-width="100px">
+    <h3>准入配置</h3>
+    <el-form-item label="机构名称">
+        <el-select v-model="selectCorp" style="width:320px" @change="hackcId">
+                <el-option v-for="item in allCorpList" :key="item.corpId" :label="item.corpName" :value="item" :value-key="item.corpId"></el-option>
+            </el-select>
+    </el-form-item><br/>
+    <div v-if="configVisibile">
 
-        <p><strong>申请配置</strong><span>(独享申请不能与其他产品共同申请)</span></p>
+      <p><strong>申请配置</strong><span>(独享申请不能与其他产品共同申请)</span></p>
+      <el-form-item>
+          <el-radio :label="2" v-model="applyShare">共享申请(默认)</el-radio>
+          <el-radio :label="1" v-model="applyShare">独立申请</el-radio>
+      </el-form-item>
+      <el-form-item>
+          <el-input v-model="debtAmount" placeholder="输入共债金额" :disabled="applyShare == 2"></el-input>
+      </el-form-item>
+      <i>(共债金额：当前用户已存在的最大负债额度)</i><br/>
+
+      <p><strong>逾期申请</strong><span>(不允许以下逾期用户申请)</span></p>
+      <p><span style="padding:0 1em">逾期已还</span>
+      <el-button type="primary" icon="plus" @click="addOverItem">添加</el-button></p>
+      <div v-for="(item,index) in overdueRepay" :key="index">
+          <el-form-item label="机构产品">
+              <el-cascader clearable :options="allCorpProList" :props="option" v-model="overdueRepay[index].corpPro" @change="(value) =>handleCorp(value,overdueRepay[index])"></el-cascader>
+          </el-form-item>
+          <el-form-item label="逾期天数>">
+              <el-input v-model="overdueRepay[index].overdueDays" placeholder="输入天数"></el-input>
+          </el-form-item>
+          <el-button icon="delete" @click="delOverItem(index)"></el-button>
+      </div>
+
+      <p><span style="padding:0 1em">逾期未还</span></p>
+      <div class="affix">
+        <p style="padding:0 60px;">产品<el-checkbox v-model="checkAll" @change="handleCheckAllChange1">全选</el-checkbox></p>
         <el-form-item>
-            <el-radio :label="2" v-model="applyShare">共享申请(默认)</el-radio>
-            <el-radio :label="1" v-model="applyShare">独立申请</el-radio>
+          <el-checkbox-group v-model="noRepayProList">
+            <el-checkbox v-for="(item,index) in allProList" :key="index" :label="item.cprId" @change="handleCprId">{{item.corpAlias}}-{{item.productName}}</el-checkbox>
+          </el-checkbox-group>
         </el-form-item>
-        <el-form-item>
-            <el-input v-model="debtAmount" placeholder="输入共债金额" :disabled="applyShare == 2"></el-input>
+      </div>
+
+      <p><strong>共同拒绝码</strong><span>(不允许最近一笔申请被以下理由拒绝的用户申请)</span></p>
+      <p>
+          <span style="padding:0 1em">产品</span>
+          <el-button type="primary" icon="plus" @click="addRefItem">添加</el-button>
+      </p>
+      <div v-for="(item,index) in applyRefusalCodes" :key="index">
+        <el-form-item label="产品">
+          <el-cascader clearable :options="allCorpProList" :props="option"  v-model="applyRefusalCodes[index].corpPro" @change="(value) => handleCorp(value,applyRefusalCodes[index])"></el-cascader>
         </el-form-item>
-        <i>(共债金额：当前用户已存在的最大负债额度)</i><br/>
-
-        <p><strong>逾期申请</strong><span>(不允许以下逾期用户申请)</span></p>
-        <p><span style="padding:0 1em">逾期已还</span>
-        <el-button type="primary" icon="plus" @click="addOverItem">添加</el-button></p>
-        <div v-for="(item,index) in overdueRepay" :key="index">
-            <el-form-item label="机构产品">
-                <el-cascader clearable :options="allCorpProList" :props="option" v-model="overdueRepay[index].corpPro" @change="(value) =>handleCorp(value,overdueRepay[index])"></el-cascader>
-            </el-form-item>
-            <el-form-item label="逾期天数>">
-                <el-input v-model="overdueRepay[index].overdueDays" placeholder="输入天数"></el-input>
-            </el-form-item>
-            <el-button icon="delete" @click="delOverItem(index)"></el-button>
-        </div>
-
-        <p><span style="padding:0 1em">逾期未还</span></p>
+        <el-button icon="delete" @click="delRefItem(index)"></el-button><br/>
         <div class="affix">
-            <p style="padding:0 60px;">产品<el-checkbox v-model="checkAll" @change="handleCheckAllChange1">全选</el-checkbox></p>
-            <el-form-item>
-                <el-checkbox-group v-model="noRepayProList">
-                    <el-checkbox v-for="(item,index) in allProList" :key="index" :label="item.cprId" @change="handleCprId">{{item.corpAlias}}-{{item.productName}}</el-checkbox>
-                </el-checkbox-group>
-            </el-form-item>
+          <p style="padding:0 60px;">拒绝码<el-checkbox v-model="applyRefusalCodes[index].checkAll" @change="(e) => handleCheckAllChange2(e,index)">全选</el-checkbox></p>
+          <el-form-item>
+            <el-checkbox-group v-model="applyRefusalCodes[index].codes">
+              <el-checkbox v-for="refuse in allRefList" :key="refuse.code" :label="refuse.code" @change="changeRefCode(index)">{{refuse.typeDesc}}/{{refuse.desc}}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
         </div>
-
-        <p><strong>共同拒绝码</strong><span>(不允许最近一笔申请被以下理由拒绝的用户申请)</span></p>
-        <p>
-            <span style="padding:0 1em">产品</span>
-            <el-button type="primary" icon="plus" @click="addRefItem">添加</el-button>
-        </p>
-        <div v-for="(item,index) in applyRefusalCodes" :key="index">
-            <el-form-item label="产品">
-                <el-cascader clearable :options="allCorpProList" :props="option"  v-model="applyRefusalCodes[index].corpPro" @change="(value) => handleCorp(value,applyRefusalCodes[index])"></el-cascader>
-            </el-form-item>
-            <el-button icon="delete" @click="delRefItem(index)"></el-button><br/>
-            <div class="affix">
-                <p style="padding:0 60px;">拒绝码<el-checkbox v-model="applyRefusalCodes[index].checkAll" @change="(e) => handleCheckAllChange2(e,index)">全选</el-checkbox></p>
-                <el-form-item>
-                    <el-checkbox-group v-model="applyRefusalCodes[index].codes">
-                        <el-checkbox v-for="refuse in allRefList" :key="refuse.code" :label="refuse.code" @change="changeRefCode(index)">{{refuse.typeDesc}}/{{refuse.desc}}</el-checkbox>
-                    </el-checkbox-group>
-                </el-form-item>
-            </div>
-        </div>
-        </div>
-        <div>
-            <el-button type="primary" v-if="hasBtnAuth('B20064',btnApiList)" v-text="getbtnName('B20064',btnApiList)" @click="subConfig"></el-button>
-            <router-link to="list">
-                <el-button>取消</el-button>
-            </router-link>
-        </div>
-    </el-form>
+      </div>
+    </div>
+    <div>
+      <el-button type="primary" v-if="hasBtnAuth('B20064',btnApiList)" v-text="getbtnName('B20064',btnApiList)" @click="subConfig"></el-button>
+      <router-link to="list">
+        <el-button>取消</el-button>
+      </router-link>
+    </div>
+  </el-form>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -135,6 +135,7 @@ export default {
     hackcId() {
       this.selectCorp.cId = this.selectCorp.corpId;
       this.selectCorp.pId = this.selectCorp.productId;
+      this.getConfig();
     },
     handleCprId() {
       const _this = this;

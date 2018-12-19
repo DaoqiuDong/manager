@@ -1,43 +1,42 @@
 <template>
-    <div>
-      <h4>添加联合运营业务</h4>
-        <el-form label-width="120px">
-          <el-form-item label="产品选择" required>
-            <el-select clearable v-model="proInfo.proId" placeholder="产品选择" @change="(proId) => getInfoValidity(proId)" style="width:50%;">
-              <el-option
-                v-for="item in proList"
-                :key="item.productCode"
-                :label="item.productName"
-                :value="item.productId">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="运营模式" required>
-            <el-radio-group v-model.number="proInfo.operationMode">
-              <el-radio :label="100001">仅审核</el-radio>
-              <el-radio :label="200001">全流程</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <h5>上线配置</h5>
-          <el-form-item label="产品状态" required>
-            <el-radio-group v-model="proInfo.status">
-              <el-radio :label="1">启用</el-radio>
-              <el-radio :label="2">停用</el-radio>
-              <el-radio :label="3">仅服务老用户</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <h5>信息有效期(-1为长期有效)</h5>
-          <el-form-item :label="item.name" v-for="item in infoValidity" :key="item.type">
-            <el-input v-model.number="item.validity" :placeholder="item.remark" class="validity" style="width:50%">
-              <el-select v-model="item.unit" slot="append" placeholder="请选择" style="width:120px">
-                <el-option :label="unit.label" :value="unit.value" :key="unit.value" v-for="unit in unitList"></el-option>
-              </el-select>
-            </el-input>
-          </el-form-item>
-          <el-button type="primary" @click="addally"  v-loading.fullscreen.lock="fullscreenLoading">保存</el-button>
-            <el-button @click="$router.go(-1)">取消</el-button>
-        </el-form>
-    </div>
+  <div>
+    <h4>添加联合运营业务</h4>
+    <el-form label-width="120px">
+      <el-form-item label="产品选择" required>
+        <el-select clearable v-model="proInfo.proId" placeholder="产品选择" @change="(proId) => getInfoValidity(proId)" style="width:50%;">
+          <el-option v-for="item in proList" :key="item.productCode" :label="item.productName" :value="item.productId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="运营模式" required>
+        <el-radio-group v-model.number="proInfo.operationMode">
+          <el-radio :label="100001">仅审核</el-radio>
+          <el-radio :label="200001">全流程</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="appGroup" required>
+        <el-input v-model="proInfo.appGroup" style="width:50%"></el-input>
+      </el-form-item>
+      <h5>上线配置</h5>
+      <el-form-item label="产品状态" required>
+        <el-radio-group v-model="proInfo.status">
+          <el-radio :label="1">启用</el-radio>
+          <el-radio :label="2">停用</el-radio>
+          <el-radio :label="3">仅服务老用户</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <h5>信息有效期(-1为长期有效)</h5>
+      <el-form-item :label="item.name" v-for="item in infoValidity" :key="item.type">
+        <el-input v-model.number="item.validity" :placeholder="item.remark" class="validity" style="width:50%">
+          <el-select v-model="item.unit" slot="append" placeholder="请选择" style="width:120px">
+            <el-option :label="unit.label" :value="unit.value" :key="unit.value" v-for="unit in unitList"></el-option>
+          </el-select>
+        </el-input>
+      </el-form-item>
+      <el-button type="primary" @click="addally"  v-loading.fullscreen.lock="fullscreenLoading">保存</el-button>
+      <el-button @click="$router.go(-1)">取消</el-button>
+    </el-form>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
@@ -49,6 +48,7 @@ export default {
       tradeList:[],
       proInfo: {
         proId: "",
+        appGroup:"",
         operationMode: 100001,
         status: 1
       },

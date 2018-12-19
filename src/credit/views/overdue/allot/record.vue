@@ -1,40 +1,40 @@
 <template>
+  <div>
+    <el-form :inline='true'>
+      <el-form-item>   
+        <el-select clearable filterable v-model="searchForm.auditorId" placeholder="催收人员">
+            <el-option
+                v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
+            </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.repayTimeStart" type="date" placeholder="开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
+      </el-form-item>
+      <el-form-item>
+        <el-date-picker v-model="searchForm.repayTimeEnd" type="date" placeholder="结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
+      </el-form-item>
+        <el-button type="primary" @click="getList(1)">查询</el-button>
+    </el-form>
     <div>
-        <el-form :inline='true'>
-          <el-form-item>   
-            <el-select clearable filterable v-model="searchForm.auditorId" placeholder="催收人员">
-                <el-option
-                    v-for="item in roleList" :key="item.accountId" :label="item.accountRealName" :value="item.accountId">
-                </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.repayTimeStart" type="date" placeholder="开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
-          </el-form-item>
-          <el-form-item>
-            <el-date-picker v-model="searchForm.repayTimeEnd" type="date" placeholder="结束时间"  format="yyyy-MM-dd"  @change="selectEndTime"></el-date-picker>
-          </el-form-item>
-            <el-button type="primary" @click="getList(1)">查询</el-button>
-        </el-form>
-        <div>
-          <el-table :data="list"  v-loading.body="loading" stripe>
-            <el-table-column label="催收人员" prop="name"></el-table-column>
-            <el-table-column label="正在催收数量" prop="currentCount"></el-table-column>
-            <el-table-column label="催回数量" prop="successCount"></el-table-column>
-            <el-table-column label="催回金额" prop="successAmount"></el-table-column>
-            <el-table-column label="操作">
-              <template scope="scope">
-                  <router-link :to="{path:'mylist',query:{id:scope.row.auditorId}}" v-if="hasBtnAuth('B10051',btnGoList)">
-                    <el-button type="text" v-text="getbtnName('B10051',btnGoList)"></el-button>
-                  </router-link>
-              </template>
-            </el-table-column>          
-          </el-table>
-          <el-pagination layout="total,prev, pager, next,slot" :total="total" @current-change="(i) => getList(i)">
-            <span style="padding:0 1em">共计催回{{result.successCount}}笔，{{result.successAmount}}元</span>
-          </el-pagination>
-        </div>
+      <el-table :data="list"  v-loading.body="loading" stripe>
+        <el-table-column label="催收人员" prop="name"></el-table-column>
+        <el-table-column label="正在催收数量" prop="currentCount"></el-table-column>
+        <el-table-column label="催回数量" prop="successCount"></el-table-column>
+        <el-table-column label="催回金额" prop="successAmount"></el-table-column>
+        <el-table-column label="操作">
+          <template scope="scope">
+              <router-link :to="{path:'mylist',query:{id:scope.row.auditorId}}" v-if="hasBtnAuth('B10051',btnGoList)">
+                <el-button type="text" v-text="getbtnName('B10051',btnGoList)"></el-button>
+              </router-link>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination layout="total,prev, pager, next,slot" :total="total" @current-change="(i) => getList(i)">
+        <span style="padding:0 1em">共计催回{{result.successCount}}笔，{{result.successAmount}}元</span>
+      </el-pagination>
     </div>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";

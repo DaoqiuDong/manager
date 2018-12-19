@@ -1,8 +1,7 @@
 <template>
   <div class="login-container">
     <div class="header-container">
-      <img :src="logosrc" alt="logo">
-      <span>派大薪后台管理中心</span>
+      <span>信贷后台管理中心</span>
     </div>
     <div class="form-container">
       <img :src="picsrc" alt="pic" style="width:50%">
@@ -31,9 +30,6 @@
           </el-form-item>
         </el-form>
       </div>
-    </div>
-    <div class="footer-container">
-      <p>Copyright©2018 元气弹(深圳)科技 版权所有</p>
     </div>
   </div>
 </template>
@@ -114,14 +110,16 @@ export default {
           return false
         }else{
           const loginName = this.loginForm.loginName;
+          this.sendCodeStatus = 1;
+          this.countNum = 60;
           this.ajax({
             url:"credit/web/sys/login/sms",
             data:{loginName}
           }).then(res => {
-            this.sendCodeStatus = 1;
-            this.countNum = 60;
             this.countDown();
             this.IntervalNum = setInterval(this.countDown.bind(this),1000)
+          }).catch(err => {
+            this.sendCodeStatus = 1;
           })
         }
       }

@@ -75,10 +75,10 @@
 </template>
 
 <script>
-const Echarts = require('echarts/src/echarts');
-require('echarts/src/chart/tree');
-import $ from 'jquery';
-import fetch from '@/utils/fetch';
+const Echarts = require("echarts/src/echarts");
+require("echarts/src/chart/tree");
+import $ from "jquery";
+import fetch from "@/utils/fetch";
 const option = {
   //echart渲染数据
   title: {
@@ -105,12 +105,12 @@ const option = {
   },
   tooltip: {
     show: true,
-    trigger: 'item',
+    trigger: "item",
     show: true,
     showDelay: 0,
     hideDelay: 50,
     transitionDuration: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: "rgba(0,0,0,0.7)",
     borderRadius: 8, //边框圆角
     padding: 10,
     position: function(p) {
@@ -127,85 +127,99 @@ const option = {
       if (params.data.factorParam) {
         for (var i = 0; i < params.data.factorParam.length; i++) {
           if (params.data.factorParam[i].type == 1) {
-            res += "<p>输入因子 :" + params.data.factorParam[i].name + ":" + params.data.factorParam[i].value + "<p>"
-          } {
-            res += "<p>输入因子 :" + params.data.factorParam[i].name + ":" + params.data.factorParam[i].value + "<p>"
-          };
+            res +=
+              "<p>输入因子 :" +
+              params.data.factorParam[i].name +
+              ":" +
+              params.data.factorParam[i].value +
+              "<p>";
+          }
+          {
+            res +=
+              "<p>输入因子 :" +
+              params.data.factorParam[i].name +
+              ":" +
+              params.data.factorParam[i].value +
+              "<p>";
+          }
         }
-      };
+      }
       if (params.data.parentId != "0") {
         res += "<p>触发条件 :" + params.data.triggerName + "</p>";
-      };
+      }
       res += "</div>";
       setTimeout(function() {
         callback(ticket, res);
       }, 500);
-      return 'loading...';
+      return "loading...";
     }
   },
   calculable: false,
-  series: [{
-    name: '',
-    type: 'tree',
-    orient: 'vertical',
-    roam: true,
-    rootLocation: {
-      x: 'center',
-      y: 100
-    },
-    nodePadding: 60,
-    layerPadding: 50,
-    symbolSize: [120, 42],
-    symbol: "rectangle",
-    itemStyle: {
-      normal: {
-        label: {
-          show: true,
-          position: "inside",
-          textStyle: {
-            fontSize: 14,
-            color: "#fff"
-          }
-        },
-        lineStyle: {
-          color: '#a2c9ff',
-          width: 1,
-          type: 'broken'
-
-        },
-        color: "#4693ff",
-        // borderWidth:2,
-        // borderColor: "rgba(0,0,0,.8)"
+  series: [
+    {
+      name: "",
+      type: "tree",
+      orient: "vertical",
+      roam: true,
+      rootLocation: {
+        x: "center",
+        y: 100
       },
-      emphasis: {
-        label: {
-          show: false,
-          textStyle: {
-            fontSize: 14,
-            color: "#fff"
-          }
+      nodePadding: 60,
+      layerPadding: 50,
+      symbolSize: [120, 42],
+      symbol: "rectangle",
+      itemStyle: {
+        normal: {
+          label: {
+            show: true,
+            position: "inside",
+            textStyle: {
+              fontSize: 14,
+              color: "#fff"
+            }
+          },
+          lineStyle: {
+            color: "#a2c9ff",
+            width: 1,
+            type: "broken"
+          },
+          color: "#4693ff"
+          // borderWidth:2,
+          // borderColor: "rgba(0,0,0,.8)"
         },
-        color: "#035",
-        // borderWidth: 6,
-        borderColor: "rgba(0,0,0,0)"
-      }
-    },
+        emphasis: {
+          label: {
+            show: false,
+            textStyle: {
+              fontSize: 14,
+              color: "#fff"
+            }
+          },
+          color: "#035",
+          // borderWidth: 6,
+          borderColor: "rgba(0,0,0,0)"
+        }
+      },
 
-    data: [{
-      name: '根节点',
-      id: "1",
-      parentId: "0",
-      outParam: [],
-      children: []
-    }]
-  }]
+      data: [
+        {
+          name: "根节点",
+          id: "1",
+          parentId: "0",
+          outParam: [],
+          children: []
+        }
+      ]
+    }
+  ]
 };
 export default {
   data() {
     return {
       ruleSet: {
-        name: '',
-        value: ''
+        name: "",
+        value: ""
       },
       ruleList: [], //所有规则列表
       ruleSetVisibility: false, //选择规则可见性
@@ -214,30 +228,29 @@ export default {
       modifyDialog: false, //修改触发条件dialog可见性
       triggerList: [],
       ParamVal: [], //规则配置因子临时list
-      ruleParam: {},//规则配置因子
+      ruleParam: {}, //规则配置因子
 
-
-      toolTipindex: '',
-      ruleName: '',
-      rulelog: '',
+      toolTipindex: "",
+      ruleName: "",
+      rulelog: "",
       obj: {}, //新节点
       queryOutParam: {},
       canSetOutParam: [], //可设置输出项
       ruleListInfo: {},
       path: option.series[0].data, //后台交互数据
-      nowId: '', //当前节点ID
-      nowparentId: '', //当前节点父级ID
+      nowId: "", //当前节点ID
+      nowparentId: "", //当前节点父级ID
       nowFatherOutParam: {}, //当前节点父级输出
       nowOutParam: null, //当前节点输出
-      nowRuleCode: '',
-      nowRuleName: '', //当前节点name
+      nowRuleCode: "",
+      nowRuleName: "", //当前节点name
       nowFactorParam: [],
       nowFactorParamObj: {},
-      nowNodeType: '',
-      nowTrigger: '',
-      nowRemark: '',
+      nowNodeType: "",
+      nowTrigger: "",
+      nowRemark: "",
       option: option
-    }
+    };
   },
   mounted() {
     this.queryStrategy();
@@ -252,32 +265,36 @@ export default {
         data: {
           strategyId
         }
-      }).then(res => {
-        if (data.ruleList && data.ruleList.length) {
-          option.series[0].data = data.ruleList;
-          _this.path = data.ruleList;
-          _this.recursionName(data.ruleList);
-        } else {
-          option.series[0].data = [{
-            name: '根节点',
-            id: "1",
-            parentId: "0",
-            outParam: [],
-            children: []
-          }]
-        };
-        _this.ruleParam = data;
-        _this.ruleName = data.strategyName;
-        _this.rulelog = data.content;
-        _this.echartinit(option);
-      }).catch(err => console.log(err))
+      })
+        .then(res => {
+          if (data.ruleList && data.ruleList.length) {
+            option.series[0].data = data.ruleList;
+            _this.path = data.ruleList;
+            _this.recursionName(data.ruleList);
+          } else {
+            option.series[0].data = [
+              {
+                name: "根节点",
+                id: "1",
+                parentId: "0",
+                outParam: [],
+                children: []
+              }
+            ];
+          }
+          _this.ruleParam = data;
+          _this.ruleName = data.strategyName;
+          _this.rulelog = data.content;
+          _this.echartinit(option);
+        })
+        .catch(err => console.log(err));
     },
     submit() {
       var treeData = {};
-      const _this =this;
+      const _this = this;
       treeData.ruleList = this.path;
       treeData.flag = this.ruleParam.flag;
-      treeData.strategyId = this.ruleParam.strategyId
+      treeData.strategyId = this.ruleParam.strategyId;
       treeData.strategyName = this.ruleParam.strategyName;
       treeData = JSON.stringify(treeData);
       fetch({
@@ -286,28 +303,30 @@ export default {
         data: {
           treeData
         }
-      }).then(res => {
-        console.log(res);
-        if (res.code == 1) {
-          data.forEach(function(val) {
+      })
+        .then(res => {
+          console.log(res);
+          if (res.code == 1) {
+            data.forEach(function(val) {
               _this.recursionError(_this.path, val.id);
-          });
-          _this.$message({
-            message:res.message,
-            type:"error"
-          });
-          _this.Chart.setOption(option, true);
-          _this.empty();
-        }else{
-          _this.$message({
-            message:"保存成功",
-            type:"success"
-          })
-        }
-      }).catch(err => console.log(err))
+            });
+            _this.$message({
+              message: res.message,
+              type: "error"
+            });
+            _this.Chart.setOption(option, true);
+            _this.empty();
+          } else {
+            _this.$message({
+              message: "保存成功",
+              type: "success"
+            });
+          }
+        })
+        .catch(err => console.log(err));
     },
     echartinit(option) {
-      this.Chart = Echarts.init(document.getElementById('treeChart'));
+      this.Chart = Echarts.init(document.getElementById("treeChart"));
       this.Chart.setOption(option, true);
       this.Chart.on("click", this.eventlisten);
     },
@@ -327,17 +346,17 @@ export default {
         this.$message({
           message: "请先选择节点"
         });
-        return false
-      };
+        return false;
+      }
       if (!this.nowTrigger && this.nowparentId != 0) {
         this.$message({
           messgae: "请先配置节点的触发条件"
         });
-        return false
-      };
+        return false;
+      }
       if (this.nowRuleCode) {
         this.obj = {
-          id: (new Date()).getTime()
+          id: new Date().getTime()
         };
         this.triggerList = [];
         this.recursionChildrenLen(option.series[0].data, this.nowId);
@@ -346,14 +365,23 @@ export default {
         this.$message({
           message: "请先配置本节点规则"
         });
-        return false
-      };
+        return false;
+      }
     },
     set(i) {
       this.nowFactorParam[i].value = this.ParamVal[i]; //多维对象更新hack
     },
     rulesetSub() {
-      this.recursionEdit(this.path, this.nowId, this.nowRuleName, this.queryOutParam, this.nowRuleCode, this.nowFactorParam, this.nowNodeType, this.nowRemark);
+      this.recursionEdit(
+        this.path,
+        this.nowId,
+        this.nowRuleName,
+        this.queryOutParam,
+        this.nowRuleCode,
+        this.nowFactorParam,
+        this.nowNodeType,
+        this.nowRemark
+      );
       this.ruleSetVisibility = false;
       option.series[0].data = this.path;
       this.Chart.setOption(option, true); //重新渲染
@@ -362,7 +390,7 @@ export default {
     triggersetSub() {
       if (this.triggerList.length) {
         this.obj.trigger = [];
-        this.obj.triggerName = '';
+        this.obj.triggerName = "";
         this.obj.triggerName = this.triggerList.join(",");
         this.obj.name = this.triggerList.join("/");
         this.obj.parentId = this.nowId;
@@ -372,7 +400,7 @@ export default {
               this.obj.trigger.push(this.nowRuleInfo.outParam[k].value);
             }
           }
-        };
+        }
         this.recursionAdd(option.series[0].data, this.nowId, this.obj); //地柜找到数据节点插入数据
         this.Chart.setOption(option, true); //重新渲染
         this.addDialog = false;
@@ -381,7 +409,7 @@ export default {
         this.$message({
           message: "请选择触发条件",
           type: "info"
-        })
+        });
       }
     },
     changeTriggersetSub() {
@@ -395,7 +423,7 @@ export default {
               newTrigger.push(this.nowFatherOutParam[k].value);
             }
           }
-        };
+        }
         this.recursionModify(this.path, this.nowId, newTrigger, newTriggerName);
         option.series[0].data = this.path;
         this.Chart.setOption(option, true);
@@ -405,7 +433,7 @@ export default {
         this.$message({
           message: "请选择触发条件",
           type: "info"
-        })
+        });
       }
     },
     cancel() {
@@ -425,14 +453,14 @@ export default {
         this.$message({
           message: "请先选择节点"
         });
-        return false
-      };
+        return false;
+      }
       if (this.nowparentId == 0) {
         this.$message({
           message: "根节点无法设置触发条件"
         });
-        return false
-      };
+        return false;
+      }
       this.recursionFather(this.path, this.nowparentId);
     },
     del() {
@@ -441,26 +469,30 @@ export default {
         this.$message({
           message: "请先选择节点"
         });
-        return false
-      };
+        return false;
+      }
       if (this.nowparentId == 0) {
         this.$message({
           message: "根节点无法删除"
         });
-        return false
-      };
+        return false;
+      }
       const h = this.$createElement;
       const _this = this;
       this.$msgbox({
-        title: '删除节点',
-        message: h('p', null, [
-          h('span', null, '删除节点会将该节点及节点下所有节点全部删除，确认继续删除操作吗？')
+        title: "删除节点",
+        message: h("p", null, [
+          h(
+            "span",
+            null,
+            "删除节点会将该节点及节点下所有节点全部删除，确认继续删除操作吗？"
+          )
         ]),
         showCancelButton: true,
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
+        confirmButtonText: "确定删除",
+        cancelButtonText: "取消",
         beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
+          if (action === "confirm") {
             _this.recursionDelete(_this.path, _this.nowparentId, _this.nowId);
             option.series[0].data = _this.path;
             _this.Chart.setOption(option, true);
@@ -471,10 +503,10 @@ export default {
           }
         }
       }).then(action => {
-        if (action != 'confirm') {
+        if (action != "confirm") {
           this.$message({
-            type: 'info',
-            message: '已取消删除！'
+            type: "info",
+            message: "已取消删除！"
           });
         }
       });
@@ -485,12 +517,14 @@ export default {
       fetch({
         url: "/web/rule/getallvalidrulelist",
         method: "post"
-      }).then(res => {
-        _this.ruleList = data;
-        _this.ParamVal = [];
-        _this.nowRuleInfo = {};
-        _this.ruleSetVisibility = true;
-      }).catch(err => console.log(err))
+      })
+        .then(res => {
+          _this.ruleList = data;
+          _this.ParamVal = [];
+          _this.nowRuleInfo = {};
+          _this.ruleSetVisibility = true;
+        })
+        .catch(err => console.log(err));
     },
     getruleinfo(value) {
       //获取规则配置条件
@@ -502,24 +536,26 @@ export default {
         data: {
           ruleCode
         }
-      }).then(res => {
-        _this.nowRuleInfo = data;
-        _this.nowFactorParam = [];
-        if (data.factorParam.length) {
-          for (let j = 0; j < data.factorParam.length; j++) {
-            _this.nowFactorParam[j] = {
-              name: data.factorParam[j].name,
-              key: data.factorParam[j].key,
-              value: ''
-            };
-          };
-        } else {
-          _this.nowFactorParam = null;
-        };
-        _this.nowRuleName = data.name;
-        _this.queryOutParam = data.outParam;
-        _this.nowRuleCode = data.ruleCode;
-      }).catch(err => console.log(err))
+      })
+        .then(res => {
+          _this.nowRuleInfo = data;
+          _this.nowFactorParam = [];
+          if (data.factorParam.length) {
+            for (let j = 0; j < data.factorParam.length; j++) {
+              _this.nowFactorParam[j] = {
+                name: data.factorParam[j].name,
+                key: data.factorParam[j].key,
+                value: ""
+              };
+            }
+          } else {
+            _this.nowFactorParam = null;
+          }
+          _this.nowRuleName = data.name;
+          _this.queryOutParam = data.outParam;
+          _this.nowRuleCode = data.ruleCode;
+        })
+        .catch(err => console.log(err));
     },
     recursionChildrenLen(arr, id) {
       //子节点个数历遍
@@ -541,10 +577,10 @@ export default {
             _this.recursionChildrenLen(v.children, id);
           } else {
             v.children = [];
-            return false
-          };
-        };
-      })
+            return false;
+          }
+        }
+      });
     },
     recursionError(arr, id) {
       //节点错误效果
@@ -561,9 +597,9 @@ export default {
           _this.recursionError(v.children, id);
         } else {
           v.children = [];
-          return false
+          return false;
         }
-      })
+      });
     },
     recursionSelected(arr, id) {
       //节点选中效果
@@ -577,21 +613,21 @@ export default {
           };
         } else {
           switch (v.nodeType) {
-            case '1':
+            case "1":
               v.itemStyle = {
                 normal: {
                   color: "#29c52a"
                 }
               };
               break;
-            case '2':
+            case "2":
               v.itemStyle = {
                 normal: {
                   color: "#fabc05"
                 }
               };
               break;
-            case '3':
+            case "3":
               v.itemStyle = {
                 normal: {
                   color: "#ea4335"
@@ -604,15 +640,15 @@ export default {
                   color: "#4693ff"
                 }
               };
-          };
-        };
+          }
+        }
         if (v.children && v.children.length) {
           _this.recursionSelected(v.children, id);
         } else {
           v.children = [];
-          return false
+          return false;
         }
-      })
+      });
     },
     recursionAdd(arr, id, child) {
       //节点生成递归
@@ -621,8 +657,8 @@ export default {
         if (v.id == id) {
           if (!v.children) {
             v.children = [];
-          };
-          if (v.name != '') {
+          }
+          if (v.name != "") {
             if (v.children.length < _this.nowOutParam.length) {
               v.children.push(_this.obj);
               return false;
@@ -632,7 +668,6 @@ export default {
               });
             }
           }
-
         } else {
           if (v.children && v.children.length) {
             _this.recursionAdd(v.children, id, child);
@@ -641,9 +676,18 @@ export default {
           }
           return false;
         }
-      })
+      });
     },
-    recursionEdit(arr, id, nowRuleName, queryOutParam, nowRuleCode, nowFactorParam, nowNodeType, nowRemark) {
+    recursionEdit(
+      arr,
+      id,
+      nowRuleName,
+      queryOutParam,
+      nowRuleCode,
+      nowFactorParam,
+      nowNodeType,
+      nowRemark
+    ) {
       //节点编辑递归
       const _this = this;
       arr.forEach(function(v) {
@@ -651,8 +695,8 @@ export default {
           if (v.parentId == "0") {
             v.name = nowRuleName;
           } else {
-            v.name = v.triggerName + '\n' + nowRuleName;
-          };
+            v.name = v.triggerName + "\n" + nowRuleName;
+          }
           v.ruleName = nowRuleName;
           v.outParam = queryOutParam;
           v.ruleCode = nowRuleCode;
@@ -663,21 +707,21 @@ export default {
           v.nodeType = nowNodeType;
           v.remark = nowRemark;
           switch (nowNodeType) {
-            case '1':
+            case "1":
               v.itemStyle = {
                 normal: {
                   color: "#29c52a"
                 }
               };
               break;
-            case '2':
+            case "2":
               v.itemStyle = {
                 normal: {
                   color: "#fabc05"
                 }
               };
               break;
-            case '3':
+            case "3":
               v.itemStyle = {
                 normal: {
                   color: "#ea4335"
@@ -690,7 +734,7 @@ export default {
                   color: "#4693ff"
                 }
               };
-          };
+          }
           if (v.children && v.children.length) {
             v.children.forEach(function(val) {
               val.itemStyle = {
@@ -701,20 +745,29 @@ export default {
               val.triggerName = "";
               val.trigger = "";
               val.name = val.ruleName;
-            })
+            });
           } else {
             v.children = [];
           }
           return false;
         } else {
           if (v.children && v.children.length) {
-            _this.recursionEdit(v.children, id, nowRuleName, queryOutParam, nowRuleCode, nowFactorParam, nowNodeType, nowRemark);
+            _this.recursionEdit(
+              v.children,
+              id,
+              nowRuleName,
+              queryOutParam,
+              nowRuleCode,
+              nowFactorParam,
+              nowNodeType,
+              nowRemark
+            );
           } else {
             v.children = [];
             return false;
           }
         }
-      })
+      });
     },
     recursionModify(arr, id, newTrigger, newTriggerName) {
       //修改节点触发条件递归
@@ -722,7 +775,7 @@ export default {
       arr.forEach(function(v) {
         if (v.id == id) {
           v.ruleName = v.ruleName || "";
-          v.name = newTriggerName + '\n' + v.ruleName;
+          v.name = newTriggerName + "\n" + v.ruleName;
           v.triggerName = newTriggerName;
           v.trigger = newTrigger;
           return false;
@@ -734,7 +787,7 @@ export default {
             return false;
           }
         }
-      })
+      });
     },
     recursionDelete(arr, nowparentId, nowId) {
       //节点删除递归遍历
@@ -746,7 +799,7 @@ export default {
               v.children.splice(index, 1);
               return false;
             }
-          })
+          });
         } else {
           if (v.children && v.children.length) {
             _this.recursionDelete(v.children, nowparentId, nowId);
@@ -755,7 +808,7 @@ export default {
             return false;
           }
         }
-      })
+      });
     },
     recursionFather(arr, nowparentId) {
       //父节点数据位置递归
@@ -774,7 +827,7 @@ export default {
             return false;
           }
         }
-      })
+      });
     },
     recursionStatus(arr, parentId) {
       //规则输出配置状态递归
@@ -787,7 +840,7 @@ export default {
             v.children.forEach(function() {
               var index = configured.indexOf(val);
               configured.splice(index, 1);
-            })
+            });
           }
           return false;
         } else {
@@ -798,33 +851,33 @@ export default {
             return false;
           }
         }
-      })
+      });
     },
     recursionName(data) {
       //节点name递归
       const _this = this;
       data.forEach(function(v) {
         if (v.triggerName) {
-          v.name = v.triggerName + '\n' + v.ruleName;
+          v.name = v.triggerName + "\n" + v.ruleName;
         } else {
           v.name = v.ruleName;
-        };
+        }
         switch (v.nodeType) {
-          case '1':
+          case "1":
             v.itemStyle = {
               normal: {
                 color: "#29c52a"
               }
             };
             break;
-          case '2':
+          case "2":
             v.itemStyle = {
               normal: {
                 color: "#fabc05"
               }
             };
             break;
-          case '3':
+          case "3":
             v.itemStyle = {
               normal: {
                 color: "#ea4335"
@@ -837,15 +890,15 @@ export default {
                 color: "#4693ff"
               }
             };
-        };
+        }
         if (v.children && v.children.length) {
           _this.recursionName(v.children);
         } else {
           v.children = [];
-          return false
-        };
-        return false
-      })
+          return false;
+        }
+        return false;
+      });
     },
     empty() {
       //置空所有操作参数
@@ -856,98 +909,98 @@ export default {
       this.nowRuleCode = "";
     }
   }
-}
+};
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "src/styles/mixin.scss";
 .main_module {
-    position: relative;
-    .info_wrapper {
-      @include clearfix;
-        border-bottom: 1px solid rgb(219, 219, 219);
-        .ruleinfo {
-            float: left;
-            margin: 26px 20px;
-            strong {
-                @include textcolor;
-                font-size: 18px;
-                margin-right: 20px;
-            }
-        }
-        .btn_wrapper {
-            float: right;
-            width: 300px;
-            margin: 20px 0;
-            span {
-                @include bgcolor;
-                display: inline-block;
-                width: 120px;
-                height: 36px;
-                line-height: 36px;
-                text-align: center;
-                margin-right: 20px;
-                border-radius: 4px;
-                color: #fff;
-                cursor: pointer;
-            }
-        }
+  position: relative;
+  .info_wrapper {
+    @include clearfix;
+    border-bottom: 1px solid rgb(219, 219, 219);
+    .ruleinfo {
+      float: left;
+      margin: 26px 20px;
+      strong {
+        @include textcolor;
+        font-size: 18px;
+        margin-right: 20px;
+      }
     }
-    #treeChart {
-        width: 100%;
-        height: 600px;
+    .btn_wrapper {
+      float: right;
+      width: 300px;
+      margin: 20px 0;
+      span {
+        @include bgcolor;
+        display: inline-block;
+        width: 120px;
+        height: 36px;
+        line-height: 36px;
+        text-align: center;
+        margin-right: 20px;
+        border-radius: 4px;
+        color: #fff;
+        cursor: pointer;
+      }
     }
-    .operate {
-        height: 72px;
-        padding: 20px;
-        border-top: 1px solid rgb(219, 219, 219);
-        span {
-            @include bgcolor;
-            display: inline-block;
-            width: 120px;
-            height: 36px;
-            line-height: 36px;
-            text-align: center;
-            margin: 0 20px;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    }
-    .rule_detail {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 30%;
-        min-width: 420px;
-        height: 100%;
-        border-left: 1px solid rgb(219, 219, 219);
-        background: #fff;
-        .el-form{
-          margin: 0 20px;
-          .el-button{
-            width: 120px;
-          }
-        }
-        h4 {
-            @include maincolor;
-            margin: 0;
-            line-height: 42px;
-            color: #fff;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .el-input {
-            width: 80%;
-        }
-    }
-    .el-checkbox{
-      padding: 10px 20px;
-      margin-right: 30px;
-    }
-    .el-button{
+  }
+  #treeChart {
+    width: 100%;
+    height: 600px;
+  }
+  .operate {
+    height: 72px;
+    padding: 20px;
+    border-top: 1px solid rgb(219, 219, 219);
+    span {
+      @include bgcolor;
+      display: inline-block;
       width: 120px;
-      margin: 20px 0 20px 20px;
+      height: 36px;
+      line-height: 36px;
+      text-align: center;
+      margin: 0 20px;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
     }
+  }
+  .rule_detail {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30%;
+    min-width: 420px;
+    height: 100%;
+    border-left: 1px solid rgb(219, 219, 219);
+    background: #fff;
+    .el-form {
+      margin: 0 20px;
+      .el-button {
+        width: 120px;
+      }
+    }
+    h4 {
+      @include maincolor;
+      margin: 0;
+      line-height: 42px;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .el-input {
+      width: 80%;
+    }
+  }
+  .el-checkbox {
+    padding: 10px 20px;
+    margin-right: 30px;
+  }
+  .el-button {
+    width: 120px;
+    margin: 20px 0 20px 20px;
+  }
 }
 </style>

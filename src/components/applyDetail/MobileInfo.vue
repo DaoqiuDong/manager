@@ -1,46 +1,50 @@
 <template>
-    <div class="charts_wrapper">
-        <!-- <h4>通话详单({{userInfo.userH5Name||userInfo.applyName||infoData.name}}-{{infoData.idcard}})</h4> -->
-        <el-row style="margin-bottom:40px;">
-            <el-col :span="5"><div v-if="operatorData.callTypeData">注册人:{{operatorData.callTypeData.realName||"--"}}</div></el-col>
-            <el-col :span="5"><div v-if="operatorData.callTypeData">身份证:{{operatorData.callTypeData.idCard||"--"}}</div></el-col>
-            <el-col :span="5"><div v-if="operatorData.callTypeData">入网时间:{{operatorData.callTypeData.regDate||"--"}}</div></el-col>
-            <el-col :span="7"><div v-if="operatorData.callTypeData">数据获取时间:{{operatorData.callTypeData.getTime}}</div></el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <div id="monthChart" style="height:400px"></div>
-          </el-col>
-          <el-col :span="12">
-            <div id="dayChart" style="height:400px"></div>
-          </el-col>
-        </el-row>
-        <div class="clearfix">
-          <el-radio-group v-model="calldetailshow" style="float:right" @change="switchunit">
-            <el-radio-button label="day">按天</el-radio-button>
-            <el-radio-button label="month">按月</el-radio-button>
-          </el-radio-group>
-        </div>
-        <div id="call_detail" style="height:600px;"></div>
-        <div id="scatter" style="height:600px"></div>
-        <div class="clearfix">
-        <h4>近三个月用户通话地址占比</h4>
-        <el-row style="margin-bottom:40px;">
-            <el-col :span="12">
-              <div>
-                <div id="callNumChart" ref="callNumChart" style="height:300px;"></div>
-                <div id="callDayChart" style="height:300px;"></div>
-              </div>
-            </el-col>
-            <el-col :span="12">
-              <div>
-                <div id="callTypeChart" style="height:300px;"></div>
-                <div id="callAddrChart" style="height:300px;"></div>
-              </div>
-              </el-col>
-        </el-row>
-        </div>
+  <div class="charts_wrapper">
+    <!-- <h4>通话详单({{userInfo.userH5Name||userInfo.applyName||infoData.name}}-{{infoData.idcard}})</h4> -->
+    <el-row>
+      <el-col :span="5"><div v-if="operatorData.callTypeData">注册人:{{operatorData.callTypeData.realName||"--"}}</div></el-col>
+      <el-col :span="5"><div v-if="operatorData.callTypeData">身份证:{{operatorData.callTypeData.idCard||"--"}}</div></el-col>
+      <el-col :span="5"><div v-if="operatorData.callTypeData">入网时间:{{operatorData.callTypeData.regDate||"--"}}</div></el-col>
+      <el-col :span="7"><div v-if="operatorData.callTypeData">数据获取时间:{{operatorData.callTypeData.getTime}}</div></el-col>
+    </el-row>
+    <p style="margin:40px 0;">运营商报告：
+      <span v-if="!isEmpty(operatorData.reportUrl)"><a :href="operatorData.reportUrl" target="_blank" style="color:blue">查看报告</a></span>
+      <span v-else>暂无报告</span>
+    </p>
+    <el-row>
+      <el-col :span="12">
+        <div id="monthChart" style="height:400px"></div>
+      </el-col>
+      <el-col :span="12">
+        <div id="dayChart" style="height:400px"></div>
+      </el-col>
+    </el-row>
+    <div class="clearfix">
+      <el-radio-group v-model="calldetailshow" style="float:right" @change="switchunit">
+        <el-radio-button label="day">按天</el-radio-button>
+        <el-radio-button label="month">按月</el-radio-button>
+      </el-radio-group>
     </div>
+    <div id="call_detail" style="height:600px;"></div>
+    <div id="scatter" style="height:600px"></div>
+    <div class="clearfix">
+    <h4>近三个月用户通话地址占比</h4>
+    <el-row style="margin-bottom:40px;">
+      <el-col :span="12">
+        <div>
+          <div id="callNumChart" ref="callNumChart" style="height:300px;"></div>
+          <div id="callDayChart" style="height:300px;"></div>
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div>
+          <div id="callTypeChart" style="height:300px;"></div>
+          <div id="callAddrChart" style="height:300px;"></div>
+        </div>
+      </el-col>
+    </el-row>
+    </div>
+  </div>
 </template>
 <script>
 let echarts = require("echarts");
@@ -60,6 +64,11 @@ export default {
   watch: {
     visibile(newval, oldval) {
       if (newval) {
+        this.echartsinit();
+      }
+    },
+    operatorData(newVal,oldVal){
+      if (!this.isEmpty(newVal)&&this.visibile) {
         this.echartsinit();
       }
     }

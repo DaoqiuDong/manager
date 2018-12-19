@@ -1,73 +1,77 @@
 <template>
-    <div>
-      <h4>初审</h4>
-      <el-form :inline='true' label-width="120px">
-        <el-form-item label="初审策略">
-            <el-select clearable v-model="firstRule.straCode" placeholder="初审策略" style="width:510px">
-              <el-option :label="rule.name +'<版本号'+ rule.version + '>'" :value="rule.code" v-for="rule in allaRuleList" :key="rule.id"></el-option>
-            </el-select>
-            <!-- <el-button>启用</el-button> -->
-          </el-form-item><br/>
-          <el-form-item label="执行间隔">   
-            <el-input v-model="firstRule.executeHour" placeholder="小时" style="width:160px">
-              <template slot="append">小时</template>
-            </el-input>
-          </el-form-item>
-          <el-form-item>   
-            <el-input v-model="firstRule.executeMin" placeholder="分钟" style="width:160px">
-              <template slot="append">分钟</template>              
-            </el-input>
-          </el-form-item>
-          <el-form-item>   
-            <el-input v-model="firstRule.executeSecond" placeholder="秒" style="width:160px">
-              <template slot="append">秒</template>              
-            </el-input>
-          </el-form-item><br/>
-          <el-form-item label="执行量">   
-            <el-input v-model="firstRule.executeNum" placeholder="执行量">
-              <template slot="append">条</template>              
-            </el-input>
-          </el-form-item><br/>
-          <div style="margin-left:720px">
-            <el-button @click="getProRuleInfo(1001)">取消</el-button>
-            <el-button type="primary" @click="update(1001)" v-if="hasBtnAuth('B20004',btnApiList)" v-text="getbtnName('B20004',btnApiList)"></el-button>
-          </div>
-      </el-form>
+  <div>
+    <h4>初审</h4>
+    <el-form :inline='true' label-width="120px">
+      <el-form-item label="初审策略">
+        <el-select clearable v-model="firstRule.straCode" placeholder="初审策略" style="width:510px">
+          <el-option :label="rule.name +'<版本号'+ rule.version + '>'" :value="rule.code" v-for="rule in allaRuleList" :key="rule.id">
+            <span>{{rule.name}}({{rule.code}})(版本：{{rule.version}})</span>
+          </el-option>
+        </el-select>
+        <!-- <el-button>启用</el-button> -->
+      </el-form-item><br/>
+      <el-form-item label="执行间隔">   
+        <el-input v-model="firstRule.executeHour" placeholder="小时" style="width:160px">
+          <template slot="append">小时</template>
+        </el-input>
+      </el-form-item>
+      <el-form-item>   
+        <el-input v-model="firstRule.executeMin" placeholder="分钟" style="width:160px">
+          <template slot="append">分钟</template>              
+        </el-input>
+      </el-form-item>
+      <el-form-item>   
+        <el-input v-model="firstRule.executeSecond" placeholder="秒" style="width:160px">
+          <template slot="append">秒</template>              
+        </el-input>
+      </el-form-item><br/>
+      <el-form-item label="执行量">   
+        <el-input v-model="firstRule.executeNum" placeholder="执行量">
+          <template slot="append">条</template>              
+        </el-input>
+      </el-form-item><br/>
+      <div style="margin-left:720px">
+        <el-button @click="getProRuleInfo(1001)">取消</el-button>
+        <el-button type="primary" @click="update(1001)" v-if="hasBtnAuth('B20004',btnApiList)" v-text="getbtnName('B20004',btnApiList)"></el-button>
+      </div>
+    </el-form>
 
-      <h4>终审</h4>
-      <el-form :inline='true' label-width="120px">
-        <el-form-item label="终审策略">
-            <el-select clearable v-model="finalRule.straCode" placeholder="终审策略" style="width:510px">
-              <el-option :label="rule.name +'<版本号'+ rule.version + '>'" :value="rule.code" v-for="rule in allaRuleList" :key="rule.id"></el-option>
-            </el-select>
-            <!-- <el-button>启用</el-button> -->
-          </el-form-item><br/>
-          <el-form-item label="执行间隔">   
-            <el-input v-model="finalRule.executeHour" placeholder="小时" style="width:160px">
-              <template slot="append">小时</template>
-            </el-input>
-          </el-form-item>
-          <el-form-item>   
-            <el-input v-model="finalRule.executeMin" placeholder="分钟" style="width:160px">
-              <template slot="append">分钟</template>              
-            </el-input>
-          </el-form-item>
-          <el-form-item>   
-            <el-input v-model="finalRule.executeSecond" placeholder="秒" style="width:160px">
-              <template slot="append">秒</template>              
-            </el-input>
-          </el-form-item><br/>
-          <el-form-item label="执行量">   
-            <el-input v-model="finalRule.executeNum" placeholder="执行量">
-              <template slot="append">条</template>              
-            </el-input>
-          </el-form-item><br/>
-          <div style="margin-left:720px">
-            <el-button @click="getProRuleInfo(1002)">取消</el-button>            
-            <el-button type="primary" @click="update(1002)" v-if="hasBtnAuth('B20005',btnApiList)" v-text="getbtnName('B20005',btnApiList)"></el-button>
-          </div>
-      </el-form>
-    </div>
+    <h4>终审</h4>
+    <el-form :inline='true' label-width="120px">
+      <el-form-item label="终审策略">
+        <el-select clearable v-model="finalRule.straCode" placeholder="终审策略" style="width:510px">
+          <el-option :label="rule.name +'<版本号'+ rule.version + '>'" :value="rule.code" v-for="rule in allaRuleList" :key="rule.id">
+            <span>{{rule.name}}({{rule.code}})(版本：{{rule.version}})</span>
+          </el-option>
+        </el-select>
+        <!-- <el-button>启用</el-button> -->
+      </el-form-item><br/>
+      <el-form-item label="执行间隔">   
+        <el-input v-model="finalRule.executeHour" placeholder="小时" style="width:160px">
+          <template slot="append">小时</template>
+        </el-input>
+      </el-form-item>
+      <el-form-item>   
+        <el-input v-model="finalRule.executeMin" placeholder="分钟" style="width:160px">
+          <template slot="append">分钟</template>              
+        </el-input>
+      </el-form-item>
+      <el-form-item>   
+        <el-input v-model="finalRule.executeSecond" placeholder="秒" style="width:160px">
+          <template slot="append">秒</template>              
+        </el-input>
+      </el-form-item><br/>
+      <el-form-item label="执行量">   
+        <el-input v-model="finalRule.executeNum" placeholder="执行量">
+          <template slot="append">条</template>              
+        </el-input>
+      </el-form-item><br/>
+      <div style="margin-left:720px">
+        <el-button @click="getProRuleInfo(1002)">取消</el-button>            
+        <el-button type="primary" @click="update(1002)" v-if="hasBtnAuth('B20005',btnApiList)" v-text="getbtnName('B20005',btnApiList)"></el-button>
+      </div>
+    </el-form>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";

@@ -1,54 +1,54 @@
 <!-- 决策树轨迹 -->
 <template>
-    <div class="ruleRecord">
-        <table width="100%">
-            <tr>
-                <td>策略名称</td>
-                <td>执行产品</td>
-                <td>策略完成时间</td>
-                <td>申请时间</td>
-                <td>状态</td>
-                <td>评分</td>
-                <td>申请客户姓名</td>                
-                <td>申请客户手机号</td>                 
-            </tr>
-            <tr>
-                <td>{{record.strategyName}}</td>
-                <td>{{record.proname}}</td>
-                <td>{{record.create_time}}</td>
-                <td>{{record.applyTime}}</td>
-                <td>{{record.resultDes}}</td>
-                <td><span v-if="!isEmpty(record.score)" :class="getClass(record.score)">{{record.score}}分</span><span v-else>--</span></td>
-                <td>{{record.name}}</td>
-                <td>{{record.mobile}}</td>
-            </tr>
-        </table>
-        <el-collapse class="recordList" v-if="!isEmpty(treeData)" value="1">
-          <el-collapse-item title="决策详情" name="1">
-            <ul>
-                <li v-for="(item,index) in treeData.recordList" :key="index">
-                    <el-row type="flex" align="middle">
-                        <el-col :span="4"><div>节点{{index + 1}}</div></el-col>
-                        <el-col :span="14">
-                            <div>
-                                <p>{{item.ruleName}}</p>
-                                <p v-for="(info,i) in item.factorInfo" :key="i" v-html="info"></p>    
-                            </div>
-                        </el-col>
-                        <el-col :span="6">
-                            <div>
-                                <el-button>{{item.resultName}}</el-button>
-                                <p style="word-wrap:break-word;word-break:break-all;overflow: hidden; ">{{item.paramInfo}}</p>
-                            </div>
-                        </el-col>
-                    </el-row>
-                </li>
-            </ul>
-          </el-collapse-item>
-        </el-collapse>
+  <div class="ruleRecord">
+    <table width="100%">
+      <tr>
+        <td>策略名称</td>
+        <td>执行产品</td>
+        <td>策略完成时间</td>
+        <td>申请时间</td>
+        <td>状态</td>
+        <td>评分</td>
+        <td>申请客户姓名</td>
+        <td>申请客户手机号</td>
+      </tr>
+      <tr>
+        <td>{{record.strategyName}}</td>
+        <td>{{record.proname}}</td>
+        <td>{{record.create_time}}</td>
+        <td>{{record.applyTime}}</td>
+        <td>{{record.resultDes}}</td>
+        <td><span v-if="!isEmpty(record.score)" :class="getClass(record.score)">{{record.score}}分</span><span v-else>--</span></td>
+        <td>{{record.name}}</td>
+        <td>{{record.mobile}}</td>
+      </tr>
+    </table>
+    <el-collapse class="recordList" v-if="!isEmpty(treeData)" value="1">
+      <el-collapse-item title="决策详情" name="1">
+        <ul>
+          <li v-for="(item,index) in treeData.recordList" :key="index">
+            <el-row type="flex" align="middle">
+              <el-col :span="4"><div>节点{{index + 1}}</div></el-col>
+              <el-col :span="14">
+                <div>
+                  <p>{{item.ruleName}}</p>
+                  <p v-for="(info,i) in item.factorInfo" :key="i" v-html="info"></p>    
+                </div>
+              </el-col>
+              <el-col :span="6">
+                <div>
+                  <el-button>{{item.resultName}}</el-button>
+                  <p style="word-wrap:break-word;word-break:break-all;overflow: hidden; ">{{item.paramInfo}}</p>
+                </div>
+              </el-col>
+            </el-row>
+          </li>
+        </ul>
+      </el-collapse-item>
+    </el-collapse>
 
-        <div id="treeChart"></div>
-    </div>
+    <div id="treeChart"></div>
+  </div>
 </template>
 
 <script>
@@ -129,7 +129,7 @@ const option = {
         res += "<h4>规则 :" + paramData.ruleName + "</h4>";
       } else {
         res += "<h4>规则 : 未选择</h4>";
-      };
+      }
       if (paramData.factorParam) {
         for (var i = 0; i < paramData.factorParam.length; i++) {
           var element = paramData.factorParam[i];
@@ -361,9 +361,9 @@ export default {
             if (item.type == 3 && item.selectList && item.selectList.length) {
               for (let j = 0; j < item.selectList.length; j++) {
                 const select = item.selectList[j];
-                if (select.value == item.value&&select.subSelect) {
+                if (select.value == item.value && select.subSelect) {
                   v.factorParam.splice(index + 1, 0, select.subSelect);
-                  return false
+                  return false;
                 }
               }
             }

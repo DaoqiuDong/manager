@@ -88,14 +88,14 @@ const option = {
       }
       if (paramData.factorParam) {
         for (var i = 0; i < paramData.factorParam.length; i++) {
-           var element = paramData.factorParam[i];
+          var element = paramData.factorParam[i];
           if (element.type == 0) {
             //输入框
-            res += "<p>输入因子 :" + element.name + ":" + element.value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + element.value + "</p>";
           } else if (element.type == 1) {
             //下拉单选
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           } else if (element.type == 2 && element.selectList) {
             //下拉多选
             element.value =
@@ -103,14 +103,14 @@ const option = {
                 ? element.value.split(",")
                 : element.value;
             var name = multipleTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + name + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + name + "</p>";
           } else if (element.type == 3 && element.selectList) {
             //级联
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           } else {
             var value = getTit(element.value, element.selectList);
-            res += "<p>输入因子 :" + element.name + ":" + value + "<p>";
+            res += "<p>输入因子 :" + element.name + ":" + value + "</p>";
           }
         }
       }

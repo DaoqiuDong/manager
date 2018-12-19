@@ -1,7 +1,7 @@
 <template>
-    <div>产品配置
-        <router-view></router-view>
-    </div>
+  <div>产品配置
+    <router-view></router-view>
+  </div>
 </template>
 <script>
     
