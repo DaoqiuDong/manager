@@ -11,12 +11,6 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.name" placeholder="借款人"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-input v-model="searchForm.contractCode" placeholder="合同号"></el-input>
-      </el-form-item>
       <el-form-item>   
         <el-select clearable v-model="searchForm.productId" placeholder="产品">
           <el-option
@@ -28,13 +22,24 @@
         </el-select>
       </el-form-item>
       <el-form-item>
+        <el-input v-model="searchForm.name" placeholder="借款人"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-input v-model="searchForm.contractCode" placeholder="合同号"></el-input>
+      </el-form-item>
+      <el-form-item>
         <el-input v-model="searchForm.mobile" placeholder="手机号"></el-input>
       </el-form-item>
-      <el-form-item>
-        <el-input v-model.number.trim="searchForm.overdueDaysLow" placeholder="逾期天数开始" @keyup.enter.native="getList(1)"></el-input>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.billStatus" placeholder="账单状态">
+          <el-option v-for="item in dict.bill_status" :key="item.name" :label="item.title" :value="item.value"></el-option>
+        </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-input v-model.number.trim="searchForm.overdueDaysHigh" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.renewalStatus" placeholder="是否展期">
+          <el-option label="未展期" :value="0"></el-option>
+          <el-option label="已展期" :value="1"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>   
         <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
@@ -45,12 +50,6 @@
             :value="item.value">
           </el-option>
         </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-date-picker v-model="searchForm.loanDateStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectLoanDateStart"></el-date-picker>
-      </el-form-item>
-      <el-form-item>
-        <el-date-picker v-model="searchForm.loanDateEnd" type="date" placeholder="借款结束时间"  format="yyyy-MM-dd"  @change="selectLoanDateEnd"></el-date-picker>
       </el-form-item>
         <el-button type="primary" @click="getList(1)">查询</el-button>
     </el-form>
@@ -90,8 +89,8 @@
               </el-table-column>
               <el-table-column label="操作" align="center">
                 <template scope="scope">
-                  <router-link  :to="{path:'billDetail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10064',btnGoList)">
-                    <el-button type="text" v-text="getbtnName('B10064',btnGoList)"></el-button>
+                  <router-link  :to="{path:'billDetail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10071',btnGoList)">
+                    <el-button type="text" v-text="getbtnName('B10071',btnGoList)"></el-button>
                   </router-link>
                 </template>
               </el-table-column>
@@ -99,21 +98,21 @@
           </template>
         </el-table-column>
         <el-table-column label="借款人" prop="name"></el-table-column>
-        <el-table-column label="所属机构" prop="corpName"></el-table-column>
-        <el-table-column label="产品名称" prop="productName"></el-table-column>
         <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
         <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="所属机构" prop="corpName"></el-table-column>
+        <el-table-column label="产品名称" prop="productName"></el-table-column>
+        <el-table-column label="产品金额" prop="amount"></el-table-column>
         <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
-        <el-table-column label="逾期天数" prop="overdueDays" :formatter="(row)=>count(row.overdueDays,'天')"></el-table-column>
         <el-table-column label="催收时间" prop="lastOverTime" :formatter="(row) => emptyOf(row.lastOverTime)" min-width="140"></el-table-column>
         <el-table-column label="催收人员" prop="lastOverName" :formatter="(row) => emptyOf(row.lastOverName)"></el-table-column>
         <el-table-column label="催收标签" prop="tagName"></el-table-column>
         <el-table-column label="操作" align="center" min-width="140">
           <template scope="scope">
-            <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10022',btnGoList)">
-              <el-button type="text" v-text="getbtnName('B10022',btnGoList)"></el-button>
+            <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10070',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10070',btnGoList)"></el-button>
             </router-link>
-            <el-button type="text" @click="getInsert(scope.row.flowId)" v-if="hasBtnAuth('B20065',btnApiList)" v-text="getbtnName('B20065',btnApiList)"></el-button>
+            <el-button type="text" @click="getInsert(scope.row.flowId)" v-if="hasBtnAuth('B20110',btnApiList)" v-text="getbtnName('B20110',btnApiList)"></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -141,12 +140,10 @@ export default {
         contractCode: "",
         productId: "",
         mobile: "",
-        loanDateStart: "",
-        loanDateEnd: "",
-        overdueDaysLow: "",
-        overdueDaysHigh: "",
-        tagId: "",
-        corpId:""
+        corpId:"",
+        billStatus:"",
+        renewalStatus:"",
+        tagId:""
       },
       remarkDialog: false,
       insertList: [],
@@ -175,7 +172,7 @@ export default {
       this.loading = true;
       const pageSize = this.pageSize;
       this.ajax({
-        url: "credit/web/sys/contract/overdue/no",
+        url: "credit/web/sys/contract/due",
         data: {
           pageSize,
           pageNo,

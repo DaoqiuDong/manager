@@ -9,20 +9,18 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-default/index.css'
 import NProgress from 'nprogress'
 import 'normalize.css/normalize.css'
+import 'nprogress/nprogress.css';
 import '@/assets/icon/iconfont.css'
-import * as filters from '@/filters'; // 全局vue filter
 import IconSvg from '@/components/Icon-svg/index.vue'
 import ajax from '@/utils/ajax' //自定义promise请求
+import VueClipboard from 'vue-clipboard2'
 
 Vue.config.productionTip = false
 
 Vue.use(ElementUI);
+Vue.use(VueClipboard);
 Vue.use(ajax);
 Vue.component('icon-svg', IconSvg);
-
-Object.keys(filters).forEach(key => {
-  Vue.filter(key, filters[key])
-});
 
 const whiteList = ['/login'];
 router.beforeEach((to, from, next) => {
@@ -38,6 +36,7 @@ router.beforeEach((to, from, next) => {
           menus.sysCode = "100001";
           //动态设置路由
           store.dispatch('GenerateRoutes',menus).then(() => {
+            // console.log(store.getters.addRouters);
             router.addRoutes(store.getters.addRouters);
             next({ ...to});
           })
@@ -48,10 +47,9 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     if (whiteList.indexOf(to.path) !== -1) {
-      next()
+      next();
     } else {
       next('/login');
-      NProgress.done();
     }
   }
 });

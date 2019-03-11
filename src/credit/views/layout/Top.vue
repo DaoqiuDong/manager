@@ -5,17 +5,28 @@
       <img :src="logosrc" alt="logo">
     </div>
   </router-link>
+  <div class="balance" v-if="balance.balanceAuth">
+    <span :class="balance.amount < 1000 ? 'redText' : null">数据账户余额：{{balance.amount}}元</span>
+  </div>
   <div class="header_href">
     <li class="header_li" v-for="item in menus" :key="item.code">
       <a :href="item.url" :target="matchUrl(item.url)" :class="matchUrl(item.url)">{{item.name}}</a>
     </li>
   </div>
   <div class="entry">
-      <font>你好，{{name}}</font>
-      <el-button type="text" @click="logout">退出</el-button>
-      <router-link to="/changepwd">
-        <el-button type="text">修改密码</el-button> 
-      </router-link>
+    <el-row>
+      <el-col :span="14">
+        <p class="accName">你好，{{name}}</p>
+      </el-col>
+      <el-col :span="4">
+        <el-button type="text" @click="logout">退出</el-button>
+      </el-col>
+      <el-col :span="6">
+        <router-link to="/changepwd">
+          <el-button type="text">修改密码</el-button> 
+        </router-link>
+      </el-col>
+    </el-row>
   </div>
 </div>
 </template>
@@ -23,7 +34,7 @@
 <script>
 import { mapGetters } from "vuex";
 import Logoimg from "@/assets/logo2.png";
-import store from 'store';
+import store from "store";
 
 export default {
   data() {
@@ -32,7 +43,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["name","menus"])
+    ...mapGetters(["name", "menus", "balance"])
   },
   methods: {
     logout() {
@@ -53,19 +64,14 @@ export default {
           });
         });
     },
-    matchUrl(url){
+    matchUrl(url) {
       //主页地址index.html可能被忽略so做特殊处理
       const pageUrl = window.location.href;
-      if (url == "rule.html"||url == "dm/index.html") {
-        return "_blank"
-      }else{
-        return "_top"
+      if (url == "rule.html" || url == "dm/index.html") {
+        return "_blank";
+      } else {
+        return "_top";
       }
-      // if (pageUrl.indexOf(url) > -1) {
-      //   return "_top"
-      // }else{
-      //   return "_blank"
-      // }
     }
   }
 };
@@ -80,10 +86,10 @@ export default {
   height: 80px;
   width: 100%;
   z-index: 99;
-  box-shadow: 0 0 10px 0 rgba(7,54,104,.2); 
+  box-shadow: 0 0 10px 0 rgba(7, 54, 104, 0.2);
   .header_href {
     position: absolute;
-    right:260px;
+    right: 260px;
     padding: 0 60px;
     height: 80px;
     li {
@@ -93,7 +99,7 @@ export default {
       a {
         text-align: center;
         display: block;
-        background: rgba(255,255,255,.1);
+        background: rgba(255, 255, 255, 0.1);
         margin-right: 10px;
       }
     }
@@ -101,7 +107,7 @@ export default {
   .logo {
     @include maincolor;
     float: left;
-    width:180px;
+    width: 180px;
     height: 80px;
     text-align: center;
     img {
@@ -109,10 +115,30 @@ export default {
       margin: 30px 0;
     }
   }
+  .accName{
+    display: inline-block;
+    height: 80px;
+    width:120px;
+    margin: 0;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+  }
+  .balance {
+    position: absolute;
+    left: 200px;
+    line-height: 80px;
+    font-size: 18px;
+  }
+  .redText {
+    color: #f00;
+  }
   .entry {
     float: right;
     line-height: 80px;
     width: 280px;
+    height: 80px;
+    overflow: hidden;
     font {
       margin-right: 20px;
     }

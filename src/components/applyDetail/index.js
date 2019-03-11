@@ -25,6 +25,8 @@ export { default as Usage } from './Usage';
 
 export { default as Lender } from './Lender';
 
+export { default as Credit } from './CreditInfo';
+
 export { default as Detail } from './Detail';
 
 export { default as Quota } from './Quota';

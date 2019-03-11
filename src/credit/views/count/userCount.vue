@@ -31,7 +31,6 @@
       <el-form :inline="true" style="margin:20px 0;float:right">
         <el-form-item>
           <el-checkbox-group v-model="countType">
-            <el-checkbox label="addUser" checked>累计注册用户</el-checkbox>
             <el-checkbox label="totalUser" checked>新增注册用户</el-checkbox>
             <el-checkbox label="activeUser" checked>今日活跃用户</el-checkbox>
             <el-checkbox label="flow" checked>申请单</el-checkbox>
@@ -82,10 +81,6 @@ export default {
       countData: {},
       countList: [
         {
-          name: "累计注册用户",
-          data: []
-        },
-        {
           name: "新增注册用户",
           data: []
         },
@@ -120,11 +115,10 @@ export default {
       }).then(res => {
         var data = res.data;
         this.countData = data;
-        this.countList[0].data = data.totalUserList;
-        this.countList[1].data = data.userList;
-        this.countList[2].data = data.activeList;
-        this.countList[3].data = data.flowList;
-        this.countList[4].data = data.contractList;
+        this.countList[0].data = data.userList;
+        this.countList[1].data = data.activeList;
+        this.countList[2].data = data.flowList;
+        this.countList[3].data = data.contractList;
         var option = this.getOptionByArray(
           {},
           "用户统计",

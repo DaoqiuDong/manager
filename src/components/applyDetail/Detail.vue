@@ -41,7 +41,7 @@
             <div v-if="pending" class="manual">
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <span>人工审核</span><br/>
+                  <span class="modify" @click="modiDialog = true" v-if="hasBtnAuth(modiCode,btnApiList)" v-text="getbtnName(modiCode,btnApiList)"></span><br/>
                   <span class="pass" @click="passDialog = true" v-if="hasBtnAuth(passCode,btnApiList)" v-text="getbtnName(passCode,btnApiList)"></span>
                 </el-col>
                 <el-col :span="12">
@@ -141,7 +141,7 @@
           <Other :info="userInfo.otherInfoData"/>
         </el-tab-pane>
         <el-tab-pane label="LBS信息" name="Map">
-          <BMap :lbsInfo="lbsInfo"  :visibile="mapVisible"/>
+          <BMap :lbsInfo="lbsInfo" :visibile="mapVisible"/>
         </el-tab-pane>
         <el-tab-pane label="通讯录" name="fourth">
           <h5>通讯录</h5>
@@ -164,6 +164,9 @@
         </el-tab-pane>
         <el-tab-pane label="关联申请" name="asso">
           <Relate :associateData.sync="associateApplyData"/>
+        </el-tab-pane>
+        <el-tab-pane label="信用分析" name="Credit">
+          <Credit :visibile="creditVisible"></Credit>
         </el-tab-pane>
         <el-tab-pane label="多头借贷" name="History">
           <History @handleSearch="getHistory" :historyData="multiHistory"/>
@@ -215,6 +218,20 @@
         <el-button type="primary" @click="refuseDialog = false">取 消</el-button>    
       </span>
     </el-dialog>
+
+    <el-dialog title="金额调整" :visible.sync="modiDialog">
+      <p>正在调整{{realName}}的借款金额</p>
+      <el-input placeholder="请输入调整金额" v-model.number="modifyAmount">
+        <template slot="append">
+          <span>元</span>
+        </template>
+      </el-input><br>
+      <el-checkbox style="margin:16px" v-model="modifyQuota" true-label="1" false-label="">同步调整该用户的可申请额度</el-checkbox>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="handleModify">确 定</el-button>
+        <el-button type="primary" @click="modiDialog = false">取 消</el-button>    
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -227,7 +244,8 @@ import {
   BMap,
   Remark,
   History,
-  Relate
+  Relate,
+  Credit
 } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
@@ -241,6 +259,7 @@ export default {
       subTagBtn: false,
       tagType: "",
       echartsVisibile: false,
+      creditVisible: false,
       activeName: "Info",
       operatorId: "",
       remarkDialog: false,
@@ -251,6 +270,9 @@ export default {
       refuseRemark: "",
       passDialog: false,
       passRemark: "",
+      modiDialog: false,
+      modifyAmount: "",
+      modifyQuota: "1",
       userInfo: {},
       infoData: {},
       pending: false,
@@ -276,7 +298,7 @@ export default {
         label: "desc",
         children: "subOptionList"
       },
-      multiHistory:{},
+      multiHistory: {},
       associateApplyData: {},
       suggestionData: [
         {
@@ -309,9 +331,10 @@ export default {
     BMap,
     Remark,
     History,
-    Relate
+    Relate,
+    Credit
   },
-  props: ["passCode", "remarkCode", "refuseCode"],
+  props: ["passCode", "remarkCode", "refuseCode", "modiCode"],
   computed: {
     ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
@@ -327,6 +350,31 @@ export default {
         ? this.suggestionData.filter(obj => obj.value.indexOf(queryString) > -1)
         : this.suggestionData;
       cb(data);
+    },
+    handleModify() {
+      const amount = parseInt(this.modifyAmount);
+      const nodeId = this.manualAuitMap.nodeId;
+      const modifyQuota = this.modifyQuota;
+      if (amount <= 0) {
+        this.$message("金额调整必须大于0");
+        return;
+      }
+      if (amount == this.infoData.amount) {
+        this.$message("不可以设置与当前申请金额相同的金额");
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/flow/update/apply",
+        data: { amount, nodeId, modifyQuota }
+      }).then(res => {
+        this.modiDialog = false;
+        this.infoData.amount = amount;
+        this.modifyAmount = "";
+        this.$message({
+          type: "success",
+          message: "申请单金额调整成功"
+        });
+      });
     },
     getAllRemark() {
       const flowId = this.$route.query.id;
@@ -353,6 +401,9 @@ export default {
       }
       if (tabpane.name == "Map") {
         this.mapVisible = true;
+      }
+      if (tabpane.name == "Credit") {
+        this.creditVisible = true;
       }
     },
     getRefuseList() {
@@ -458,7 +509,8 @@ export default {
       this.ajax({
         url: "credit/web/sys/rong/query/nomobile",
         data: {
-          operatorId,flowId
+          operatorId,
+          flowId
         }
       }).then(res => {
         this.noMobileData = res.data;
@@ -572,14 +624,16 @@ export default {
         this.applyList = res.data.list;
       });
     },
-    getConAllRemark(row){
+    getConAllRemark(row) {
       const flowId = row.flowId;
       const pageNo = 1;
       const pageSize = 1000;
       this.ajax({
-        url:"credit/web/sys/remark/query/list",
-        data:{
-          flowId,pageNo,pageSize
+        url: "credit/web/sys/remark/query/list",
+        data: {
+          flowId,
+          pageNo,
+          pageSize
         }
       }).then(res => {
         if (res.data.total) {
@@ -588,7 +642,7 @@ export default {
         } else {
           this.$message("备注信息为空");
         }
-      })
+      });
     },
     getRemark(row) {
       const id = row.id;
@@ -610,33 +664,33 @@ export default {
         }
       });
     },
-    getHistory(){
+    getHistory() {
       const flowId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/rong/query/multi",
-        data:{flowId}
+        url: "credit/web/sys/rong/query/multi",
+        data: { flowId }
       }).then(res => {
         this.multiHistory = res.data;
         this.$message({
-          type: 'success',
-          message: '查询成功'
+          type: "success",
+          message: "查询成功"
         });
-      })
+      });
     },
-    getCacheHistory(){
+    getCacheHistory() {
       const flowId = this.$route.query.id;
       this.ajax({
-        url:"credit/web/sys/rong/query/multi/record",
-        data:{flowId}
+        url: "credit/web/sys/rong/query/multi/record",
+        data: { flowId }
       }).then(res => {
         this.multiHistory = res.data;
-      })
+      });
     },
     getChartData(operatorId) {
       const flowId = this.$route.query.id;
       this.ajax({
         url: "credit/web/sys/rong/query/useroperator",
-        data: { operatorId,flowId }
+        data: { operatorId, flowId }
       }).then(res => {
         this.chartData = res.data;
       });
@@ -670,6 +724,11 @@ export default {
         }
         .pass {
           background: #29a52c;
+          color: #fff;
+          cursor: pointer;
+        }
+        .modify {
+          background-color: #20a0ff;
           color: #fff;
           cursor: pointer;
         }

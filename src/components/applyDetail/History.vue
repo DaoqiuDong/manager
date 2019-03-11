@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-row type="flex" align="middle">
-      <el-col :span="5">
+      <el-col :span="6">
         <div><p>查询时间：{{historyData.date||'--'}}</p></div>
       </el-col>
       <el-col :span="5">

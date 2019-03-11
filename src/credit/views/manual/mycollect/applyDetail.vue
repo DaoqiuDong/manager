@@ -1,7 +1,7 @@
 <template>
   <div>
     <Quota :applyType="$route.query.type" adjustCode="B20096" passCode="B20055" remarkCode="B20054" refuseCode="B20056" v-if="$route.query.type == 4||$route.query.type == 5"/>
-    <Detail v-else passCode="B20055" remarkCode="B20054" refuseCode="B20056"/>
+    <Detail v-else passCode="B20055" modiCode="B20124" remarkCode="B20054" refuseCode="B20056"/>
   </div>
 </template>
 <script>

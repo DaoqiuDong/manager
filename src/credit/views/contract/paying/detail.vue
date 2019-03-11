@@ -78,7 +78,7 @@
             </el-col>
             <el-col :span="8">
               <div>
-                <p><span v-if="billItem.renewalStatus == 1">(展期)</span>{{getDictTit(billItem.billStatus,dict.bill_status)}}</p>
+                <p>{{getDictTit(billItem.billStatus,dict.bill_status)}}<span v-if="billItem.renewalStatus == 1">(展期)</span></p>
                 <p>{{billItem.termIndex}}期</p>
                 <p>{{billItem.repayDate}}</p>
               </div>

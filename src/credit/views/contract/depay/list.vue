@@ -46,12 +46,13 @@
             <span v-else>--</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" min-width="180">
+        <el-table-column label="操作" align="center" min-width="270">
           <template scope="scope">
             <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10021',btnGoList)">
               <el-button type="text" v-text="getbtnName('B10021',btnGoList)"></el-button>
             </router-link>
             <el-button type="text" @click="handleRepay(scope.row)"  v-if="scope.row.billStatus != 2&&hasBtnAuth('B20035',btnApiList)" v-text="getbtnName('B20035',btnApiList)"></el-button>
+            <el-button type="text" @click="handleDelayRepay(scope.row)"  v-if="scope.row.billStatus != 2&&hasBtnAuth('B20113',btnApiList)" v-text="getbtnName('B20113',btnApiList)"></el-button>
           </template>
           </el-table-column>            
       </el-table>
@@ -73,6 +74,25 @@
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="subRepay">确定</el-button>
         <el-button @click="repayDialog = false">取消</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog title="展期还款" :visible.sync="delayRepayDialog">
+      <div>
+        <h4>您正在确认{{handleBill.name}}的展期还款</h4>
+        <el-form label-width="100px" label-position="left">
+          <el-form-item label="实收展期费用">
+            <el-input v-model="delayForm.amount" placeholder="输入展期费用"></el-input>
+          </el-form-item>
+          <el-form-item label="展期开始日期">
+            <el-date-picker v-model="delayForm.realRepayTime" type="date" placeholder="输入展期开始日期" format="yyyy-MM-dd" @change="selectDelayTime"></el-date-picker>
+          </el-form-item>
+        </el-form>
+        <p>备注：展期还款确认后，以开始日期当天进入新的借款周期。原账单变为已展期，所有费用结清展期费用为以上填写费用。</p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="subDelayRepay">确定</el-button>
+        <el-button @click="delayRepayDialog = false">取消</el-button>
       </span>
     </el-dialog>
   </div>
@@ -98,8 +118,15 @@ export default {
         billId:"",
         billCode:""
       },
+      delayForm:{
+        amount:"",
+        realRepayTime:"",
+        billId:"",
+        billCode:""
+      },
       handleBill:{},
       repayDialog:false,
+      delayRepayDialog:false,
       list: [],
       total: 0,
       loading:true
@@ -126,6 +153,9 @@ export default {
     selectRepayTime(time){
       this.repayForm.realRepayTime = time;
     },
+    selectDelayTime(time){
+      this.delayForm.realRepayTime = time;
+    },
     getList(pageNo) {
       const pageSize = this.pageSize;
       this.loading = true;
@@ -147,6 +177,12 @@ export default {
       this.repayForm.billId = row.billId;
       this.repayForm.billCode = row.billCode;
       this.repayDialog = true;
+    },
+    handleDelayRepay(row){
+      this.handleBill = row;
+      this.delayForm.billId = row.billId;
+      this.delayForm.billCode = row.billCode;
+      this.delayRepayDialog = true;
     },
     subRepay(){
       if (this.isEmpty(this.repayForm.amount)) {
@@ -170,6 +206,29 @@ export default {
         this.repayForm.realRepayTime = "";
         this.repayDialog = false;
         this.getList(1);          
+      })
+    },
+    subDelayRepay(){
+      if (this.isEmpty(this.delayForm.amount)) {
+        this.$message("请填写展期费用");
+        return false;
+      };
+      if (this.isEmpty(this.delayForm.realRepayTime)) {
+        this.$message("请填写展期开始日期");
+        return false;
+      };
+      this.ajax({
+        url:"credit/web/sys/bill/renewal",
+        data:{...this.delayForm}
+      }).then(res => {
+        this.$message({
+          message:"展期还款成功",
+          type:"success"
+        });
+        this.delayForm.amount = "";
+        this.delayForm.realRepayTime = "";
+        this.delayRepayDialog = false;
+        this.getList(1); 
       })
     }
   }

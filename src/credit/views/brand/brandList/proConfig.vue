@@ -300,6 +300,13 @@
               <template slot="append">天</template>
             </el-input>
           </el-form-item><br/>
+
+          <el-form-item label="费用上限">
+            <el-input v-model.number="repayCnf.maxRepayRate" placeholder="无上限">
+              <template slot="append">%</template>
+            </el-input>
+            <i>*费用上限=累计还款费用的上限，按账单金额的百分比设置。例：费用上限=200%，账单金额=1000元，逾期后最终应还将不超过2000元。</i>
+          </el-form-item><br/>
           <p><i>*所有费率精确至小数点后六位(百万分位)，所有费用计算只进不舍</i></p>
 
           <div>
@@ -467,6 +474,9 @@ export default {
       infoValidity: [],
       quotaParams: {},
       wdProduct: [],
+      repayCnf:{
+        maxRepayRate:""
+      },
       defaultWdProduct: {},
       defaultWdProductId: "",
       quotaProList: [],
@@ -573,6 +583,9 @@ export default {
           var params = res.data.params;
           if (!this.isEmpty(params.quotaCnf)) {
             this.quotaCnf = params.quotaCnf;
+          }
+          if (!this.isEmpty(params.repayCnf)) {
+            this.repayCnf = params.repayCnf;
           }
           if (res.data.cooperateModel == 2) {
             this.managementFee = params.managementFee;
@@ -705,6 +718,11 @@ export default {
             return
           }
         }
+        if (!this.isEmpty(this.repayCnf.maxRepayRate)&&Number(this.repayCnf.maxRepayRate) < 100) {
+          this.$message("费用上限请设置为大于100%的值");
+          return 
+        }
+        proInfo.params.repayCnf = this.repayCnf;
         proInfo.params.quotaCnf = this.quotaCnf;
         proInfo.params.renewalFee = this.renewalFee;
         proInfo.params.renewalCnf = this.renewalCnf;

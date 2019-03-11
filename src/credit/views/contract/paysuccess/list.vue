@@ -92,12 +92,14 @@ export default {
     },
     getList(pageNo) {
       const pageSize = this.pageSize;
+      const repayTimeDesc = 1;
       this.loading = true;
       this.ajax({
         url: "credit/web/sys/contract/querypaidoff",
         data: {
           pageSize,
           pageNo,
+          repayTimeDesc,
           ...this.searchForm
         }
       }).then(res => {

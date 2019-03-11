@@ -27,6 +27,13 @@
           </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.cycleType" placeholder="阶段">
+          <el-option label="今日应还" :value="2"></el-option>
+          <el-option label="超期" :value="3"></el-option>
+          <el-option label="逾期" :value="4"></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-input v-model="searchForm.mobile" placeholder="手机号"></el-input>
       </el-form-item>
@@ -68,6 +75,12 @@
                 <template scope="scope">
                   <span v-if="!isEmpty(scope.row.status)">{{getDictTit(scope.row.status,dict.bill_status)}}</span>
                   <span v-else>--</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="展期状态">
+                <template scope="scope">
+                  <span v-if="scope.row.renewalStatus == 0">未展期</span>
+                  <span v-else>已展期</span>
                 </template>
               </el-table-column>
               <el-table-column label="逾期天数" prop="overdueDays"></el-table-column>
@@ -144,7 +157,8 @@ export default {
         overdueDaysLow: "",
         overdueDaysHigh: "",
         tagId: "",
-        corpId:""
+        corpId:"",
+        cycleType:4
       },
       remarkDialog: false,
       insertList: [],

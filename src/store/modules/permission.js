@@ -1,13 +1,13 @@
 import {
   constantRouterMap,
-  menuRouter,
   publicRouter,
+  moduleList,
   btnMap
 } from "@/router/index";
 import store from "store";
-import MainLayout from "@/credit/views/layout/Layout";
 import CreditLayout from "@/credit/views/layout/Layout";
 import RuleLayout from "@/rule/views/layout/Layout";
+import EmptyModule from "@/credit/views/layout/Empty";
 //系统由于分菜单和按钮权限，按钮又分跳转路由按钮和调用api按钮，即总路由分菜单路由和当前菜单下的按钮路由，菜单路由生成左侧菜单，按钮路由存放vuex由组件监测是否有按钮权限
 var MenuRouterMap = []; //菜单路由,需插入总路由
 var BtnRouterMap = []; //跳转路由按钮，需要插入到总路由
@@ -16,17 +16,7 @@ function filterMenuRouter(data, code) {
   if (data && data.length) {
     data.forEach(element => {
       var routerItem;
-      // if (code === "100001") {
-      //   //信贷
-      //   Layout =  CreditLayout;
-      //   Component = element.url ? require('@/credit/views/' + element.url) : CreditLayout;
-      // }else{
-      //   //决策
-      //   // Component = require('@/rule/views/' + element.url);
-      //   Layout =  RuleLayout;
-      //   Component = element.url ? require('@/rule/views/' + element.url) : RuleLayout;
-      // };
-      if (element.url) {
+      if (element.url && moduleList.includes(element.url)) {
         routerItem = {
           path: "",
           component: code === "100001" ? CreditLayout : RuleLayout,
@@ -61,19 +51,23 @@ function filterMenuRouter(data, code) {
         if (element.subMenus && element.subMenus.length) {
           routerItem.children = [];
           element.subMenus.forEach(child => {
-            const childRouterItem = {
-              path: child.url,
-              component:
-                code === "100001"
-                  ? require("@/credit/views/" + child.url)
-                  : require("@/rule/views/" + child.url),
-              name: child.name || "name",
-              icon: child.icon || "addressbook"
-            };
-            routerItem.children.push(childRouterItem);
-            if (child.privilegeList && child.privilegeList.length) {
-              childRouterItem.children = [];
-              filterBtnRouter(child.privilegeList, routerItem, code);
+            if (moduleList.includes(child.url)) {
+              const childRouterItem = {
+                path: child.url,
+                component:
+                  code === "100001"
+                    ? require("@/credit/views/" + child.url)
+                    : require("@/rule/views/" + child.url),
+                name: child.name || "name",
+                icon: child.icon || "addressbook"
+              };
+              routerItem.children.push(childRouterItem);
+              if (child.privilegeList && child.privilegeList.length) {
+                childRouterItem.children = [];
+                filterBtnRouter(child.privilegeList, routerItem, code);
+              }
+            }else{
+              console.log("error +" + child.url);
             }
           });
         }
@@ -97,11 +91,11 @@ function filterBtnRouter(BtnList, RouterItem, code) {
               hidden: true,
               icon: btnItem.icon || "btn"
             };
-          }else{
-            console.log('error');
-            return flase
+          } else {
+            console.log("error");
+            return flase;
           }
-        }else{
+        } else {
           if (require("@/rule/views/" + btnPath)) {
             btnRouterItem = {
               path: btnPath,
@@ -109,20 +103,11 @@ function filterBtnRouter(BtnList, RouterItem, code) {
               hidden: true,
               icon: btnItem.icon || "btn"
             };
-          }else{
-            console.log('error2');
-            return flase
+          } else {
+            console.log("error2");
+            return flase;
           }
         }
-        // const btnRouterItem = {
-        //   path: btnPath,
-        //   component:
-        //     code === "100001"
-        //       ? require("@/credit/views/" + btnPath)
-        //       : require("@/rule/views/" + btnPath),
-        //   hidden: true,
-        //   icon: btnItem.icon || "btn"
-        // };
         var btnGoItem = {};
         btnGoItem[btnItem.code] = {
           path: btnPath,
@@ -149,8 +134,8 @@ const permission = {
   },
   mutations: {
     SET_ROUTERS: (state, routers) => {
-      state.addRouters = routers.concat(publicRouter);
-      state.routers = constantRouterMap.concat(routers);
+      state.addRouters = routers.concat(publicRouter); //全局路由菜单
+      state.routers = constantRouterMap.concat(routers); //左侧路由菜单
     },
     PUSH_BTN: (state, btnList) => {
       state.btnGoList = btnList;

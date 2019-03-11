@@ -325,12 +325,7 @@
   </div>
 </template>
 <script>
-import {
-  BasicInfo,
-  Lender,
-  Remark,
-  Usage
-} from "@/components/applyDetail";
+import { BasicInfo, Lender, Remark, Usage } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 
 export default {
@@ -348,16 +343,16 @@ export default {
       refuseRemark: "",
       passDialog: false,
       passRemark: "",
-      adjustDialog:false,
-      adjustAmount:"",
+      adjustDialog: false,
+      adjustAmount: "",
       userInfo: {},
       infoData: {},
       pending: false,
       aduitHistory: [], //当前申请历史
       applyList: [], //申请列表
-      quotaList:[],
-      quotaProList:[],
-      adjustProductId:'',
+      quotaList: [],
+      quotaProList: [],
+      adjustProductId: "",
       remarkList: [], //备注
       realName: "",
       manualAuitMap: {}, //人工审核数据
@@ -368,7 +363,7 @@ export default {
         value: "code",
         label: "desc",
         children: "subOptionList"
-      },
+      }
     };
   },
   components: {
@@ -377,15 +372,15 @@ export default {
     Remark,
     Usage
   },
-  props: ["adjustCode","passCode","remarkCode","refuseCode","applyType"],
+  props: ["adjustCode", "passCode", "remarkCode", "refuseCode", "applyType"],
   computed: {
     ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
   mounted() {
     this.getInfo();
-    if (!this.isEmpty(this.applyType)&&this.applyType == 4) {
+    if (!this.isEmpty(this.applyType) && this.applyType == 4) {
       this.getApplyList();
-    }else{
+    } else {
       this.getPayApplyList();
     }
     this.getRefuseList();
@@ -462,27 +457,27 @@ export default {
         }
       });
     },
-    handleAdjust(){
+    handleAdjust() {
       const productId = this.adjustProductId;
       const amount = this.adjustAmount;
       if (this.isEmpty(amount)) {
-        this.$message("请输入授信额度")  
-        return
-      };
+        this.$message("请输入授信额度");
+        return;
+      }
       if (this.isEmpty(productId)) {
-        this.$message("请选择提现产品")  
-        return
-      };
+        this.$message("请选择提现产品");
+        return;
+      }
       const nodeId = this.manualAuitMap.nodeId;
       this.ajax({
-        url:"credit/web/sys/flow/update/credit",
-        data:{productId,nodeId,amount}
+        url: "credit/web/sys/flow/update/credit",
+        data: { productId, nodeId, amount }
       }).then(res => {
         if (res.code == 0) {
           this.adjustDialog = false;
           this.getInfo();
         }
-      })
+      });
     },
     applyrefuse() {
       const nodeId = this.manualAuitMap.nodeId;
@@ -577,9 +572,9 @@ export default {
         this.quotaList = res.data.quotaList;
       });
     },
-    getPayApplyList(){
+    getPayApplyList() {
       const flowId = this.$route.query.id;
-      const flowTypeList = [1,2,5];
+      const flowTypeList = [1, 2, 5];
       this.ajax({
         url: "credit/web/sys/flow/applybilllist",
         data: {
@@ -592,14 +587,16 @@ export default {
         this.applyList = res.data.list;
       });
     },
-    getConAllRemark(row){
+    getConAllRemark(row) {
       const flowId = row.flowId;
       const pageNo = 1;
       const pageSize = 1000;
       this.ajax({
-        url:"credit/web/sys/remark/query/list",
-        data:{
-          flowId,pageNo,pageSize
+        url: "credit/web/sys/remark/query/list",
+        data: {
+          flowId,
+          pageNo,
+          pageSize
         }
       }).then(res => {
         if (res.data.total) {
@@ -608,7 +605,7 @@ export default {
         } else {
           this.$message("备注信息为空");
         }
-      })
+      });
     },
     getRemark(row) {
       const id = row.id;
@@ -657,7 +654,8 @@ export default {
           color: #fff;
           cursor: pointer;
         }
-        .pass,.adjust {
+        .pass,
+        .adjust {
           background: #29a52c;
           color: #fff;
           cursor: pointer;

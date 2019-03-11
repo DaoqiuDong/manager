@@ -2,12 +2,14 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
-        <el-select clearable v-model="searchForm.channelList" multiple placeholder="用户来源">
-          <el-option
-            v-for="item in sourceList"
-            :key="item.code"
-            :label="item.name"
-            :value="item.code">
+        <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+          <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
         </el-select>
       </el-form-item>
@@ -24,11 +26,9 @@
       <el-table :data="list" :stripe='true'  v-loading.body="loading">
         <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="注册" prop="regist"></el-table-column>
-        <!-- <el-table-column label="申请" prop="apply"></el-table-column> -->
-        <!-- <el-table-column label="放款" prop="loan"></el-table-column> -->
         <el-table-column label="操作" align="center" v-if="hasBtnAuth('B20062',btnApiList)||hasBtnAuth('B20098',btnApiList)||hasBtnAuth('B20099',btnApiList)">
           <template scope="scope">
-            <el-button type="text" v-if="hasBtnAuth('B20062',btnApiList)"  v-text="getbtnName('B20062',btnApiList)" @click="getRemark(scope.row)"></el-button>
+            <el-button type="text" v-if="hasBtnAuth('B20062',btnApiList)"  v-text="getbtnName('B20062',btnApiList)" @click="setDiscount(scope.row)"></el-button>
             <el-button type="text" v-if="scope.row.status == 1&&hasBtnAuth('B20098',btnApiList)"  v-text="getbtnName('B20098',btnApiList)" @click="handleDisable(scope.row)"></el-button>
             <el-button type="text" v-if="scope.row.status == 2&&hasBtnAuth('B20099',btnApiList)"  v-text="getbtnName('B20099',btnApiList)" @click="handleEnable(scope.row)"></el-button>
           </template>
@@ -41,6 +41,11 @@
     <el-dialog :visible.sync="discountDialog">
       <strong slot="title">渠道{{handleChannel.channelName}}折扣</strong>
       <el-form label-width="100px" label-position="left">
+        <el-form-item label="验证个数">
+          <el-input placeholder="填写验证个数" v-model.number="upForm.verifyTotal">
+            <template slot="append">个</template>
+          </el-input>
+        </el-form-item>
         <el-form-item label="当前折扣">
           <el-input placeholder="填写折扣1-100" v-model.number="upForm.discount">
             <template slot="append">%</template>
@@ -63,14 +68,17 @@ export default {
     return {
       searchForm: {
         channelList: [],
-        happenDateStart: _this.formatterTime(Date.now()),
+        subChannelList:[],
+        happenDateStart: Date.now(),
         happenDateEnd: ""
       },
       upForm: {
         channel: "",
+        verifyTotal:"",
         discount: 100
       },
       sourceList: [],
+      sourceChildList:[],
       handleChannel: {},
       list: [],
       total: 0,
@@ -89,6 +97,7 @@ export default {
   mounted() {
     this.getList(1);
     this.getSourceList();
+    this.getSourceChildList();
   },
   methods: {
     handleDisable(row){
@@ -184,7 +193,22 @@ export default {
         this.sourceList = res.data;
       });
     },
-    getRemark(row) {
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
+    },
+    setDiscount(row) {
       this.handleChannel = row;
       this.upForm.channel = row.channelCode;
       this.upForm.discount = row.discount || 100;

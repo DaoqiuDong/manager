@@ -2,19 +2,22 @@ const app = {
   state: {
     dict: {},
     productList: [],
-    financeList:[],
+    financeList: [],
     nodeCode: [],
     roleList: [],
-    addrList:[],
-    sourceList:[],
-    strDict:{},
-    refuseCodeDict:[],
-    payList:[],
-    tagList:[],
-    corpList:[],
-    allRoleList:[]
+    addrList: [],
+    strDict: {},
+    refuseCodeDict: [],
+    payList: [],
+    tagList: [],
+    corpList: [],
+    allRoleList: [],
+    balance: { balanceAuth: false }
   },
   mutations: {
+    PUSH_BALANCE(state, obj) {
+      state.balance = obj;
+    },
     PUSH_DICT: (state, list) => {
       state.dict = list;
     },
@@ -30,97 +33,68 @@ const app = {
     PUSH_ROLELIST: (state, arr) => {
       state.roleList = arr;
     },
-    PUSH_ADDR:(state,arr) => {
+    PUSH_ADDR: (state, arr) => {
       state.addrList = arr;
     },
-    PUSH_SOURCE:(state,arr) => {
-      state.sourceList = arr;
-    },
-    PUSH_STRDICT:(state,obj) => {
+    PUSH_STRDICT: (state, obj) => {
       state.strDict = obj;
     },
-    PUSH_REFUSEDICT:(state,arr) => {
+    PUSH_REFUSEDICT: (state, arr) => {
       state.refuseCodeDict = arr;
     },
-    PUSH_PAYLIST:(state,arr) => {
+    PUSH_PAYLIST: (state, arr) => {
       state.payList = arr;
     },
-    PUSH_TAGLIST:(state,arr) => {
+    PUSH_TAGLIST: (state, arr) => {
       state.tagList = arr;
     },
-    PUSH_CORPLIST:(state,arr) => {
+    PUSH_CORPLIST: (state, arr) => {
       state.corpList = arr;
     },
-    PUSH_ALLROLELIST:(state,arr) => {
+    PUSH_ALLROLELIST: (state, arr) => {
       state.allRoleList = arr;
-    },
+    }
   },
   actions: {
-    getDict({
-      commit
-    }, list) {
-      commit('PUSH_DICT', list);
+    getBalance({ commit }, obj) {
+      commit("PUSH_BALANCE", obj);
     },
-    getFinProList({
-      commit
-    }, arr) {
-      commit('PUSH_FINPROLIST', arr)
+    getDict({ commit }, list) {
+      commit("PUSH_DICT", list);
     },
-    getProList({
-      commit
-    }, arr) {
-      commit('PUSH_PROLIST', arr)
+    getFinProList({ commit }, arr) {
+      commit("PUSH_FINPROLIST", arr);
     },
-    getNodeCode({
-      commit
-    }, obj) {
-      commit('PUSH_NODECODE', obj)
+    getProList({ commit }, arr) {
+      commit("PUSH_PROLIST", arr);
     },
-    getRoleList({
-      commit
-    }, arr) {
-      commit('PUSH_ROLELIST', arr)
+    getNodeCode({ commit }, obj) {
+      commit("PUSH_NODECODE", obj);
     },
-    getAddrList({
-      commit
-    }, arr) {
-      commit('PUSH_ADDR', arr)
+    getRoleList({ commit }, arr) {
+      commit("PUSH_ROLELIST", arr);
     },
-    getSourceList({
-      commit
-    }, arr) {
-      commit('PUSH_SOURCE', arr)
+    getAddrList({ commit }, arr) {
+      commit("PUSH_ADDR", arr);
     },
-    getStrDict({
-      commit
-    }, obj) {
-      commit('PUSH_STRDICT', obj)
+    getStrDict({ commit }, obj) {
+      commit("PUSH_STRDICT", obj);
     },
-    getRefuseCodeDict({
-      commit
-    }, arr) {
-      commit('PUSH_REFUSEDICT', arr)
+    getRefuseCodeDict({ commit }, arr) {
+      commit("PUSH_REFUSEDICT", arr);
     },
-    getPayList({
-      commit
-    }, arr) {
-      commit('PUSH_PAYLIST', arr)
+    getPayList({ commit }, arr) {
+      commit("PUSH_PAYLIST", arr);
     },
-    getTagList({
-      commit
-    }, arr) {
-      commit('PUSH_TAGLIST', arr)
+    getTagList({ commit }, arr) {
+      commit("PUSH_TAGLIST", arr);
     },
-    getCorpList({
-      commit
-    }, arr) {
-      commit('PUSH_CORPLIST', arr)
+    getCorpList({ commit }, arr) {
+      commit("PUSH_CORPLIST", arr);
     },
-    getAllRoleList({
-      commit
-    }, arr) {
-      commit('PUSH_ALLROLELIST', arr)
-    },
+    getAllRoleList({ commit }, arr) {
+      commit("PUSH_ALLROLELIST", arr);
+    }
   }
 };
 

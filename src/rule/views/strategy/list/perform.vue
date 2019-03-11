@@ -13,12 +13,18 @@
         </el-date-picker>
       </el-form-item>
       <el-form-item>
-        <el-select clearable v-model="form.sourceCode" placeholder="用户来源渠道">
+        <el-select clearable v-model="activeSourceCode" placeholder="用户来源主渠道" @change="getSourceChildList">
           <el-option
             v-for="item in allSourceCodeList"
             :key="item.code"
             :label="item.name"
             :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(sourceChildList)" v-model="form.sourceCode" placeholder="用户来源子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
         </el-select>
       </el-form-item>
@@ -251,6 +257,7 @@ export default {
         endTime: "",
         sourceCode:""
       },
+      activeSourceCode:"",
       pickerOptions0: {
         disabledDate(time) {
           return (
@@ -267,7 +274,8 @@ export default {
           );
         }
       },
-      allSourceCodeList:[]
+      allSourceCodeList:[],
+      sourceChildList:[]
     };
   },
   mounted() {
@@ -276,11 +284,28 @@ export default {
   },
   methods: {
     getAllSourceCodeList(){
+      const type = 2;
       this.ajax({
-        url:"rule/web/strategy/queryAllSource"
+        url:"rule/web/strategy/querySource",
+        data: { type }
       }).then(res => {
         this.allSourceCodeList = res.data;
       })
+    },
+    getSourceChildList(value) {
+      const type = 1;
+      this.form.sourceCode = "";
+      if (this.isEmpty(value)) {
+        this.sourceChildList = [];
+        return;
+      }
+      const channelList = [value];
+      this.ajax({
+        url: "rule/web/strategy/querySource",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
     },
     selectStartTime(time) {
       this.form.startTime = time;

@@ -36,6 +36,13 @@
           </el-option>
         </el-select>
       </el-form-item>
+            <el-form-item>   
+        <el-select clearable v-model="searchForm.cycleType" placeholder="阶段">
+          <el-option label="今日应还" :value="2"></el-option>
+          <el-option label="超期" :value="3"></el-option>
+          <el-option label="逾期" :value="4"></el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-date-picker v-model="searchForm.realRepayTimeStart" type="date" placeholder="借款开始时间" format="yyyy-MM-dd" @change="selectRealRepayTimeStart"></el-date-picker>
       </el-form-item>
@@ -107,7 +114,8 @@ export default {
         realRepayTimeEnd: "",
         overdueDaysLow: "",
         overdueDaysHigh: "",
-        tagId: ""
+        tagId: "",
+        cycleType:4
       },
       loading:true,
       list: [],

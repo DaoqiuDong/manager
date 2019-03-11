@@ -35,7 +35,13 @@ export default {
   },
   watch: {
     visibile(newval, oldval) {
-      if (newval) {
+      if (newval&&!this.isEmpty(this.lbsInfo)) {
+        this.mapInit();
+        this.deviceInfo = this.lbsInfo.device;
+      }
+    },
+    lbsInfo(newval,oldval){
+      if (this.visibile&&!this.isEmpty(newval)) {
         this.mapInit();
         this.deviceInfo = this.lbsInfo.device;
       }

@@ -127,11 +127,12 @@ export default {
       time2:"",
       userList: [],
       total: 0,
-      loading:true
+      loading:true,
+      sourceList:[]
     };
   },
   computed: {
-    ...mapGetters(["dict","btnGoList","sourceList"])
+    ...mapGetters(["dict","btnGoList"])
   },
   mounted() {
     this.getList(1);
@@ -173,13 +174,11 @@ export default {
         });
     },
     getSourceList(){
-      if (this.sourceList&&!this.sourceList.length) {
-        this.ajax({
-          url:"credit/web/sys/source"
-        }).then(res => {
-          this.$store.dispatch('getSourceList',res.data);
-        })
-      }
+      this.ajax({
+        url:"credit/web/sys/source"
+      }).then(res => {
+        this.sourceList = res.data;
+      })
     }
   }
 };

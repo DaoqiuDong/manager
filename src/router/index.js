@@ -4,6 +4,7 @@ const _import = require("./_import_" + process.env.NODE_ENV);
 // in development env not use Lazy Loading,because Lazy Loading large page will cause webpack hot update too slow.so only in production use Lazy Loading
 
 const Layout = _import("layout/Layout");
+
 /* login */
 const Login = _import("login/index");
 
@@ -43,6 +44,65 @@ export const constantRouterMap = [
       }
     ]
   }
+];
+
+export const moduleList = [
+  "count/userCount",
+  "count/fundCount",
+  "count/operateCount",
+  "count/applyCount",
+  "product/mobileCount",
+  "product/brandCount",
+  "brand/brandList/list",
+  "money/report/list",
+  "user/login/userList",
+  "user/signin/userList",
+  "apply/sub/applyList",
+  "apply/write/applyList",
+  "apply/dataPre/applyList",
+  "apply/first/applyList",
+  "apply/firstmanual/applyList",
+  "apply/bindbank/applyList",
+  "apply/final/applyList",
+  "apply/finalmanual/applyList",
+  "apply/toll/applyList",
+  "apply/autopay/applyList",
+  "contract/deloan/list",
+  "contract/loaning/list",
+  "contract/loanfail/list",
+  "contract/paying/list",
+  "contract/paysuccess/list",
+  "contract/cancel/list",
+  "contract/depay/list",
+  "contract/overdue/list",
+  "contract/recycle/list",
+  "product/proList/list",
+  "manual/list/manualList",
+  "manual/allot/allotList",
+  "manual/mycollect/list",
+  "overdue/todaylist/list",
+  "overdue/overlist/list",
+  "overdue/overdue/list",
+  "overdue/return/list",
+  "overdue/allot/list",
+  "overdue/myallot/list",
+  "ad/adsetting/list",
+  "brand/loanclass/list",
+  "brand/visaclass/list",
+  "brand/quality/list",
+  "product/advise",
+  "system/account/list",
+  "system/role/list",
+  "system/decrypt",
+  "system/decode",
+  "system/log",
+  "system/clearCache",
+  "analyse/list",
+  "analyse/userCount",
+  "strategy/list/list",
+  "strategy/module/list",
+  "strategy/rule/list",
+  "count/datause"
 ];
 
 export default new Router({
@@ -121,14 +181,18 @@ export const btnMap = {
   B10059: "contract/recycle/detail", //回收订单详情
   B10060: "overdue/allot/sucList", //催收工作分配已摧回
   B10061: "overdue/return/detail", //逾期已还详情
-  B10062: "contract/overdue/billDetail",//逾期未还列表账单详情
-  B10063: "overdue/myallot/billDetail",//我的催收列表账单详情
-  B10064: "overdue/overdue/billDetail",//逾期合同列表账单详情
-  B10065: "brand/brandList/payConfig",//机构产品支付配置页面
-  B10066: "apply/autopay/applyDetail",//授信申请单详情
-  B10067: "apply/autopay/applyDetail",//注册用户授信申请单详情
-  B10068: "apply/autopay/applyDetail",//签约用户授信申请单详情
-  B10069: "product/proList/applyConfig",//签约用户授信申请单详情
+  B10062: "contract/overdue/billDetail", //逾期未还列表账单详情
+  B10063: "overdue/myallot/billDetail", //我的催收列表账单详情
+  B10064: "overdue/overdue/billDetail", //逾期合同列表账单详情
+  B10065: "brand/brandList/payConfig", //机构产品支付配置页面
+  B10066: "apply/autopay/applyDetail", //授信申请单详情
+  B10067: "apply/autopay/applyDetail", //注册用户授信申请单详情
+  B10068: "apply/autopay/applyDetail", //签约用户授信申请单详情
+  B10069: "product/proList/applyConfig", //签约用户授信申请单详情
+  B10070: "overdue/todaylist/detail", //今日应还合同详情
+  B10071: "overdue/todaylist/billDetail", //今日应还合同详情
+  B10072: "count/corpAmountDetail", //账户管理
+  B10073: "count/rateConfig", //费率调整
   B50001: "analyse/detail", //执行记录详情
   B50002: "strategy/list/addstr", //添加策略
   B50003: "strategy/list/detail", //查看策略
@@ -136,9 +200,8 @@ export const btnMap = {
   B50005: "strategy/rule/detail", //规则详情
   B50006: "strategy/list/perform", //执行记录
   B50007: "strategy/module/detail", //查看策略
-  B50008: "strategy/module/editor", //编辑策略
+  B50008: "strategy/module/editor" //编辑策略
 };
-
 
 /**
 btnCode             name            label
@@ -248,6 +311,21 @@ B20106机构产品提额配置（机构产品提额配置）
 B20107产品列表产品提额配置（产品列表产品提额配置）
 B20108机构产品展期配置（机构产品展期配置）
 B20109产品列表产品展期配置（产品列表产品展期配置）
+B20110备注（今日应还合同备注）
+B20111本金利息减免（今日应还账单本金利息减免）
+B20112逾期费用减免（今日应还账单逾期费用减免）
+B20113展期还款（待还款用户展期还款）
+B20114资金操作（数据使用账户资金操作,包括加款记录、加款、减款）
+B20115账号（平台统计子渠道账号）
+B20116删除（平台统计子渠道删除）
+B20117停用（平台统计子渠道停用）
+B20118启用（平台统计子渠道启用）
+B20119操作（平台统计子渠道操作）
+B20120充值记录（数据使用机构充值记录）
+B20121自动分配（人工审核自动分配申请单）
+B20122自动分配（逾期合同自动分配）
+B20123金额调整（申请单初审金额调整）
+B20124金额调整（申请单终审金额调整）
 B60004删除策略（策略模块删除）
 B60005添加策略（添加策略模块）
  */

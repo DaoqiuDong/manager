@@ -60,7 +60,7 @@ export default {
       loginForm: {
         loginName: "",
         password: "",
-        smsCode:""
+        smsCode: ""
       },
       loginRules: {
         loginName: [
@@ -72,10 +72,10 @@ export default {
       logosrc: Logoimg,
       picsrc: Picimg,
       formbgsrc: Formbgimg,
-      sendCodeStatus:0,
-      countNum:0,
-      sendText:"发送验证码",
-      IntervalNum:null
+      sendCodeStatus: 0,
+      countNum: 0,
+      sendText: "发送验证码",
+      IntervalNum: null
     };
   },
   methods: {
@@ -98,37 +98,39 @@ export default {
         }
       });
     },
-    sendCode(){
+    sendCode() {
       if (this.isEmpty(this.loginForm.loginName)) {
         this.$message({
-          message:"登录账号不能为空",
-          type:"error"
-        })
-      }else{
+          message: "登录账号不能为空",
+          type: "error"
+        });
+      } else {
         if (this.sendCodeStatus) {
-          this.$message("您发送太过频繁，请等待"+this.countNum+"秒后再试");
-          return false
-        }else{
+          this.$message("您发送太过频繁，请等待" + this.countNum + "秒后再试");
+          return false;
+        } else {
           const loginName = this.loginForm.loginName;
           this.sendCodeStatus = 1;
           this.countNum = 60;
+          this.countDown();
           this.ajax({
-            url:"credit/web/sys/login/sms",
-            data:{loginName}
-          }).then(res => {
-            this.countDown();
-            this.IntervalNum = setInterval(this.countDown.bind(this),1000)
-          }).catch(err => {
-            this.sendCodeStatus = 1;
+            url: "credit/web/sys/login/sms",
+            data: { loginName }
           })
+            .then(res => {
+              this.IntervalNum = setInterval(this.countDown.bind(this), 1000);
+            })
+            .catch(err => {
+              this.sendCodeStatus = 0;
+            });
         }
       }
     },
-    countDown(){
+    countDown() {
       if (this.countNum > 0) {
-        this.sendText = "剩余"+this.countNum+"秒";
+        this.sendText = "剩余" + this.countNum + "秒";
         this.countNum--;
-      }else{
+      } else {
         clearInterval(this.IntervalNum);
         this.IntervalNum = null;
         this.sendText = "发送验证码";
@@ -157,7 +159,7 @@ export default {
     color: #434343;
   }
 }
-.sendCode{
+.sendCode {
   padding: 10px;
   border-left: 1px solid rgb(201, 201, 201);
   cursor: pointer;
@@ -170,9 +172,9 @@ export default {
   background-color: #5e97f5;
   input:-webkit-autofill {
     -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0) inset !important;
-    -webkit-text-fill-color: #000!important;
-    background-color:transparent;  
-    background-image: none;  
+    -webkit-text-fill-color: #000 !important;
+    background-color: transparent;
+    background-image: none;
     transition: background-color 50000s ease-in-out 0s;
   }
   .form-container {

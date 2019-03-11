@@ -214,6 +214,13 @@
             <template slot="append">天</template>
           </el-input>
         </el-form-item><br/>
+
+        <el-form-item label="费用上限">
+          <el-input v-model.number="repayCnf.maxRepayRate" placeholder="无上限">
+            <template slot="append">%</template>
+          </el-input>
+          <i>*费用上限=累计还款费用的上限，按账单金额的百分比设置。例：费用上限=200%，账单金额=1000元，逾期后最终应还将不超过2000元。</i>
+        </el-form-item><br/>
         <p><i>*所有费率精确至小数点后六位(百万分位)，所有费用计算只进不舍</i></p>
 
         <div>
@@ -323,6 +330,9 @@ export default {
         colMethod: 2,
         value: ""
       },
+      repayCnf: {
+        maxRepayRate: ""
+      },
       interestVal: "",
       overdueFee: {
         //逾期管理费
@@ -336,22 +346,22 @@ export default {
         value: "",
         colMethod: 2
       },
-      quotaCnf:{
-        switchStatus:0,
-        addAmount:{
-          stepNum:0,
-          days:0
+      quotaCnf: {
+        switchStatus: 0,
+        addAmount: {
+          stepNum: 0,
+          days: 0
         },
-        subAmount:{
-          stepNum:0,
-          days:0
+        subAmount: {
+          stepNum: 0,
+          days: 0
         }
       },
-      renewalCnf:{
-        switchStatus:0,
-        limitNum:1
+      renewalCnf: {
+        switchStatus: 0,
+        limitNum: 1
       },
-      renewalFee:[],
+      renewalFee: [],
       preFeeList: [],
       overdueInterestVal: "",
       otherFee: [],
@@ -413,6 +423,9 @@ export default {
         this.interest = res.data.interest;
         this.overdueFee = res.data.overdueFee;
         this.overdueInterest = res.data.overdueInterest;
+        if (!this.isEmpty(res.data.repayCnf)) {
+          this.repayCnf = res.data.repayCnf;
+        }
         if (!this.isEmpty(res.data.quotaCnf)) {
           this.quotaCnf = res.data.quotaCnf;
         }
@@ -427,7 +440,7 @@ export default {
           this.preFeeList = res.data.preFee;
         }
         if (!this.isEmpty(res.data.renewalCnf)) {
-          this.renewalCnf = res.data.renewalCnf
+          this.renewalCnf = res.data.renewalCnf;
         }
         if (!this.isEmpty(res.data.renewalFee)) {
           this.renewalFee = res.data.renewalFee;
@@ -461,15 +474,15 @@ export default {
         this.$message("最多添加五项贷前支付费用");
       }
     },
-    addRenewalFee(){
+    addRenewalFee() {
       this.renewalFee.push({
-          title: "",
-          calMethod: "", //计算方式
-          value: "",
-          remark: ""
-        })
+        title: "",
+        calMethod: "", //计算方式
+        value: "",
+        remark: ""
+      });
     },
-    delRenewalFee(i){
+    delRenewalFee(i) {
       this.renewalFee.splice(i, 1);
     },
     delFee(i) {
@@ -485,6 +498,11 @@ export default {
       const interest = this.interest;
       const overdueFee = this.overdueFee;
       const overdueInterest = this.overdueInterest;
+      const repayCnf = this.repayCnf;
+      if (!this.isEmpty(repayCnf.maxRepayRate)&&Number(repayCnf.maxRepayRate) < 100) {
+        this.$message("费用上限请设置为大于100%的值");
+        return 
+      }
       var otherFee;
       if (this.otherFee && this.otherFee.length) {
         for (let i = 0; i < this.otherFee.length; i++) {
@@ -500,7 +518,7 @@ export default {
       if (quotaCnf.switchStatus == 1) {
         if (quotaCnf.addAmount.days >= quotaCnf.subAmount.days) {
           this.$message("延期还款逾期天数设置需大于有效还款逾期天数设置");
-          return
+          return;
         }
       }
       const preFee = this.preFeeList;
@@ -520,7 +538,8 @@ export default {
           preFee,
           otherFee,
           renewalCnf,
-          renewalFee
+          renewalFee,
+          repayCnf
         }
       }).then(res => {
         this.$router.push("list");
@@ -528,37 +547,39 @@ export default {
     },
     manSelect(value) {
       if (this.managementFee.calMethod == 2) {
-        this.managementFee.value = String(this.managementFeeVal*100 / 10000);
+        this.managementFee.value = String(this.managementFeeVal * 100 / 10000);
       } else {
         this.managementFee.value = String(this.managementFeeVal);
       }
     },
     inSelect(value) {
-      this.interest.value = String(this.interestVal*100 / 10000);
+      this.interest.value = String(this.interestVal * 100 / 10000);
     },
     overSelect(value) {
       if (this.overdueFee.calMethod == 2) {
-        this.overdueFee.value = String(this.overdueFeeVal*100 / 10000);
+        this.overdueFee.value = String(this.overdueFeeVal * 100 / 10000);
       } else {
         this.overdueFee.value = String(this.overdueFeeVal);
       }
     },
     overInSelect(value) {
-      this.overdueInterest.value = String(this.overdueInterestVal*100 / 10000);
+      this.overdueInterest.value = String(
+        this.overdueInterestVal * 100 / 10000
+      );
     },
     setValue() {
       if (this.managementFee.calMethod == 2) {
-        this.managementFeeVal = this.managementFee.value * 10000/100;
+        this.managementFeeVal = this.managementFee.value * 10000 / 100;
       } else {
         this.managementFeeVal = this.managementFee.value;
       }
-      this.interestVal = Number(this.interest.value) * 10000/100;
+      this.interestVal = Number(this.interest.value) * 10000 / 100;
       if (this.overdueFee.calMethod == 2) {
-        this.overdueFeeVal = this.overdueFee.value * 10000/100;
+        this.overdueFeeVal = this.overdueFee.value * 10000 / 100;
       } else {
         this.overdueFeeVal = this.overdueFee.value;
       }
-      this.overdueInterestVal = this.overdueInterest.value * 10000/100;
+      this.overdueInterestVal = this.overdueInterest.value * 10000 / 100;
     }
   }
 };

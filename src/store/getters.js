@@ -14,7 +14,6 @@ const getters = {
   nodeCode:state => state.app.nodeCode,
   roleList:state => state.app.roleList,
   addrList:state => state.app.addrList,
-  sourceList:state => state.app.sourceList,
   strList:state => state.app.strList,
   strProList:state => state.app.strProList,
   strDict:state => state.app.strDict,
@@ -23,5 +22,6 @@ const getters = {
   tagList:state => state.app.tagList,
   allCorpList:state => state.app.corpList,
   allRoleList:state => state.app.allRoleList,
+  balance:state => state.app.balance,
 };
 export default getters;
