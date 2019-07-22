@@ -2,6 +2,18 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
+        <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+          <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
           <el-option
             v-for="item in allCorpList"
@@ -21,6 +33,9 @@
         <el-input v-model="searchForm.mobile" placeholder="手机号" @keyup.enter.native="getList(1)"></el-input>
       </el-form-item>
       <el-form-item>
+        <el-input v-model="searchForm.name" placeholder="借款人" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>
         <el-date-picker v-model="searchForm.repayDate" type="date" placeholder="还款日期" format="yyyy-MM-dd" @change="selectTime"></el-date-picker>
       </el-form-item>
       <el-form-item>
@@ -33,6 +48,7 @@
     </el-form>
     <div>
       <el-table :data="list" :stripe='true' v-loading.body="loading">
+        <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
         <el-table-column label="借款人" prop="name"></el-table-column>
         <el-table-column label="手机号" prop="mobile"></el-table-column>
@@ -40,6 +56,19 @@
         <el-table-column label="产品名称" prop="productName"></el-table-column>
         <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
         <el-table-column label="账单号" prop="billCode" min-width="140"></el-table-column>
+        <el-table-column label="还款失败">
+          <template scope="scope">
+            <div v-if="!isEmpty(scope.row.remark)">
+              <el-tooltip placement="right">
+                <p slot="content" class="failDetail">{{scope.row.remark}}</p>
+                <p class="failRemark">{{scope.row.remark}}</p>
+              </el-tooltip>
+            </div>
+            <div v-else>
+              <p>--</p>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="账单状态">
           <template scope="scope">
             <span v-if="scope.row.billStatus">{{getDictTit(scope.row.billStatus,dict.bill_status)}}</span>
@@ -56,7 +85,7 @@
           </template>
           </el-table-column>            
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
 
     <el-dialog title="确认还款" :visible.sync="repayDialog" size="tiny">
@@ -105,41 +134,59 @@ export default {
     return {
       searchForm: {
         mobile: "",
+        name: "",
         loanDateStart: "",
         loanDateEnd: "",
-        repayDate:"",
+        repayDate: "",
         code: "",
-        billCode:"",
-        corpId:""
+        billCode: "",
+        corpId: "",
+        channelList: [],
+        subChannelList: []
       },
-      repayForm:{
-        amount:"",
-        realRepayTime:"",
-        billId:"",
-        billCode:""
+      sourceList: [],
+      sourceChildList: [],
+      repayForm: {
+        amount: "",
+        realRepayTime: "",
+        billId: "",
+        billCode: ""
       },
-      delayForm:{
-        amount:"",
-        realRepayTime:"",
-        billId:"",
-        billCode:""
+      delayForm: {
+        amount: "",
+        realRepayTime: "",
+        billId: "",
+        billCode: ""
       },
-      handleBill:{},
-      repayDialog:false,
-      delayRepayDialog:false,
+      handleBill: {},
+      repayDialog: false,
+      delayRepayDialog: false,
       list: [],
       total: 0,
-      loading:true
+      currentPage: 1,
+      pageSize: 10,
+      loading: true
     };
   },
   computed: {
-    ...mapGetters(["dict", "roleList", "btnGoList","btnApiList","allCorpList"])
+    ...mapGetters([
+      "dict",
+      "roleList",
+      "btnGoList",
+      "btnApiList",
+      "allCorpList"
+    ])
   },
   mounted() {
     this.getList(1);
+    this.getSourceList();
   },
   methods: {
-    selectTime(time){
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
+    selectTime(time) {
       this.searchForm.repayDate = time;
     },
     selectStartTime(time) {
@@ -150,11 +197,35 @@ export default {
       this.searchForm.loanDateEnd = time;
       this.getList(1);
     },
-    selectRepayTime(time){
+    selectRepayTime(time) {
       this.repayForm.realRepayTime = time;
     },
-    selectDelayTime(time){
+    selectDelayTime(time) {
       this.delayForm.realRepayTime = time;
+    },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
     },
     getList(pageNo) {
       const pageSize = this.pageSize;
@@ -172,69 +243,80 @@ export default {
         this.list = res.data.list;
       });
     },
-    handleRepay(row){
+    handleRepay(row) {
       this.handleBill = row;
       this.repayForm.billId = row.billId;
       this.repayForm.billCode = row.billCode;
       this.repayDialog = true;
     },
-    handleDelayRepay(row){
+    handleDelayRepay(row) {
       this.handleBill = row;
       this.delayForm.billId = row.billId;
       this.delayForm.billCode = row.billCode;
       this.delayRepayDialog = true;
     },
-    subRepay(){
+    subRepay() {
       if (this.isEmpty(this.repayForm.amount)) {
         this.$message("请填写还款金额");
         return false;
-      };
+      }
       if (this.isEmpty(this.repayForm.realRepayTime)) {
         this.$message("请填写还款时间");
         return false;
-      };
+      }
       this.repayForm.realRepayTime += " 18:00:00";
       this.ajax({
-        url:"credit/web/sys/bill/repay",
-        data:{...this.repayForm}
+        url: "credit/web/sys/bill/repay",
+        data: { ...this.repayForm }
       }).then(res => {
         this.$message({
-          message:"还款成功",
-          type:"success"
+          message: "还款成功",
+          type: "success"
         });
         this.repayForm.amount = "";
         this.repayForm.realRepayTime = "";
         this.repayDialog = false;
-        this.getList(1);          
-      })
+        this.getList(this.currentPage);
+      });
     },
-    subDelayRepay(){
+    subDelayRepay() {
       if (this.isEmpty(this.delayForm.amount)) {
         this.$message("请填写展期费用");
         return false;
-      };
+      }
       if (this.isEmpty(this.delayForm.realRepayTime)) {
         this.$message("请填写展期开始日期");
         return false;
-      };
+      }
       this.ajax({
-        url:"credit/web/sys/bill/renewal",
-        data:{...this.delayForm}
+        url: "credit/web/sys/bill/renewal",
+        data: { ...this.delayForm }
       }).then(res => {
         this.$message({
-          message:"展期还款成功",
-          type:"success"
+          message: "展期还款成功",
+          type: "success"
         });
         this.delayForm.amount = "";
         this.delayForm.realRepayTime = "";
         this.delayRepayDialog = false;
-        this.getList(1); 
-      })
+        this.getList(this.currentPage);
+      });
     }
   }
 };
 </script>
 <style lang="scss" scoped>
-
+.failRemark {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.failDetail{
+  display: inline-block;
+  width: 100px;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow: hidden;
+}
 </style>
 

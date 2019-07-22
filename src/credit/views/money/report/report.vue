@@ -26,6 +26,12 @@
         <el-date-picker v-model="searchForm.repayDate" type="date" placeholder="到期应还款时间"  format="yyyy-MM-dd"  @change="selectRepayDate"></el-date-picker>
       </el-form-item>
       <el-form-item>
+        <el-select clearable v-model="searchForm.userCorpType" placeholder="客户状态">
+          <el-option label="新用户" :value="1"></el-option>
+          <el-option label="老用户" :value="2"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select clearable v-model="searchForm.contractStatus" placeholder="合同状态">
           <el-option label="还款中" :value="4"></el-option>
           <el-option label="已还清" :value="5"></el-option>
@@ -78,7 +84,9 @@
         <el-table-column label="合同商户订单号" prop="noOrder"></el-table-column>
         <el-table-column label="借款人" prop="name"></el-table-column>
         <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="客户状态" prop="userCorpTypeStr"></el-table-column>
         <el-table-column label="借款金额" prop="amount" :formatter="(row)=>count(row.amount,'元')"></el-table-column>
+        <el-table-column label="实际放款" prop="loanAmount" :formatter="(row)=>count(row.loanAmount,'元')"></el-table-column>
         <el-table-column label="约定费用" prop="preAmount" :formatter="(row)=>count(row.preAmount,'元')"></el-table-column>
         <el-table-column label="合同状态">
           <template scope="scope">
@@ -88,7 +96,7 @@
         <el-table-column label="支付渠道" prop="payWay"></el-table-column>
         <el-table-column label="放款时间" prop="loanDate"></el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next, slot" :total="total" @current-change="(i) => getList(i)" :page-size="30">
+      <el-pagination layout="total,sizes,prev,pager,next,jumper,slot" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange">
         <span> 借款总金额{{reportCount.totalAmount||'--'}}元，贷前支付总金额{{reportCount.totalPreAmount||'--'}}元</span>
       </el-pagination>
     </div>
@@ -111,12 +119,15 @@ export default {
         billStatus: "",
         repayDate: "",
         noOrder: "",
-        payChannel: ""
+        payChannel: "",
+        userCorpType:""
       },
       reportCount: {},
       loading: false,
       total: 0,
       list: [],
+      currentPage: 1,
+      pageSize: 10,
       btnLoading: false
     };
   },
@@ -124,6 +135,10 @@ export default {
     ...mapGetters(["dict", "btnApiList", "payList"])
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectStart(time) {
       this.searchForm.realRepayDateStart = time;
     },
@@ -141,7 +156,7 @@ export default {
     },
     getList(pageNo) {
       this.loading = true;
-      const pageSize = 30;
+      const pageSize = this.pageSize;
       const productId = this.$route.query.productId;
       const corpId = this.$route.query.corpId;
       this.ajax({

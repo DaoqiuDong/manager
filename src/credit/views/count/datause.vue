@@ -112,6 +112,7 @@ export default {
         statDateStart: yy + "-" + mm,
         statDateEnd:  yy + "-" + nextmm,
       },
+      accountId:"",
       listData: {},
       corpAmountInfo: {},
       corpAmountHistory: {},
@@ -142,6 +143,7 @@ export default {
         url: "credit/web/sys/cstmr/balance/queryAmount",
         data: { corpId }
       }).then(res => {
+        this.accountId = res.data.id;
         this.corpAmountInfo = res.data;
         if (!this.isEmpty(this.corpAmountInfo.amount)) {
           const amount = Number(this.corpAmountInfo.amount);
@@ -170,11 +172,11 @@ export default {
       return { width: Number(value) * 80 / this.maxCount + "%" };
     },
     getCorpAmountHistory(pageNo) {
-      const corpId = this.searchForm.corpId;
+      const id = this.accountId;
       const pageSize = this.pageSize;
       this.ajax({
         url: "credit/web/sys/cstmr/balance/findOptRecordByCstmr",
-        data: { corpId, pageSize, pageNo }
+        data: { id, pageSize, pageNo }
       }).then(res => {
         this.corpAmountHistory = res.data;
         if (this.isEmpty(this.corpAmountHistory.list)) {

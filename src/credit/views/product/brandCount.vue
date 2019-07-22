@@ -26,6 +26,7 @@
       <el-table :data="list" :stripe='true'  v-loading.body="loading">
         <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="注册" prop="regist"></el-table-column>
+        <el-table-column label="UV" prop="ip"></el-table-column>
         <el-table-column label="操作" align="center" v-if="hasBtnAuth('B20062',btnApiList)||hasBtnAuth('B20098',btnApiList)||hasBtnAuth('B20099',btnApiList)">
           <template scope="scope">
             <el-button type="text" v-if="hasBtnAuth('B20062',btnApiList)"  v-text="getbtnName('B20062',btnApiList)" @click="setDiscount(scope.row)"></el-button>
@@ -34,7 +35,7 @@
           </template>
         </el-table-column> 
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
+      <el-pagination layout="total,sizes,prev, pager, next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange">
       </el-pagination>
     </div>
 
@@ -82,6 +83,8 @@ export default {
       handleChannel: {},
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       discountDialog: false,
       loading: true,
       startTimeOption: {
@@ -116,7 +119,7 @@ export default {
             type: 'success',
             message: '停用成功!'
           });
-          this.getList(1);
+          this.getList(this.currentPage);
         })
       }).catch(() => {
         this.$message({
@@ -141,7 +144,7 @@ export default {
             type: 'success',
             message: '启用成功!'
           });
-          this.getList(1);
+          this.getList(this.currentPage);
         })
       }).catch(() => {
         this.$message({
@@ -163,6 +166,10 @@ export default {
       // } else {
       //   }
         this.searchForm.happenDateEnd = time;
+    },
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
     },
     getList(pageNo) {
       this.loading = true;
@@ -224,7 +231,7 @@ export default {
         data: { ...this.upForm }
       }).then(res => {
         this.discountDialog = false;
-        this.getList(1);
+        this.getList(this.currentPage);
         this.$message({
           message: "设置折扣成功",
           type: "success"

@@ -39,7 +39,7 @@
           </el-col>
           <el-col :span="8">
             <div v-if="pending" class="manual">
-              <el-row :gutter="20">
+              <el-row :gutter="20" type="flex" align="bottom">
                 <el-col :span="12">
                   <span class="modify" @click="modiDialog = true" v-if="hasBtnAuth(modiCode,btnApiList)" v-text="getbtnName(modiCode,btnApiList)"></span><br/>
                   <span class="pass" @click="passDialog = true" v-if="hasBtnAuth(passCode,btnApiList)" v-text="getbtnName(passCode,btnApiList)"></span>
@@ -55,11 +55,11 @@
       </div>
       <!-- 申请记录 -->
       <el-table :data="applyList" :stripe='true' v-if="applyList.length" style="margin-top:40px;">
-        <el-table-column label="所属机构" prop="corpName"></el-table-column>
+        <el-table-column label="所属机构" prop="corpName" v-if="!corpVisibile"></el-table-column>
         <el-table-column label="申请产品" prop="productName"></el-table-column>
         <el-table-column label="申请提交时间" prop="flowCreateTime"></el-table-column>
         <el-table-column label="贷款金额" prop="amount" :formatter="(row) =>count(row.amount,'元')"></el-table-column>
-        <el-table-column label="初审评分">
+        <el-table-column label="初审评分" v-if="!corpVisibile">
           <template scope="scope">
             <span  v-if="scope.row.firstTrial&&!isEmpty(scope.row.firstTrial.score)"  :class="getClass(scope.row.firstTrial.score)">{{scope.row.firstTrial.score}}分</span>
             <span v-else>--</span>
@@ -85,7 +85,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="终审评分">
+        <el-table-column label="终审评分" v-if="!corpVisibile">
           <template scope="scope">
             <span v-if="scope.row.finalTrial&&!isEmpty(scope.row.finalTrial.score)" :class="getClass(scope.row.finalTrial.score)">{{scope.row.finalTrial.score}}分</span>
             <span v-else>--</span>
@@ -143,7 +143,20 @@
         <el-tab-pane label="LBS信息" name="Map">
           <BMap :lbsInfo="lbsInfo" :visibile="mapVisible"/>
         </el-tab-pane>
+
         <el-tab-pane label="通讯录" name="fourth">
+          <h5>反欺诈通讯录匹配结果</h5>
+          <el-table :data="riskList" stripe  border>
+            <el-table-column label="命中个数" prop="riskMobileCount"></el-table-column>
+            <el-table-column label="命中比例" prop="scale"></el-table-column>
+            <el-table-column label="操作">
+              <template scope="scope">
+                <div>
+                  <el-button type="text" @click="riskDialog = true">查看详情</el-button>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
           <h5>通讯录</h5>
           <el-form :inline='true'>
             <el-form-item>
@@ -162,6 +175,66 @@
           </el-table>
           <el-pagination layout="prev, pager, next" :total="addrListTotal" @current-change="(i) => getAddrList(i)"></el-pagination>
         </el-tab-pane>
+
+        <!-- <el-tab-pane label="通话记录" name="calllog">
+          <h5>通话记录</h5>
+          <el-form :inline='true'>
+            <el-form-item>
+              <el-select clearable v-model="callLogForm.type" placeholder="类型">
+                <el-option v-for="item in callTypeList" :key="item.value" :label="item.title" :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="callLogForm.name" placeholder="姓名关键词"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="callLogForm.mobile" placeholder="手机号码"></el-input>
+            </el-form-item>
+            <el-button type="primary" @click="getCallLog(1)">查询</el-button>
+          </el-form>
+          <el-table :data="callLog.list" stripe  border>
+            <el-table-column label="类型">
+              <template scope="scope">
+                <p>{{getDictTit(scope.row.type,callTypeList)}}</p>
+              </template>
+            </el-table-column>
+            <el-table-column label="姓名" prop="receiverName"></el-table-column>
+            <el-table-column label="时间" prop="callTime"></el-table-column>
+            <el-table-column label="号码" prop="receiverPhone"></el-table-column>
+            <el-table-column label="通话时长(秒)" prop="callSpend"></el-table-column>
+          </el-table>
+          <el-pagination layout="prev, pager, next" :total="callLog.total" @current-change="(i) => getCallLog(i)"></el-pagination>
+        </el-tab-pane> -->
+
+        <!-- <el-tab-pane label="短信记录" name="meslog">
+          <h5>短信记录</h5>
+          <el-form :inline='true'>
+            <el-form-item>
+              <el-input v-model="messageForm.content" placeholder="内容关键词"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="messageForm.mobile" placeholder="手机号码"></el-input>
+            </el-form-item>
+            <el-button type="primary" @click="getMessageInfo(1)">查询</el-button>
+          </el-form>
+          <el-table :data="activeMesList" stripe  border>
+            <el-table-column label="号码" prop="receiverPhone"></el-table-column>
+            <el-table-column label="类型">
+              <template scope="scope">
+                <p>{{getDictTit(scope.row.type,messageTypeList)}}</p>
+              </template>
+            </el-table-column>
+            <el-table-column label="内容" prop="content" min-width="240px"></el-table-column>
+            <el-table-column label="发送时间" prop="sendTime"></el-table-column>
+          </el-table>
+          <el-pagination layout="total,prev, pager, next" :total="filterMesTotal" @current-change="(i) => getMessageInfo(i)"></el-pagination>
+        </el-tab-pane> -->
+
+        <el-tab-pane label="社交分析" name="analyze">
+          <Analyze :uid="uid" :analyzsVisible.sync="analyzsVisible"/>
+        </el-tab-pane>
+
         <el-tab-pane label="关联申请" name="asso">
           <Relate :associateData.sync="associateApplyData"/>
         </el-tab-pane>
@@ -177,6 +250,19 @@
       </el-tabs>
     </div>
 
+    <el-dialog title="命中反欺诈名单" :visible.sync="riskDialog">
+      <div>
+        <el-table :data="riskInfo.list" stripe  border>
+          <el-table-column label="号码" prop="mobile"></el-table-column>
+          <el-table-column label="命中次数" prop="hitCount"></el-table-column>
+        </el-table>
+        <el-pagination layout="prev, pager, next" :total="riskInfo.total" @current-change="(i) => getRiskInfo(i)"></el-pagination>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="riskDialog = false">确 定</el-button>
+      </span>
+    </el-dialog>
+
     <el-dialog title="备注信息" :visible.sync="remarkDialog" size="tiny" @close="remarkList = []">
       <div v-for="item in remarkList" :key="item.createTime">
         <p>{{item.createTime}}{{item.accountName}}</p>
@@ -188,23 +274,23 @@
       </span>
     </el-dialog>
 
-    <el-dialog title="添加备注" :visible.sync="addRemarkDialog" size="tiny">
+    <el-dialog title="添加备注" :visible.sync="addRemarkDialog">
       <p>正在给{{realName}}添加备注</p>
       <el-input type="textarea" :rows="4" placeholder="添加备注，120字以内"  v-model="remarkContent">
       </el-input>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="addRemark">确 定</el-button>
-        <el-button type="primary" @click="addRemarkDialog = false">取 消</el-button>
+        <el-button @click="addRemarkDialog = false">取 消</el-button>
       </span>
     </el-dialog>
 
-    <el-dialog title="审核通过" :visible.sync="passDialog" size="tiny">
+    <el-dialog title="审核通过" :visible.sync="passDialog">
       <p>是否确认通过{{realName}}的借款申请</p>
       <el-input type="textarea" :rows="4" placeholder="请输入通过备注"  v-model="passRemark">
       </el-input>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="applypass">确 定</el-button>
-        <el-button type="primary" @click="passDialog = false">取 消</el-button>    
+        <el-button @click="passDialog = false">取 消</el-button>    
       </span>
     </el-dialog>
 
@@ -215,7 +301,7 @@
       </el-input>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="applyrefuse">确 定</el-button>
-        <el-button type="primary" @click="refuseDialog = false">取 消</el-button>    
+        <el-button @click="refuseDialog = false">取 消</el-button>    
       </span>
     </el-dialog>
 
@@ -229,7 +315,7 @@
       <el-checkbox style="margin:16px" v-model="modifyQuota" true-label="1" false-label="">同步调整该用户的可申请额度</el-checkbox>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleModify">确 定</el-button>
-        <el-button type="primary" @click="modiDialog = false">取 消</el-button>    
+        <el-button @click="modiDialog = false">取 消</el-button>    
       </span>
     </el-dialog>
   </div>
@@ -245,7 +331,8 @@ import {
   Remark,
   History,
   Relate,
-  Credit
+  Credit,
+  Analyze
 } from "@/components/applyDetail";
 import { mapGetters } from "vuex";
 let echarts = require("echarts");
@@ -319,7 +406,54 @@ export default {
         {
           value: "中介"
         }
-      ]
+      ],
+      analyzsVisible:false,
+      callLogForm: {
+        content: "",
+        mobile: "",
+        type: ""
+      },
+      callLog: {},
+      callTypeList: [
+        {
+          name: "bj",
+          title: "被叫",
+          value: 1
+        },
+        {
+          name: "zj",
+          title: "主叫",
+          value: 2
+        },
+        {
+          name: "wj",
+          title: "未接",
+          value: 3
+        }
+      ],
+      messageForm: {
+        name: "",
+        mobile: ""
+        // type: ""
+      },
+      messageInfo: {},
+      activeMesList: [],
+      filterMesTotal: 0, //筛选过后的总条数
+      messageTypeList: [
+        {
+          name: "js",
+          title: "接收",
+          value: 1
+        },
+        {
+          name: "fs",
+          title: "发送",
+          value: 2
+        }
+      ],
+      riskList: [],
+      riskInfo: {},
+      riskDialog: false
     };
   },
   components: {
@@ -332,9 +466,10 @@ export default {
     Remark,
     History,
     Relate,
-    Credit
+    Credit,
+    Analyze
   },
-  props: ["passCode", "remarkCode", "refuseCode", "modiCode"],
+  props: ["passCode", "remarkCode", "refuseCode", "modiCode", "corpVisibile"],
   computed: {
     ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },
@@ -345,6 +480,68 @@ export default {
     this.getAllRemark();
   },
   methods: {
+    getRiskInfo(pageNo) {
+      const uid = this.uid;
+      const pageSize = 10;
+      this.ajax({
+        url: "credit/web/sys/tcontact/query/risk",
+        data: { uid, pageNo, pageSize }
+      }).then(res => {
+        this.riskInfo = res.data;
+        this.riskList[0] = res.data;
+      });
+    },
+    getCallLog(pageNo) {
+      const uid = this.uid;
+      const pageSize = 10;
+      this.ajax({
+        url: "credit/web/sys/tcontact/query/call",
+        data: { ...this.callLogForm, uid, pageNo, pageSize }
+      }).then(res => {
+        this.callLog = res.data;
+      });
+    },
+    getMessageInfo(pageNo) {
+      if (this.isEmpty(this.messageInfo)) {  
+        const uid = this.uid;
+        const pageSize = 10;
+        this.ajax({
+          url: "credit/web/sys/tcontact/query/sms",
+          data: { ...this.messageForm, uid, pageNo, pageSize }
+        }).then(res => {
+          this.messageInfo = res.data;
+          this.filterMesList(pageNo);
+        });
+      }else{
+        this.filterMesList(pageNo); 
+      }
+    },
+    filterMesList(pageNo) {
+      if (this.isEmpty(this.messageInfo)) {
+        return
+      }
+      const startIndex = (pageNo - 1) * 10;
+      const endIndex = (pageNo - 1) * 10 + 9;
+      this.filterMesTotal = this.messageInfo.list.filter(
+        this.regFilter
+      ).length;
+      this.activeMesList = this.messageInfo.list
+        .filter(this.regFilter)
+        .slice(startIndex, endIndex);
+    },
+    regFilter(message) {
+      if (!this.isEmpty(this.messageForm.content)) {
+        if (message.content.indexOf(this.messageForm.content) == -1) {
+          return false;
+        }
+      }
+      if (!this.isEmpty(this.messageForm.mobile)) {
+        if (message.receiverPhone.indexOf(this.messageForm.mobile) == -1) {
+          return false;
+        }
+      }
+      return true;
+    },
     querySearch(queryString, cb) {
       var data = queryString
         ? this.suggestionData.filter(obj => obj.value.indexOf(queryString) > -1)
@@ -404,6 +601,9 @@ export default {
       }
       if (tabpane.name == "Credit") {
         this.creditVisible = true;
+      }
+      if (tabpane.name == "analyze") {
+        this.analyzsVisible = true;
       }
     },
     getRefuseList() {
@@ -480,6 +680,9 @@ export default {
           this.getAssociateApply(res.data.infoData.operatorId);
         }
         this.getCacheHistory();
+        // this.getCallLog(1);
+        // this.getMessageInfo(1);
+        this.getRiskInfo(1);
         this.getLbsInfo(this.uid);
         this.getAddrList(1);
       });

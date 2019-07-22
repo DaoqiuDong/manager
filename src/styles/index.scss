@@ -1,11 +1,12 @@
-@import './element-ui.scss';
-@import './mixin.scss';
+@import "./element-ui.scss";
+@import "./mixin.scss";
 
 body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
+    Microsoft YaHei, Arial, sans-serif;
 }
 
 html {
@@ -14,6 +15,7 @@ html {
   -moz-box-sizing: border-box;
   /* Firefox 等 Gecko 内核浏览器 */
   box-sizing: border-box;
+  overflow-y: scroll;
 }
 
 html,
@@ -55,7 +57,7 @@ a:hover {
 //vue router transition css
 .fade-enter-active,
 .fade-leave-active {
-  transition: all .2s ease
+  transition: all 0.2s ease;
 }
 
 .fade-enter,
@@ -70,12 +72,19 @@ a:hover {
   fill: currentColor;
   overflow: hidden;
 }
-.w-e-text-container{
-  height: 160px!important;
-}//富文本高度
+.w-e-text-container {
+  height: 160px !important;
+} //富文本高度
 
 ul,
 ol,
 li {
   list-style: none;
+}
+
+.dccontain {
+  width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

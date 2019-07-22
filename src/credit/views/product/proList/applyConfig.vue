@@ -1,10 +1,10 @@
 <template>
   <div style="min-width:1200px">
-    <h4>申请配置</h4>
+    <h4>申请配置<el-switch v-model="applySwitch" on-text="开" off-text="关" style="margin:0 1em"></el-switch></h4>
     <p  v-if="hasBtnAuth('B20103',btnApiList)">白名单</p>
     <div class="configbox"  v-if="hasBtnAuth('B20103',btnApiList)">
-      <el-radio v-model="whiteRadio" :label="false">启用</el-radio>
-      <el-select v-model="whiteList.corpId" placeholder="选择产品所属机构" :disabled="whiteRadio||isEmpty(whiteRadio)">
+      <el-radio v-model="whiteRadio" :disabled="!applySwitch" :label="false">启用</el-radio>
+      <el-select v-model="whiteList.corpId" placeholder="选择产品所属机构" :disabled="whiteRadio||isEmpty(whiteRadio)||!applySwitch">
         <el-option
           v-for="item in allCorpList"
           :key="item.cprId"
@@ -12,27 +12,27 @@
           :value="item.corpId">
         </el-option>
       </el-select><br/>
-      <el-radio v-model="whiteRadio" :label="true">停用</el-radio>
+      <el-radio v-model="whiteRadio" :disabled="!applySwitch" :label="true">停用</el-radio>
     </div>
 
     <p>权重设置</p>
     <div class="configbox">
-      <el-radio v-model="weightRadio" :label="false">指定机构</el-radio>
-      <el-select v-model="defaultCorp.corpId" placeholder="选择产品所属机构" :disabled="weightRadio||isEmpty(weightRadio)">
+      <el-radio v-model="weightRadio" :disabled="!applySwitch" :label="false">指定机构</el-radio>
+      <el-select v-model="defaultCorp.corpId" placeholder="选择产品所属机构" clearable  :disabled="weightRadio||isEmpty(weightRadio)||!applySwitch">
         <el-option v-for="item in allCorpList" :key="item.cprId" :label="item.corpName" :value="item.corpId">
         </el-option>
       </el-select><br/>
-      <el-radio v-model="weightRadio" :label="true">权重</el-radio>
+      <el-radio v-model="weightRadio" :label="true" :disabled="!applySwitch">权重</el-radio>
       <div v-for="(item,index) in coefficient" :key="item.corpId" style="margin-bottom:1em">
-        <el-select v-model="item.corpId" placeholder="选择产品所属机构" :disabled="!weightRadio">
+        <el-select v-model="item.corpId" placeholder="选择产品所属机构" :disabled="!weightRadio||!applySwitch">
           <el-option v-for="item in allCorpList" :key="item.cprId" :label="item.corpName" :value="item.corpId">
           </el-option>
         </el-select>
-        <el-input v-model="item.weight" placeholder="请输入权重百分比" :disabled="!weightRadio"></el-input>
-        <el-button icon="delete" @click="delWeight(index)" :disabled="!weightRadio"></el-button>
+        <el-input v-model="item.weight" placeholder="请输入权重百分比" :disabled="!weightRadio||!applySwitch"></el-input>
+        <el-button icon="delete" @click="delWeight(index)" :disabled="!weightRadio||!applySwitch"></el-button>
       </div>
       <div>
-        <el-button type="primary" @click="addWeight" class="addBtn" :disabled="!weightRadio">添加</el-button>
+        <el-button type="primary" @click="addWeight" class="addBtn" :disabled="!weightRadio||!applySwitch">添加</el-button>
       </div>
     </div>
 
@@ -52,6 +52,7 @@ export default {
       whiteList:{
         corpId:""
       },
+      applySwitch:true,
       weights:{},
       defaultCorp:{corpId:""},
       coefficient:[{corpId:"",weight:""}],
@@ -97,45 +98,49 @@ export default {
             this.defaultCorp = applyConfig.weights.defaultCorp;
             this.weightRadio = false;
           }
+        }else{
+          this.applySwitch = false;
         }
       });
     },
     update() {
       const productId = this.$route.query.id;
-      if (this.isEmpty(this.whiteRadio)) {
-        this.$message("请设置白名单配置");
-        return
-      }
-      if (this.isEmpty(this.weightRadio)) {
-        this.$message("请设置权重配置");
-        return
-      }
-      if (this.weightRadio) {
-        for (let i = 0; i < this.coefficient.length; i++) {
-          const element = this.coefficient[i];
-          if (this.isEmpty(element.corpId)) {
-            this.$message("请配置权重机构")
-            return false
-          }
-          if (this.isEmpty(element.weight)) {
-            this.$message("请配置权重机构占比")
-            return false
+      var applyCnf = {};
+      if (this.applySwitch) {
+        if (this.isEmpty(this.whiteRadio)) {
+          this.$message("请设置白名单配置");
+          return
+        }
+        if (this.isEmpty(this.weightRadio)) {
+          this.$message("请设置权重配置");
+          return
+        }
+        if (this.weightRadio) {
+          for (let i = 0; i < this.coefficient.length; i++) {
+            const element = this.coefficient[i];
+            if (this.isEmpty(element.corpId)) {
+              this.$message("请配置权重机构")
+              return false
+            }
+            if (this.isEmpty(element.weight)) {
+              this.$message("请配置权重机构占比")
+              return false
+            }
           }
         }
-      }
-      var applyCnf = {};
-      applyCnf.whiteList = {}
-      if (this.whiteRadio) {
-        applyCnf.whiteList.switchStatus = 0;
-      }else{
-        applyCnf.whiteList = this.whiteList;
-        applyCnf.whiteList.switchStatus = 1;
-      }
-      applyCnf.weights = {};
-      if (this.weightRadio) {
-        applyCnf.weights.coefficient = this.coefficient;
-      }else{
-        applyCnf.weights.defaultCorp = this.defaultCorp;
+        applyCnf.whiteList = {}
+        if (this.whiteRadio) {
+          applyCnf.whiteList.switchStatus = 0;
+        }else{
+          applyCnf.whiteList = this.whiteList;
+          applyCnf.whiteList.switchStatus = 1;
+        }
+        applyCnf.weights = {};
+        if (this.weightRadio) {
+          applyCnf.weights.coefficient = this.coefficient;
+        }else{
+          applyCnf.weights.defaultCorp = this.defaultCorp;
+        }
       }
       this.ajax({
         url:"credit/web/sys/product/update/applyCnf",

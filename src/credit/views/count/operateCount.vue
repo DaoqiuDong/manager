@@ -63,7 +63,7 @@
           <el-table-column label="金额" prop="overdueUncompletedAmountPRate" :formatter="(row) => count(row.overdueUncompletedAmountPRate,'%')"></el-table-column>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next,jumper" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[5,10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
   </div>
 </template>
@@ -80,53 +80,65 @@ export default {
       },
       list: [],
       total: 0,
-      first:true,
+      currentPage: 1,
+      pageSize: 5,
+      first: true,
       loading: false,
-      summaries:["合计"],
+      summaries: ["合计"],
       allCorpList: [],
-      productList:[]
+      productList: []
     };
   },
   mounted() {
     this.getCorpList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     getList(pageNo) {
-        this.loading = true;
-        const pageSize = this.pageSize;
-        this.ajax({
-          url: "credit/web/sys/bizresult/query/maturitybill",
-          data: {
-            pageSize,
-            pageNo,
-            ...this.searchForm
-          }
-        }).then(res => {
+      this.loading = true;
+      const pageSize = this.pageSize;
+      this.ajax({
+        url: "credit/web/sys/bizresult/query/maturitybill",
+        data: {
+          pageSize,
+          pageNo,
+          ...this.searchForm
+        }
+      })
+        .then(res => {
           this.loading = false;
           this.total = res.data.total;
           this.list = res.data.list;
-          this.summaries[1] = res.data.allTotalCount||0;
-          this.summaries[2] = res.data.allTotalAmount||0;
-          this.summaries[3] = res.data.allOverdueCount||0;
-          this.summaries[4] = res.data.allOverdueAmount||0;
-          this.summaries[5] = (res.data.allOverdueCountPRate||0) + "%";
-          this.summaries[6] = (res.data.allOverdueAmountPRate||0) + "%";
-          this.summaries[7] = res.data.allOverdueCompletedCount||0;
-          this.summaries[8] = res.data.allOverdueCompletedAmount||0;
-          this.summaries[9] = res.data.allOverdueCompletedFee||0;
-          this.summaries[10] = (res.data.allOverdueCompletedCountPRate||0) + "%";
-          this.summaries[11] = (res.data.allOverdueCompletedAmountPRate||0) + "%";
-          this.summaries[12] = res.data.allOverdueUncompletedCount||0;
-          this.summaries[13] = res.data.allOverdueUncompletedAmount||0;
-          this.summaries[14] = res.data.allOverdueUncompletedFee||0;
-          this.summaries[15] = (res.data.allOverdueUncompletedCountPRate||0) + "%";
-          this.summaries[16] = (res.data.allOverdueUncompletedAmountPRate||0) + "%";
-        }).finally(()=>{
-          this.loading = false;
+          this.summaries[1] = res.data.allTotalCount || 0;
+          this.summaries[2] = res.data.allTotalAmount || 0;
+          this.summaries[3] = res.data.allOverdueCount || 0;
+          this.summaries[4] = res.data.allOverdueAmount || 0;
+          this.summaries[5] = (res.data.allOverdueCountPRate || 0) + "%";
+          this.summaries[6] = (res.data.allOverdueAmountPRate || 0) + "%";
+          this.summaries[7] = res.data.allOverdueCompletedCount || 0;
+          this.summaries[8] = res.data.allOverdueCompletedAmount || 0;
+          this.summaries[9] = res.data.allOverdueCompletedFee || 0;
+          this.summaries[10] =
+            (res.data.allOverdueCompletedCountPRate || 0) + "%";
+          this.summaries[11] =
+            (res.data.allOverdueCompletedAmountPRate || 0) + "%";
+          this.summaries[12] = res.data.allOverdueUncompletedCount || 0;
+          this.summaries[13] = res.data.allOverdueUncompletedAmount || 0;
+          this.summaries[14] = res.data.allOverdueUncompletedFee || 0;
+          this.summaries[15] =
+            (res.data.allOverdueUncompletedCountPRate || 0) + "%";
+          this.summaries[16] =
+            (res.data.allOverdueUncompletedAmountPRate || 0) + "%";
         })
+        .finally(() => {
+          this.loading = false;
+        });
     },
-    getSummaries(param){
-      return this.summaries
+    getSummaries(param) {
+      return this.summaries;
     },
     getCorpList() {
       this.ajax({
@@ -135,27 +147,27 @@ export default {
         this.allCorpList = res.data.list;
         if (this.allCorpList.length) {
           this.searchForm.corpId = this.allCorpList[0].corpId;
-        }else{
+        } else {
           this.searchForm.corpId = "";
         }
       });
     },
-    getProList(corpId){
-        this.ajax({
-          url:"credit/web/sys/product/dict/corpid",
-          data:{corpId}
-        }).then(res => {
-          this.productList = res.data;
-          if (this.productList.length) {
-            this.searchForm.productId = this.productList[0].productId;
-            if (this.first) {
-              this.getList(1);
-            };
-            this.first = false;
-          }else{
-            this.searchForm.productId = "";
+    getProList(corpId) {
+      this.ajax({
+        url: "credit/web/sys/product/dict/corpid",
+        data: { corpId }
+      }).then(res => {
+        this.productList = res.data;
+        if (this.productList.length) {
+          this.searchForm.productId = this.productList[0].productId;
+          if (this.first) {
+            this.getList(1);
           }
-        })
+          this.first = false;
+        } else {
+          this.searchForm.productId = "";
+        }
+      });
     },
     selectStartTime(time) {
       this.searchForm.repayDateStart = time;
@@ -167,7 +179,8 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.el-table__footer-wrapper tbody td, .el-table__header-wrapper tbody td{
-  background-color: #dee1e6
+.el-table__footer-wrapper tbody td,
+.el-table__header-wrapper tbody td {
+  background-color: #dee1e6;
 }
 </style>

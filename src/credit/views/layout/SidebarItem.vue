@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-for="item in routes">
-      <router-link v-if="!item.hidden&&item.noDropdown" :to="item.path +'/'+item.children[0].path">
+      <router-link v-if="!item.hidden&&item.noDropdown" :to="item.path +'/'+item.children[0].path"  :key="item.path">
         <el-menu-item :index="item.children[0].path">
           <!-- <i :class="'el-icon-web-'+item.children[0].icon"></i> -->
           <i><img :src="imgdata[item.children[0].icon]" :alt="item.children[0].icon" class="menuIcon"></i>
@@ -9,7 +9,7 @@
         </el-menu-item>
       </router-link>
 
-      <el-submenu :index="item.name" v-if="!item.noDropdown&&!item.hidden">
+      <el-submenu :index="item.name" v-if="!item.noDropdown&&!item.hidden" :key="item.path">
         <template slot="title">
           <!-- <i :class="'el-icon-web-'+item.icon"></i> -->
           <i><img :src="imgdata[item.icon]" :alt="item.icon" class="menuIcon"></i> 
@@ -18,10 +18,10 @@
         <template v-for="child in item.children" v-if='!child.hidden'>
           <!-- <sidebar-item class='menu-indent' v-if='child.children&&child.children.length>0' :routes='[child]'> </sidebar-item> -->
 
-          <router-link class="menu-indent" :to="item.path+'/'+child.path">
-              <el-menu-item :index="item.path+'/'+child.path">
-                  {{child.name}}
-              </el-menu-item>
+          <router-link class="menu-indent" :to="item.path+'/'+child.path" :key="child.path">
+            <el-menu-item :index="item.path+'/'+child.path">
+              {{child.name}}
+            </el-menu-item>
           </router-link>
         </template>
       </el-submenu>
@@ -45,6 +45,7 @@ import Productimg from "@/assets/Product.png";
 import Opinionimg from "@/assets/Opinion.png";
 import Settingimg from "@/assets/Setting.png";
 import Moneyimg from "@/assets/Finance.png";
+import Managerimg from "@/assets/Customermanager.png";
 
 export default {
   name: "SidebarItem",
@@ -65,7 +66,8 @@ export default {
         Opinion: Opinionimg,
         Setting: Settingimg,
         Money: Moneyimg,
-        Flux: Fluximg
+        Flux: Fluximg,
+        Manager: Managerimg
       }
     };
   },

@@ -27,7 +27,10 @@ export { default as Lender } from './Lender';
 
 export { default as Credit } from './CreditInfo';
 
+export { default as Analyze } from "./Analyze";
+
 export { default as Detail } from './Detail';
 
 export { default as Quota } from './Quota';
+
 

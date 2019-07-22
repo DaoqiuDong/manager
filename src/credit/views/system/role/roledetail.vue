@@ -2,15 +2,20 @@
   <div class="roledetail">
     <el-form label-position="left">
       <el-form-item label="角色名称">
-        <el-input v-model="name" placeholder="输入角色名称，8个字以内"></el-input>
-      </el-form-item>
-      <el-form-item label="角色类型">
-        <el-select v-model="type" placeholder="角色类型">
-          <el-option :label="role.title" :value="role.value" v-for="role in allRoleList" :key="role.name"></el-option>
-        </el-select>
+        <el-input v-model="form.name" placeholder="输入角色名称，8个字以内"></el-input>
       </el-form-item>
       <el-form-item label="角色备注">
-        <el-input v-model="remark" placeholder="输入角色备注，20个字以内"></el-input>
+        <el-input v-model="form.remark" placeholder="输入角色备注，20个字以内"></el-input>
+      </el-form-item>
+      <el-form-item label="角色机构">
+        <el-select v-model="form.corpId" clearable placeholder="角色机构">
+          <el-option :label="corp.corpName" :value="corp.corpId" v-for="corp in allCorpList" :key="corp.corpName"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="角色模板">
+        <el-select clearable v-model="templateId" placeholder="角色模板" @change="getTemAuth">
+          <el-option :label="tmp.name" :value="tmp.id" v-for="tmp in templateList" :key="tmp.id"></el-option>
+        </el-select>
       </el-form-item>
     </el-form>
     <!-- 权限 -->
@@ -67,9 +72,13 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
-      name: "",
-      remark: "",
-      type:"",
+      form:{
+        name: "",
+        remark: "",
+        corpId:""
+      },
+      templateId:"",
+      templateList:[],
       allMenu: [],
       menuAuth: [],
       privilegesAuth: []
@@ -77,9 +86,10 @@ export default {
   },
   mounted() {
     this.getMenu();
+    this.getAllTmpList();
   },
   computed:{
-    ...mapGetters(["btnApiList","allRoleList"]),
+    ...mapGetters(["btnApiList","allCorpList"]),
     selectedAuth(){
       return (this.menuAuth.concat(this.privilegesAuth))
     }
@@ -93,15 +103,44 @@ export default {
         this.getAuth();
       });
     },
+    getAllTmpList(){
+      this.ajax({
+        url:"credit/web/sys/role/all/template"
+      }).then(res => {
+        this.templateList = res.data.list;
+      })
+    },
+    getTemAuth(id) {
+      if (this.isEmpty(id)) {
+        this.menuAuth = [];
+        this.privilegesAuth = [];
+        return
+      }
+      this.ajax({
+        url: "credit/web/sys/role/find/template",
+        data: { id }
+      }).then(res => {
+        this.menuAuth = [];
+        this.privilegesAuth = [];
+        for (let i = 0; i < res.data.menus.length; i++) {
+          const element = res.data.menus[i];
+          this.menuAuth.push(element.code);
+        }
+        for (let j = 0; j < res.data.privileges.length; j++) {
+          const btn = res.data.privileges[j];
+          this.privilegesAuth.push(btn.code);
+        }
+      });
+    },
     getAuth() {
       const id = this.$route.query.id;
       this.ajax({
         url: "credit/web/sys/role/find",
         data: { id }
       }).then(res => {
-        this.name = res.data.name;
-        this.type = res.data.type;
-        this.remark = res.data.remark;
+        this.form.name = res.data.name;
+        this.form.remark = res.data.remark;
+        this.form.corpId = res.data.corpId;
         for (let i = 0; i < res.data.menus.length; i++) {
           const element = res.data.menus[i];
           this.menuAuth.push(element.code);
@@ -116,12 +155,13 @@ export default {
       const id = this.$route.query.id;
       const menus = this.menuAuth;
       const privileges = this.privilegesAuth;
-      const name = this.name;
-      const remark = this.remark;
-      const type= this.type;
+      if (this.isEmpty(this.form.name)) {
+        this.$message("请输入角色名称");
+        return false;
+      };
       this.ajax({
         url: "credit/web/sys/role/update",
-        data: { id, menus, privileges, name, remark, type }
+        data: { id, menus, privileges, ...this.form }
       }).then(res => {
         this.$message({
           message: "更新用户权限成功",

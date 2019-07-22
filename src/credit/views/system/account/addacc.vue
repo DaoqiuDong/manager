@@ -144,6 +144,15 @@ export default {
         return false
       }
       const corpProList = this.corpProList;
+      if (this.accInfo.corps == 2) {
+        for (let index = 0; index < corpProList.length; index++) {
+          const element = corpProList[index];
+          if (this.isEmpty(element.proList)) {
+            this.$message("请配置机构下产品")
+            return
+          }
+        }
+      }
       this.fullscreenLoading = true;
       this.ajax({
         url: "credit/web/sys/create",

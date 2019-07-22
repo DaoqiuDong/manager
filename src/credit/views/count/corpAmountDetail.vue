@@ -93,7 +93,7 @@ export default {
         corpId: ""
       },
       handleAmountForm: {
-        corpId: "",
+        id: "",
         optAmount: ""
       },
       currentPage:1,
@@ -137,18 +137,18 @@ export default {
       this.getCorpAmountHistory(1);
     },
     getCorpAmountHistory(pageNo) {
-      const corpId = this.handleCorp.corpId;
+      const id = this.handleCorp.id;
       const pageSize = this.pageSize;
       this.ajax({
         url: "credit/web/sys/cstmr/balance/findOptRecordByAdmin",
-        data: { corpId, pageNo, pageSize }
+        data: { id, pageNo, pageSize }
       }).then(res => {
         this.corpAmountHistory = res.data;
       });
     },
     openDialog(row, name) {
       this.handleCorp = row;
-      this.handleAmountForm.corpId = row.corpId;
+      this.handleAmountForm.id = row.id;
       this[name] = true;
     },
     handleAddAmount(){

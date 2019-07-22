@@ -40,7 +40,7 @@
             <span v-else>仅服务老用户</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" min-width="120">
+        <el-table-column label="操作" align="center" min-width="240">
           <template scope="scope">
             <router-link :to="{path:'detail',query:{corpCode:scope.row.corpCode,corpId:scope.row.corpId,productCode:scope.row.productCode,productId:scope.row.productId,id:scope.row.id}}" v-if="hasBtnAuth('B10046',btnGoList)">
               <el-button type="text" v-text="getbtnName('B10046',btnGoList)"></el-button>
@@ -48,10 +48,16 @@
             <router-link :to="{path:'report',query:{corpId:scope.row.corpId,productId:scope.row.productId}}" v-if="hasBtnAuth('B10048',btnGoList)">
               <el-button type="text" v-text="getbtnName('B10048',btnGoList)"></el-button>
             </router-link>
+            <router-link :to="{path:'fundreport',query:{corpId:scope.row.corpId,productId:scope.row.productId,id:scope.row.id}}" v-if="hasBtnAuth('B10082',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10082',btnGoList)"></el-button>
+            </router-link>
+            <router-link :to="{path:'proreport',query:{corpId:scope.row.corpId,productId:scope.row.productId}}" v-if="hasBtnAuth('B10083',btnGoList)">
+              <el-button type="text" v-text="getbtnName('B10083',btnGoList)"></el-button>
+            </router-link>
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
+      <el-pagination layout="total,sizes,prev, pager, next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange">
       </el-pagination>
     </div>
   </div>
@@ -79,6 +85,8 @@ export default {
       allRoleList: [],
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading:true,
       changepwdDialog:false,
       selectAccount:{},
@@ -94,6 +102,10 @@ export default {
     this.getCorpList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     getList(pageNo) {
       this.loading = true;
       const pageSize = this.pageSize;

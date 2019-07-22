@@ -206,7 +206,7 @@
         <div v-else>
           <p style="text-align:center">无数据</p>
         </div>
-        <el-pagination layout="total,prev, pager, next" :page-size="5" :total="operData.total" @current-change="(i) => getOperData(i)"></el-pagination>
+        <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="operData.total" @current-change="(i) => getOperData(i)" :current-page.sync="currentPage" :page-sizes="[5,10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
       </el-tab-pane>
       <el-tab-pane label="图表" name="chart">
         <el-form :inline='true'>
@@ -274,7 +274,7 @@ export default {
       countForm: {
         appGroup: "",
         corpId: "",
-        productId:""
+        productId: ""
       },
       overdueData: {},
       appCorpList: [],
@@ -301,6 +301,8 @@ export default {
       productList2: [],
       productList3: [],
       operData: {},
+      currentPage: 1,
+      pageSize: 5,
       chartsType: 1,
       selectTab: "list",
       chartData: {}
@@ -337,6 +339,10 @@ export default {
     }
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getOperData(1);
+    },
     getGroupList() {
       this.ajax({
         url: "credit/web/sys/app/groups"
@@ -346,6 +352,9 @@ export default {
     },
     setChart() {
       var data = this.chartData.list;
+      if (this.isEmpty(data)) {
+        return;
+      }
       var time = [],
         arr1 = [],
         arr2 = [],
@@ -386,12 +395,13 @@ export default {
         }
       }
       var labelOption = {
-        show: true,
-        position: "insideBottom",
-        rotate: 90
-      },startVal = 0;
+          show: true,
+          position: "insideBottom",
+          rotate: 90
+        },
+        startVal = 0;
       if (arr1.length > 15) {
-          startVal = 100 - Math.round(1500/arr1.length);
+        startVal = 100 - Math.round(1500 / arr1.length);
       }
       var option1 = {
         tooltip: {
@@ -458,10 +468,14 @@ export default {
     },
     setLineChart() {
       var data = this.overdueData;
+      if (this.isEmpty(data)) {
+        return;
+      }
       var time = [],
         newData = [],
         oldData = [],
-        allData = [],startVal = 0;
+        allData = [],
+        startVal = 0;
       for (let index = 0; index < data.length; index++) {
         const element = data[index];
         time.push(element.statDate);
@@ -470,7 +484,7 @@ export default {
         allData.push(element.allOverdueRate);
       }
       if (time.length > 15) {
-          startVal = 100 - Math.round(1500/time.length);
+        startVal = 100 - Math.round(1500 / time.length);
       }
       var option2 = {
         tooltip: {
@@ -543,7 +557,7 @@ export default {
       Chart2.setOption(option2, true);
     },
     getOperData(pageNo) {
-      const pageSize = 5;
+      const pageSize = this.pageSize;
       this.ajax({
         url: "credit/web/sys/bill/stat/oper/query/date",
         data: {
@@ -556,7 +570,7 @@ export default {
       });
     },
     getOverdueData() {
-      const orderType = 2;
+      const orderType = 2;
       this.ajax({
         url: "credit/web/sys/bill/stat/oper/query/date/overdue",
         data: {
@@ -619,10 +633,10 @@ export default {
           if (tabName == "list") {
             this.productList2 = res.data;
             this.searchForm.productId = "";
-          } else if(tabName == "chart") {
+          } else if (tabName == "chart") {
             this.productList3 = res.data;
             this.chartForm.productId = "";
-          }else{
+          } else {
             this.productList1 = res.data;
             this.countForm.productId = "";
           }
@@ -631,10 +645,10 @@ export default {
         if (tabName == "list") {
           this.productList2 = [];
           this.searchForm.productId = "";
-        } else if(tabName == "chart") {
+        } else if (tabName == "chart") {
           this.productList3 = [];
           this.chartForm.productId = "";
-        }else{
+        } else {
           this.productList1 = [];
           this.countForm.productId = "";
         }

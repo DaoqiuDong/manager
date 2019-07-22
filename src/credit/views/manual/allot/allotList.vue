@@ -16,6 +16,18 @@
         </div>
         <el-form :inline='true'>
           <el-form-item>
+            <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+              <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+              <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
             <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
               <el-option
                 v-for="item in allCorpList"
@@ -41,6 +53,12 @@
           <el-form-item>
             <el-input v-model.trim="searchForm.scoreHigh" placeholder="评分上限" @keyup.enter.native="getList(1)"></el-input>
           </el-form-item>
+          <el-form-item>   
+            <el-select clearable v-model="searchForm.signType" placeholder="客户类型" @change="getList(1)">
+              <el-option label="新客" value="1"></el-option>
+              <el-option label="老客" value="2"></el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <el-date-picker v-model="searchForm.nodeCreateTimeStart" type="date" placeholder="进入节点开始时间" format="yyyy-MM-dd" @change="selectStartTime"></el-date-picker>
           </el-form-item>
@@ -56,12 +74,19 @@
             <el-button type="primary" @click="getList(1)">查询</el-button>
         </el-form>
         <div>
-          <el-table :data="userList"  v-loading.body="loading" :stripe='true' @selection-change="handleSelected">
+          <el-table :data="userList"  v-loading.body="loading" stripe  @selection-change="handleSelected">
             <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
             <el-table-column label="所属机构" prop="corpName"></el-table-column>
             <el-table-column label="产品名称" prop="productName"></el-table-column>
             <el-table-column label="手机号" prop="mobile"></el-table-column>
             <el-table-column label="借款人" prop="applyName"></el-table-column>
+            <el-table-column label="客户类型">
+              <template scope="scope">
+                <span v-if="scope.row.signType == 1">新客</span>
+                <span v-else>老客</span>
+              </template>
+            </el-table-column>
             <el-table-column label="进入人工审核时间" prop="nodeCreateTime"></el-table-column>
             <el-table-column label="系统评分">
               <template scope="scope">
@@ -76,7 +101,7 @@
               </template>
             </el-table-column>          
           </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+          <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
         </div>
       </el-tab-pane>
       <el-tab-pane :label="getbtnName('B20121',btnApiList)" name="automation" v-if="hasBtnAuth('B20121',btnApiList)">
@@ -108,12 +133,48 @@
           </el-form>
         </div>
       </el-tab-pane>
+      <el-tab-pane :label="getbtnName('B20127',btnApiList)" name="track" v-if="hasBtnAuth('B20127',btnApiList)">
+        <div>
+          <el-form :inline='true'>
+            <el-form-item>
+              <el-select v-model="trackForm.corpId" clearable placeholder="机构名称">
+                <el-option
+                  v-for="item in allCorpList"
+                  :key="item.corpId"
+                  :label="item.corpName"
+                  :value="item.corpId">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-input placeholder="审核人员姓名" v-model="trackForm.realName"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-date-picker v-model="trackForm.auditorTimeStart" type="date" placeholder="审核开始时间" format="yyyy-MM-dd"></el-date-picker>
+            </el-form-item>
+            <el-form-item>
+              <el-date-picker v-model="trackForm.auditorTimeEnd" type="date" placeholder="审核结束时间" format="yyyy-MM-dd"></el-date-picker>
+            </el-form-item>
+              <el-button type="primary" @click="getTrackList(1)">查询</el-button>
+          </el-form>
+          <el-table :data="trackList.list" stripe>
+            <el-table-column label="审核人员" prop="realName"></el-table-column>
+            <el-table-column label="处理数" prop="totalCount"></el-table-column>
+            <el-table-column label="拒绝数" prop="failCount"></el-table-column>
+            <el-table-column label="通过数" prop="successCount"></el-table-column>
+            <el-table-column label="通过率" prop="successRate"></el-table-column>
+            <el-table-column label="放款数" prop="loanCount"></el-table-column>
+            <el-table-column label="逾期数" prop="overdueCount"></el-table-column>
+            <el-table-column label="逾期已还数" prop="overdueRepayCount"></el-table-column>
+          </el-table>
+          <el-pagination layout="total,prev, pager, next" :total="trackList.total" @current-change="(i) => getTrackList(i)"></el-pagination>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
-
 export default {
   data() {
     return {
@@ -124,8 +185,20 @@ export default {
         nodeCreateTimeStart: "",
         nodeCreateTimeEnd: "",
         nodeCode: "",
-        corpId: ""
+        corpId: "",
+        signType:"",
+        channelList:[],
+        subChannelList:[]
       },
+      sourceList:[],
+      sourceChildList:[],
+      trackForm:{
+        corpId:"",
+        realName:"",
+        auditorTimeStart:"",
+        auditorTimeEnd:""
+      },
+      trackList:{},
       proList:[],
       automationList: [],
       editDisabledList:[],
@@ -133,6 +206,8 @@ export default {
       fullscreenLoading: false,
       userList: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading: true,
       selectedList: [],
       selectedAuditorId: ""
@@ -152,11 +227,19 @@ export default {
   mounted() {
     this.getList(1);
     this.getRoleList();
+    this.getSourceList();
     if (this.hasBtnAuth('B20121',this.btnApiList)) {
       this.getAutomationList();
+    };
+    if (this.hasBtnAuth('B20127',this.btnApiList)) {
+      this.getTrackList();
     }
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     getRoleList() {
       if (this.roleList.length == 0) {
         this.ajax({
@@ -172,6 +255,15 @@ export default {
         data:{corpId}
       }).then(res => {
         this.$set(this.proList,index,res.data)
+      })
+    },
+    getTrackList(pageNo = 1){
+      const pageSize = this.pageSize;
+      this.ajax({
+        url:"credit/web/sys/flow/node/auditor/result/stat",
+        data:{...this.trackForm,pageSize,pageNo}
+      }).then(res => {
+        this.trackList = res.data;
       })
     },
     getAutomationList() {
@@ -310,6 +402,30 @@ export default {
     selectEndTime(time) {
       this.searchForm.nodeCreateTimeEnd = time;
     },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
+    },
     getList(pageNo) {
       this.loading = true;
       const pageSize = this.pageSize;
@@ -359,7 +475,9 @@ export default {
         this.selectedList = [];
         this.fullscreenLoading = false;
         this.getList(1);
-      });
+      }).finally(() => {
+        this.fullscreenLoading = false;
+      })
     }
   }
 };

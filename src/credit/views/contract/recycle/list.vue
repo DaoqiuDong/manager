@@ -103,7 +103,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
 
     <el-dialog title="确认回收" :visible.sync="confirmDialog" size="tiny">
@@ -148,6 +148,8 @@ export default {
       brandList: [],
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading: true,
       confirmOrder: {},
       confirmDialog: false,
@@ -172,6 +174,10 @@ export default {
     this.getAllBrand();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectStartTime(time) {
       this.searchForm.createDateStart = time;
       this.getList(1);
@@ -263,7 +269,7 @@ export default {
         this.confirmForm.id = "";
         this.confirmForm.amount = "";
         this.confirmForm.realRepayTime = "";
-        this.getList(1);
+        this.getList(this.currentPage);
       });
     }
   }

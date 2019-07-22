@@ -102,7 +102,18 @@ export const moduleList = [
   "strategy/list/list",
   "strategy/module/list",
   "strategy/rule/list",
-  "count/datause"
+  "count/datause",
+  "user/inactive",
+  "system/roletemplate/list",
+  "accmanager/checking/list",
+  "accmanager/loaning/list",
+  "accmanager/overdue/list",
+  "accmanager/offline/list",
+  "accmanager/userlist",
+  "accmanager/acclist",
+  "system/cashpledge",
+  "count/dayCount",
+  "brand/convert"
 ];
 
 export default new Router({
@@ -193,6 +204,16 @@ export const btnMap = {
   B10071: "overdue/todaylist/billDetail", //今日应还合同详情
   B10072: "count/corpAmountDetail", //账户管理
   B10073: "count/rateConfig", //费率调整
+  B10074: "system/roletemplate/addtmp", //新增角色模板
+  B10075: "system/roletemplate/tmpdetail", //费率调整
+  B10076: "accmanager/checking/detail", //待审核申请单详情
+  B10077: "accmanager/loaning/detail", //贷款中合同详情
+  B10078: "accmanager/loaning/billdetail", //贷款中账单详情
+  B10079: "accmanager/overdue/detail", //逾期账单合同详情
+  B10080: "accmanager/overdue/billdetail", //逾期账单详情
+  B10081: "accmanager/offline/detail", //线下还款合同详情
+  B10082: "money/report/fundreport", //资金报表
+  B10083: "money/report/proreport", //业务报表
   B50001: "analyse/detail", //执行记录详情
   B50002: "strategy/list/addstr", //添加策略
   B50003: "strategy/list/detail", //查看策略
@@ -326,6 +347,30 @@ B20121自动分配（人工审核自动分配申请单）
 B20122自动分配（逾期合同自动分配）
 B20123金额调整（申请单初审金额调整）
 B20124金额调整（申请单终审金额调整）
+B20125保存（角色模板修改保存）
+B20126删除（角色模板删除）
+B20127审批结果跟踪（人工审核审批结果跟踪）
+B20128备注--待审核申请单备注
+B20129通过--待审核申请单通过
+B20130拒绝--待审核申请单拒绝
+B20131金额调整--待审核申请单金额调整
+B20132添加备注--待审核申请单添加备注
+B20133备注--贷款中合同备注
+B20134本金利息减免--贷款中账单本金利息减免
+B20135逾期费用减免--贷款中账单贷款中账单
+B20136备注--逾期账单合同备注
+B20137本金利息减免--逾期账单本金利息减免
+B20138逾期费用减免--逾期账单贷款中账单
+B20139结清还款--线下还款结清还款
+B20140展期还款--线下还款展期还款
+B20141历史记录--账户充值历史记录
+B20142担保金操作
+B20143客户经理--客户经理操作
+B20144单价管理--平台申请单单价管理
+B20145退单（人工审核工作分配退单）
+B20146退单（催收工作分配退单）
+B20147自动展期（产品自动展期）
+B20148管理（子渠道类型管理）
 B60004删除策略（策略模块删除）
 B60005添加策略（添加策略模块）
  */

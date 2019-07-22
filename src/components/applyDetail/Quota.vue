@@ -57,7 +57,7 @@
         <!-- 授信记录 -->
         <h4>授信额度{{userInfo.curQuotaAmount||'--'}}元</h4>
         <el-table :data="quotaList" :stripe='true' v-if="quotaList.length">
-          <el-table-column label="所属机构" prop="corpName"></el-table-column>
+          <el-table-column label="所属机构" prop="corpName"  v-if="!corpVisibile"></el-table-column>
           <el-table-column label="申请产品" prop="productName"></el-table-column>
           <el-table-column label="申请提交时间" prop="flowCreateTime"></el-table-column>
           <el-table-column label="系统初审额度" prop="firstTrialQuota" :formatter="(row) =>count(row.firstTrialQuota,'元')"></el-table-column>
@@ -372,7 +372,7 @@ export default {
     Remark,
     Usage
   },
-  props: ["adjustCode", "passCode", "remarkCode", "refuseCode", "applyType"],
+  props: ["adjustCode", "passCode", "remarkCode", "refuseCode", "applyType","corpVisibile"],
   computed: {
     ...mapGetters(["dict", "nodeCode", "btnApiList", "refuseCodeDict"])
   },

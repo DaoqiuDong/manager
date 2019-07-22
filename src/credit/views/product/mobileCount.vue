@@ -2,6 +2,16 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
+        <el-select clearable multiple v-model="searchForm.corpIdList" placeholder="机构名称">
+          <el-option
+            v-for="v in allCorpList"
+            :key="v.corpId"
+            :label="v.corpName"
+            :value="v.corpId">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
           <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
           </el-option>
@@ -23,11 +33,11 @@
     </el-form>
 
     <div>
-      <el-table :data="list" stripe v-loading.body="loading" :summary-method="getSummary" show-summary>
+      <el-table :data="list" stripe v-loading.body="loading" :summary-method="getSummary" show-summary @expand="handleExpand">
         <el-table-column type="expand">
           <template scope="props">
             <div>
-              <el-button type="primary" style="padding:10px 15px;margin-bottom:1em" @click="addSource(props.row)">添加子渠道</el-button>
+              <el-button type="primary" style="padding:10px 15px;margin-bottom:1em" @click="addSource(props)">添加子渠道</el-button>
               <el-table :data="props.row.subChannel" stripe>
                 <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
                 <el-table-column label="注册人数" prop="regist"></el-table-column>
@@ -40,16 +50,17 @@
                 <el-table-column label="放款" prop="loan" :formatter="(row)=>count(row.loan,'')"></el-table-column>
                 <el-table-column label="UV" prop="ip" :formatter="(row)=>count(row.ip,'')"></el-table-column>
                 <el-table-column label="首逾数" prop="firstOver" :formatter="(row)=>count(row.firstOver,'')"></el-table-column>
-                <el-table-column label="操作" align="center" min-width="250">
+                <el-table-column label="操作" align="center" min-width="260">
                   <template scope="scope">
-                    <el-button type="text" v-if="hasBtnAuth('B20060',btnApiList)" v-text="getbtnName('B20060',btnApiList)" @click="getRemark(scope.row)"></el-button>
                     <el-button type="text" v-if="hasBtnAuth('B20100',btnApiList)" v-text="getbtnName('B20100',btnApiList)" @click="handleChildLoad(scope,props)"></el-button>
                     <el-button type="text" @click="handleCheckUrl(scope)">链接</el-button>
-                    <el-button type="text" v-if="hasBtnAuth('B20115',btnApiList)" v-text="getbtnName('B20115',btnApiList)" @click="handleAccount(scope.row)"></el-button>
-                    <el-button type="text" v-if="hasBtnAuth('B20119',btnApiList)" v-text="getbtnName('B20119',btnApiList)" @click="setDiscount(scope.row)"></el-button>
-                    <el-button type="text" v-if="scope.row.status == 1&&hasBtnAuth('B20117',btnApiList)"  v-text="getbtnName('B20117',btnApiList)" @click="handleDisable(scope.row)"></el-button>
-                    <el-button type="text" v-if="scope.row.status == 2&&hasBtnAuth('B20118',btnApiList)"  v-text="getbtnName('B20118',btnApiList)" @click="handleEnable(scope.row)"></el-button>
-                    <el-button type="text" v-if="scope.row.status == 2&&hasBtnAuth('B20116',btnApiList)" v-text="getbtnName('B20116',btnApiList)" @click="handleDel(scope.row)"></el-button>
+                    <el-button type="text" v-if="hasBtnAuth('B20115',btnApiList)" v-text="getbtnName('B20115',btnApiList)" @click="handleAccount(scope)"></el-button>
+                    <el-button type="text" v-if="hasBtnAuth('B20148',btnApiList)" v-text="getbtnName('B20148',btnApiList)" @click="handleType(scope)"></el-button>
+                    <el-button type="text" v-if="hasBtnAuth('B20119',btnApiList)" v-text="getbtnName('B20119',btnApiList)" @click="setDiscount(scope)"></el-button>
+                    <el-button type="text" v-if="scope.row.status == 1&&hasBtnAuth('B20117',btnApiList)"  v-text="getbtnName('B20117',btnApiList)" @click="handleDisable(scope)"></el-button>
+                    <el-button type="text" v-if="scope.row.status == 2&&hasBtnAuth('B20118',btnApiList)"  v-text="getbtnName('B20118',btnApiList)" @click="handleEnable(scope)"></el-button>
+                    <el-button type="text" v-if="scope.row.status == 2&&hasBtnAuth('B20116',btnApiList)" v-text="getbtnName('B20116',btnApiList)" @click="handleDel(scope)"></el-button>
+                    <el-button type="text" v-if="hasBtnAuth('B20060',btnApiList)" v-text="getbtnName('B20060',btnApiList)" @click="getChildRemark(scope,props)"></el-button>
                   </template>
                 </el-table-column> 
               </el-table>
@@ -67,29 +78,29 @@
         <el-table-column label="放款" prop="loan" :formatter="(row)=>count(row.loan,'')"></el-table-column>
         <el-table-column label="UV" prop="ip" :formatter="(row)=>count(row.ip,'')"></el-table-column>
         <el-table-column label="首逾数" prop="firstOver" :formatter="(row)=>count(row.firstOver,'')"></el-table-column>
-        <el-table-column label="操作" align="center" min-width="160">
+        <el-table-column label="操作" align="center" min-width="180">
           <template scope="scope">
-            <el-button type="text" v-if="hasBtnAuth('B20060',btnApiList)" v-text="getbtnName('B20060',btnApiList)" @click="getRemark(scope.row)"></el-button>
             <el-button type="text" v-if="hasBtnAuth('B20100',btnApiList)" v-text="getbtnName('B20100',btnApiList)" @click="handleLoad(scope)"></el-button>
+            <el-button type="text" v-if="hasBtnAuth('B20060',btnApiList)" v-text="getbtnName('B20060',btnApiList)" @click="getRemark(scope)"></el-button>
           </template>
-        </el-table-column> 
+        </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage">
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange">
       </el-pagination>
     </div>
 
-    <el-dialog :visible.sync="checkUrlDialog">
-      <strong slot="title">链接查看，渠道 {{handleChannel.channelName}} </strong>
+    <el-dialog :visible.sync="checkUrlDialog" v-if="!isEmpty(handleChannel)">
+      <strong slot="title">链接查看，渠道 {{handleChannel.row.channelName}} </strong>
       <div>
-        <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="handleChannel.url" readonly ></el-input>
+        <el-input type="textarea" :rows="2" placeholder="请输入内容" v-model="handleChannel.row.url" readonly ></el-input>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleCopy">复制链接</el-button>
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="discountDialog">
-      <strong slot="title">渠道{{handleChannel.channelName}}折扣</strong>
+    <el-dialog :visible.sync="discountDialog" v-if="!isEmpty(handleChannel)">
+      <strong slot="title">渠道{{handleChannel.row.channelName}}折扣</strong>
       <el-form label-width="100px" label-position="left">
         <el-form-item label="验证个数">
           <el-input placeholder="填写验证个数" v-model.number="upDiscountForm.verifyTotal">
@@ -104,12 +115,27 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="addDiscount">确 定</el-button>
-        <el-button type="primary" @click="discountDialog = false">取 消</el-button>
+        <el-button @click="discountDialog = false">取 消</el-button>
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="accountDialog">
-      <strong slot="title">渠道{{handleChannel.channelName}}监控账户</strong>
+    <el-dialog :visible.sync="typeDialog" v-if="!isEmpty(handleChannel)">
+      <strong slot="title">类型管理，渠道{{handleChannel.row.channelName}}</strong>
+      <el-form>
+        <el-form-item>
+          <el-radio-group v-model="handleChannelType">
+            <el-radio :label="item.value" v-for="item in dict.channel_biz_type" :key="item.value">{{item.title}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="changeChannelType">确 定</el-button>
+        <el-button @click="typeDialog = false">取 消</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog :visible.sync="accountDialog" v-if="!isEmpty(handleChannel)">
+      <strong slot="title">渠道{{handleChannel.row.channelName}}监控账户</strong>
       <el-form label-width="100px" label-position="left">
         <el-form-item label="账户名称">
           <el-input placeholder="填写账户名称" v-model="accountForm.loginName">
@@ -122,24 +148,20 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="addAccount">确 定</el-button>
-        <el-button type="primary" @click="accountDialog = false">取 消</el-button>
+        <el-button @click="accountDialog = false">取 消</el-button>
       </span>
     </el-dialog>
 
-    <el-dialog :visible.sync="remarkDialog">
-      <strong slot="title">渠道{{handleChannel.channelName}}流量备注</strong>
+    <el-dialog :visible.sync="remarkDialog" title="渠道重命名">
+      <p v-if="!isEmpty(handleChannel)">您正在修改{{handleChannel.row.channelName}}的系统展示名</p>
       <el-form>
         <el-form-item>
-          <el-input placeholder="填写备注信息,500字以内" type="textarea" v-model="addRemarkForm.content"></el-input>
+          <el-input placeholder="填写新的的系统展示名" v-model="newNameForm.name"></el-input>
         </el-form-item>
       </el-form>
-      <li v-for="item in remarkList" :key="item">
-        <h3>{{item.createTime}} {{item.accName}}</h3>
-        <p class="remark">{{item.content}}</p>
-      </li>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="addRemark">添加备注</el-button>
-        <el-button type="primary" @click="remarkDialog = false">取 消</el-button>
+        <el-button type="primary" @click="changeName">确 定</el-button>
+        <el-button @click="remarkDialog = false">取 消</el-button>
       </span>
     </el-dialog>
   </div>
@@ -155,7 +177,8 @@ export default {
         channelList: [],
         subChannelList: [],
         happenDateStart: Date.now(),
-        happenDateEnd: ""
+        happenDateEnd: "",
+        corpIdList:[]
       },
       startTimeOption: {
         disabledDate(time) {
@@ -166,9 +189,9 @@ export default {
           );
         }
       },
-      addRemarkForm: {
-        id: "",
-        content: ""
+      newNameForm: {
+        channel: "",
+        name: ""
       },
       upDiscountForm: {
         channel: "",
@@ -181,18 +204,22 @@ export default {
         loginName: "",
         password: ""
       },
+      allCorpList:[],
       sourceList: [],
       sourceChildList: [],
       handleChannel: {},
+      parentChannel: {},
+      handleChannelType:"",
       list: [],
       total: 0,
-      currentPage:1,
-      remarkList: [],
-      summaryList: [],
+      currentPage: 1,
+      pageSize: 10,
+      summaryList: ["","合计"],
       remarkDialog: false,
       discountDialog: false,
       checkUrlDialog: false,
       accountDialog: false,
+      typeDialog:false,
       loading: true
     };
   },
@@ -201,18 +228,63 @@ export default {
   },
   mounted() {
     this.getList(1);
+    this.getCorpList();
     this.getSourceList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
+    getCorpList(){
+      this.ajax({
+        url:"credit/web/sys/corp/product/dict"
+      }).then(res => {
+        this.allCorpList = res.data.list;
+      })
+    },
     getSummary() {
       return this.summaryList;
     },
+    getTotalData(){
+      this.ajax({
+        url:"credit/web/sys/bizresult/query/cdetail",
+        data:{...this.searchForm}
+      }).then(res => {
+        this.$set(this.summaryList, 2, res.data.regist);
+        this.$set(this.summaryList, 3, res.data.apply);
+        this.$set(this.summaryList, 4, res.data.firstTrial);
+        this.$set(this.summaryList, 5, res.data.firstTrialSuccess);
+        this.$set(this.summaryList, 6, res.data.manualFirstTrialSuccess);
+        this.$set(this.summaryList, 7, res.data.bindCardSuccess);
+        this.$set(this.summaryList, 8, res.data.finalTrialSuccess);
+        this.$set(this.summaryList, 9, res.data.loan);
+        this.$set(this.summaryList, 10, res.data.ip);
+        this.$set(this.summaryList, 11, res.data.firstOver);
+      })
+    },
+    handleExpand(row,expanded){
+      if (this.isEmpty(row.subChannel)&&expanded) {
+        var parentCode = row.code;
+        this.ajax({
+          url:"credit/web/sys/bizresult/query/sc",
+          data:{...this.searchForm,parentCode}
+        }).then(res => {
+          for (let i = 0; i < this.list.length; i++) {
+            if (this.list[i].code == parentCode) {
+              this.$set(this.list[i], "subChannel", res.data.list);
+              return
+            }
+          };
+        })
+      }
+    },
     handleCheckUrl(scope) {
-      this.handleChannel = scope.row;
+      this.handleChannel = scope;
       this.checkUrlDialog = true;
     },
     handleCopy() {
-      this.$copyText(this.handleChannel.url)
+      this.$copyText(this.handleChannel.row.url)
         .then(() => {
           this.checkUrlDialog = false;
           this.$message({
@@ -250,9 +322,9 @@ export default {
         this.$set(this.list[index].subChannel, childIndex, res.data);
       });
     },
-    handleAccount(row) {
-      this.handleChannel = row;
-      const channel = row.code;
+    handleAccount(scope) {
+      this.handleChannel = scope;
+      const channel = scope.row.code;
       this.ajax({
         url: "credit/web/sys/channel/account/query",
         data: { channel }
@@ -261,6 +333,28 @@ export default {
         this.accountForm.channel = channel;
         this.accountDialog = true;
       });
+    },
+    handleType(child){
+      this.handleChannel = child;
+      this.handleChannelType = child.row.bizType||2;
+      this.typeDialog = true;
+    },
+    changeChannelType(){
+      const channel = this.handleChannel.row.code;
+      const bizType = this.handleChannelType;
+      this.ajax({
+        url:"credit/web/sys/channel/update",
+        data:{channel,bizType}
+      }).then(res => {
+        this.$message({
+          type:"success",
+          message:"修改渠道业务类型成功"
+        })
+        this.typeDialog = false;
+        this.getList(this.currentPage);
+        this.handleChannel = {};
+        this.handleChannelType = "";
+      })
     },
     addAccount() {
       const accountForm = this.accountForm;
@@ -288,9 +382,9 @@ export default {
         this.getList(this.currentPage);
       });
     },
-    addSource(row) {
-      const channelName = row.channelName;
-      const channel = row.code;
+    addSource(scope) {
+      const channelName = scope.row.channelName;
+      const channel = scope.row.code;
       this.$confirm(
         "此操作将在渠道" + channelName + "下新增子渠道, 是否继续?",
         "新增子渠道",
@@ -320,11 +414,11 @@ export default {
           });
         });
     },
-    setDiscount(row) {
-      this.handleChannel = row;
-      this.upDiscountForm.channel = row.code;
-      this.upDiscountForm.discount = row.discount || 100;
-      this.upDiscountForm.verifyTotal = row.verifyTotal;
+    setDiscount(scope) {
+      this.handleChannel = scope;
+      this.upDiscountForm.channel = scope.row.code;
+      this.upDiscountForm.discount = scope.row.discount || 100;
+      this.upDiscountForm.verifyTotal = scope.row.verifyTotal;
       this.discountDialog = true;
     },
     addDiscount() {
@@ -347,9 +441,9 @@ export default {
         });
       });
     },
-    handleDisable(row) {
-      const channelName = row.channelName;
-      const channel = row.code;
+    handleDisable(scope) {
+      const channelName = scope.row.channelName;
+      const channel = scope.row.code;
       this.$confirm(
         "此操作将停用渠道" + channelName + ", 是否继续?",
         "停用渠道",
@@ -378,9 +472,9 @@ export default {
           });
         });
     },
-    handleEnable(row) {
-      const channelName = row.channelName;
-      const channel = row.code;
+    handleEnable(scope) {
+      const channelName = scope.row.channelName;
+      const channel = scope.row.code;
       this.$confirm(
         "此操作将启用渠道" + channelName + ", 是否继续?",
         "启用渠道",
@@ -409,13 +503,13 @@ export default {
           });
         });
     },
-    handleDel(row) {
-      if (row.status == 1) {
+    handleDel(scope) {
+      if (scope.row.status == 1) {
         this.$message("渠道正在启用中，不可删除");
         reutrn;
       }
-      const channelName = row.channelName;
-      const channel = row.code;
+      const channelName = scope.row.channelName;
+      const channel = scope.row.code;
       this.$confirm(
         "此操作将删除渠道" + channelName + ", 是否继续?",
         "删除渠道",
@@ -456,20 +550,9 @@ export default {
         }
       }).then(res => {
         this.loading = false;
-        this.currentPage = pageNo;
         this.total = res.data.total;
         this.list = res.data.list;
-        this.summaryList[1] = "合计";
-        this.summaryList[2] = res.data.totalDetail.regist;
-        this.summaryList[3] = res.data.totalDetail.apply;
-        this.summaryList[4] = res.data.totalDetail.firstTrial;
-        this.summaryList[5] = res.data.totalDetail.firstTrialSuccess;
-        this.summaryList[6] = res.data.totalDetail.manualFirstTrialSuccess;
-        this.summaryList[7] = res.data.totalDetail.bindCardSuccess;
-        this.summaryList[8] = res.data.totalDetail.finalTrialSuccess;
-        this.summaryList[9] = res.data.totalDetail.loan;
-        this.summaryList[10] = res.data.totalDetail.ip;
-        this.summaryList[11] = res.data.totalDetail.firstOver;
+        this.getTotalData();
       });
     },
     getSourceList() {
@@ -496,37 +579,47 @@ export default {
         this.sourceChildList = res.data;
       });
     },
-    getRemark(row) {
-      this.remarkList = [];
-      this.handleChannel = row;
-      this.addRemarkForm.id = row.id;
-      this.addRemarkForm.content = "";
-      const id = row.id;
-      this.ajax({
-        url: "credit/web/sys/remark/query/channelid",
-        data: { id, pageNo: 1, pageSize: 500 }
-      }).then(res => {
-        this.remarkList = res.data.list;
-        this.remarkDialog = true;
-      });
+    getRemark(scope) {
+      this.handleChannel = scope;
+      this.remarkDialog = true;
+      this.newNameForm.channel = scope.row.code;
     },
-    addRemark() {
-      if (this.isEmpty(this.addRemarkForm.content)) {
-        this.$message("请填写备注信息");
+    getChildRemark(scope, props) {
+      this.parentChannel = props;
+      this.handleChannel = scope;
+      this.remarkDialog = true;
+      this.newNameForm.channel = scope.row.code;
+    },
+    changeName() {
+      const name = this.newNameForm.name;
+      if (this.isEmpty(name)) {
+        this.$message("请填写新的渠道名称");
         return false;
       } else {
-        if (this.addRemarkForm.content.length > 500) {
+        if (name.length > 8) {
           this.$message("超出字数限制");
           return false;
         }
         this.ajax({
-          url: "credit/web/sys/remark/insert/channel",
-          data: { ...this.addRemarkForm }
+          url: "credit/web/sys/channel/update/name",
+          data: { ...this.newNameForm }
         }).then(res => {
           this.remarkDialog = false;
-          this.addRemarkForm.content = "";
+          if (this.isEmpty(this.parentChannel)) {
+            const index = this.handleChannel.$index;
+            this.$set(this.list[index], "channelName", name);
+          } else {
+            const index = this.parentChannel.$index;
+            const childIndex = this.handleChannel.$index;
+            this.$set(
+              this.list[index].subChannel[childIndex],
+              "channelName",
+              name
+            );
+          }
+          this.newNameForm.name = "";
           this.$message({
-            message: "添加备注成功",
+            message: "修改渠道名称成功",
             type: "success"
           });
         });

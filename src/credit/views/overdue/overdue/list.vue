@@ -2,6 +2,18 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
+        <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+          <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
           <el-option
             v-for="item in allCorpList"
@@ -35,6 +47,12 @@
       </el-form-item>
       <el-form-item>
         <el-input v-model.number.trim="searchForm.overdueDaysHigh" placeholder="逾期天数结束" @keyup.enter.native="getList(1)"></el-input>
+      </el-form-item>
+      <el-form-item>   
+        <el-select clearable v-model="searchForm.signType" placeholder="客户类型" @change="getList(1)">
+          <el-option label="新客" value="1"></el-option>
+          <el-option label="老客" value="2"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>   
         <el-select clearable v-model="searchForm.tagId" placeholder="催收标签">
@@ -98,32 +116,48 @@
             </el-table>
           </template>
         </el-table-column>
+        <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="借款人" prop="name"></el-table-column>
         <el-table-column label="所属机构" prop="corpName"></el-table-column>
         <el-table-column label="产品名称" prop="productName"></el-table-column>
         <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
         <el-table-column label="手机号" prop="mobile"></el-table-column>
+        <el-table-column label="客户类型">
+          <template scope="scope">
+            <span v-if="scope.row.signType == 1">新客</span>
+            <span v-else>老客</span>
+          </template>
+        </el-table-column>
         <el-table-column label="借款时间" prop="loanDate" min-width="140"></el-table-column>
         <el-table-column label="逾期天数" prop="overdueDays" :formatter="(row)=>count(row.overdueDays,'天')"></el-table-column>
         <el-table-column label="催收时间" prop="lastOverTime" :formatter="(row) => emptyOf(row.lastOverTime)" min-width="140"></el-table-column>
         <el-table-column label="催收人员" prop="lastOverName" :formatter="(row) => emptyOf(row.lastOverName)"></el-table-column>
         <el-table-column label="催收标签" prop="tagName"></el-table-column>
+        <el-table-column label="催收备注">
+          <template scope="scope">
+            <p class="dccontain" :title="scope.row.lastDcContent">{{scope.row.lastDcContent||"--"}}</p>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" align="center" min-width="140">
           <template scope="scope">
             <router-link :to="{path:'detail',query:{id:scope.row.id}}" v-if="hasBtnAuth('B10022',btnGoList)">
               <el-button type="text" v-text="getbtnName('B10022',btnGoList)"></el-button>
             </router-link>
-            <el-button type="text" @click="getInsert(scope.row.flowId)" v-if="hasBtnAuth('B20065',btnApiList)" v-text="getbtnName('B20065',btnApiList)"></el-button>
+            <el-button type="text" @click="getInsert(scope.row)" v-if="hasBtnAuth('B20065',btnApiList)" v-text="getbtnName('B20065',btnApiList)"></el-button>
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
 
-    <el-dialog title="备注记录" :visible.sync="remarkDialog" size="tiny">
+    <el-dialog title="备注记录" :visible.sync="remarkDialog">
+      <div style="margin-bottom:10px">
+        <el-input v-model="remarkContent" :rows="4" type="textarea" placeholder="请输入备注信息"></el-input>
+      </div>
       <Remark :remarkList="insertList"/>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="remarkDialog = false">确 定</el-button>
+        <el-button type="primary" @click="remarkDialog = false">取 消</el-button>
+        <el-button type="primary" @click="addRemark">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -146,12 +180,21 @@ export default {
         overdueDaysLow: "",
         overdueDaysHigh: "",
         tagId: "",
-        corpId:""
+        corpId:"",
+        signType:"",
+        channelList:[],
+        subChannelList:[]
       },
+      sourceList:[],
+      sourceChildList:[],
+      handleContract:{},
+      remarkContent:"",
       remarkDialog: false,
       insertList: [],
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading: true
     };
   },
@@ -163,13 +206,42 @@ export default {
   },
   mounted() {
     this.getList(1);
+    this.getSourceList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectLoanDateStart(time) {
       this.searchForm.loanDateStart = time;
     },
     selectLoanDateEnd(time) {
       this.searchForm.loanDateEnd = time;
+    },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
     },
     getList(pageNo) {
       this.loading = true;
@@ -187,17 +259,35 @@ export default {
         this.list = res.data.list;
       });
     },
-    getInsert(flowId) {
+    getInsert(row) {
+      this.remarkDialog = true;
+      this.handleContract = row;
+      const flowId = row.flowId;
       this.ajax({
         url: "credit/web/sys/remark/query/list",
         data: { flowId, pageSize: 500, pageNo: 1 }
       }).then(res => {
-        if (res.data && res.data.list.length) {
-          this.insertList = res.data.list;
-          this.remarkDialog = true;
-        } else {
-          this.$message("催收记录为空");
-        }
+        this.insertList = res.data.list;
+      });
+    },
+    addRemark() {
+      const content = this.remarkContent;
+      if (this.isEmpty(content)) {
+        this.$message("备注信息不能为空");
+        return false;
+      }
+      const id = this.handleContract.id;
+      const status = this.handleContract.contractStatus;
+      this.ajax({
+        url: "credit/web/sys/remark/insert/contract",
+        data: { id, status, content }
+      }).then(res => {
+        this.$message({
+          message: "合同添加备注成功",
+          type: "success"
+        });
+        this.remarkContent = "";
+        this.remarkDialog = false;
       });
     }
   }

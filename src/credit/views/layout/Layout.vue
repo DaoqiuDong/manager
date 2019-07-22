@@ -12,6 +12,7 @@
 
 <script>
 import { Top, Sidebar, AppMain } from "@/credit/views/layout";
+import { mapGetters } from "vuex";
 
 export default {
   name: "layout",
@@ -25,6 +26,9 @@ export default {
     this.getNodeCode();
     this.getPayList();
     this.getTagList();
+  },
+  computed: {
+    ...mapGetters(["permission_routers"])
   },
   methods: {
     getFinanceList(){
@@ -86,6 +90,9 @@ export default {
         url: "credit/web/sys/corp/product/dict"
       }).then(res => {
         this.$store.dispatch("getCorpList", res.data.list);
+        if (JSON.stringify(this.permission_routers).indexOf('"path":"count/datause"') != -1) {
+          this.getCorpAmount(res.data.list[0].corpId)
+        }
       });
     },
     getRoleList(){
@@ -94,7 +101,20 @@ export default {
       }).then(res => {
         this.$store.dispatch("getAllRoleList", res.data.role_type);
       })
-    }
+    },
+    getCorpAmount(corpId) {
+      this.ajax({
+        url: "credit/web/sys/cstmr/balance/queryAmount",
+        data: { corpId }
+      }).then(res => {
+        this.corpAmountInfo = res.data;
+        if (!this.isEmpty(this.corpAmountInfo.amount)) {
+          const amount = Number(this.corpAmountInfo.amount);
+          const balance = { amount, balanceAuth: true };
+          this.$store.dispatch("getBalance", balance);
+        }
+      });
+    },
   }
 };
 </script>

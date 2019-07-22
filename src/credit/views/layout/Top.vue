@@ -116,9 +116,6 @@ export default {
     }
   }
   .accName{
-    display: inline-block;
-    height: 80px;
-    width:120px;
     margin: 0;
     overflow: hidden;
     text-overflow:ellipsis;
@@ -136,9 +133,10 @@ export default {
   .entry {
     float: right;
     line-height: 80px;
-    width: 280px;
+    width: 300px;
     height: 80px;
     overflow: hidden;
+    text-align: center;
     font {
       margin-right: 20px;
     }

@@ -1,5 +1,5 @@
 <template>
-  <el-menu mode="vertical" theme="dark" :unique-opened="niqueOpened">
+  <el-menu mode="vertical" theme="dark" unique-opened>
     <sidebar-item :routes='permission_routers'></sidebar-item>
   </el-menu>
 </template>
@@ -10,7 +10,7 @@ import SidebarItem from "./SidebarItem";
 export default {
   data() {
     return {
-      niqueOpened: true
+      
     };
   },
   components: { SidebarItem },

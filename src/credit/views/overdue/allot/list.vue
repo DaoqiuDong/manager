@@ -15,6 +15,18 @@
         </div>
         <el-form :inline='true'>
           <el-form-item>
+            <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+              <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+              <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
             <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
               <el-option
                 v-for="item in allCorpList"
@@ -36,7 +48,7 @@
           </el-form-item>
           <el-form-item>   
             <el-select clearable v-model="searchForm.cycleType" placeholder="阶段">
-              <el-option label="今日应还" :value="2"></el-option>
+              <el-option label="贷款中" :value="0"></el-option>
               <el-option label="超期" :value="3"></el-option>
               <el-option label="逾期" :value="4"></el-option>
             </el-select>
@@ -47,11 +59,15 @@
           <el-form-item>
             <el-input v-model.number="searchForm.name" placeholder="姓名"></el-input>
           </el-form-item>
+          <el-form-item>
+            <el-date-picker :disabled="searchForm.cycleType !== 0" v-model="repayDate" type="daterange" placeholder="选择到期日期范围" :picker-options="pickerOptions" @change="handleReapyDate" format="yyyy-MM-dd"></el-date-picker>
+          </el-form-item>
             <el-button type="primary" @click="getList(1)">查询</el-button>
         </el-form>
         <div>
           <el-table :data="list" :stripe='true' @selection-change="handleSelected">
             <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
             <el-table-column label="借款人" prop="name"></el-table-column>
             <el-table-column label="手机号" prop="mobile" min-width="100"></el-table-column>
             <el-table-column label="所属机构" prop="corpName"></el-table-column>
@@ -59,7 +75,7 @@
             <el-table-column label="逾期天数" prop="overdueDays" :formatter="(row) => count(row.overdueDays,'天')"></el-table-column>
             <el-table-column label="逾期合同数" prop="contractTotal" :formatter="(row) => count(row.contractTotal,'份')"></el-table-column>
           </el-table>
-          <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+          <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
         </div>
       </el-tab-pane>
       <el-tab-pane :label="getbtnName('B20122',btnApiList)" name="automation" v-if="hasBtnAuth('B20122',btnApiList)">
@@ -111,8 +127,15 @@ export default {
         mobile:"",
         name:"",
         corpId:"",
-        cycleType:4
+        cycleType:4,
+        repayDateStart:"",
+        repayDateEnd:"",
+        channelList:[],
+        subChannelList:[]
       },
+      sourceList:[],
+      sourceChildList:[],
+      repayDate:"",
       proList:[],
       automationList: [],
       editDisabledList:[],
@@ -121,8 +144,33 @@ export default {
       fullscreenLoading:false,
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       allotList: [],
-      auditorId: ""
+      auditorId: "",
+      pickerOptions: {
+        shortcuts: [
+          {
+            text: "今日到期",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              end.setTime(end.getTime() + 3600 * 1000 * 24);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "明日到期",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() + 3600 * 1000 * 24);
+              end.setTime(end.getTime() + 3600 * 1000 * 24 * 2);
+              picker.$emit("pick", [start, end]);
+            }
+          }
+        ]
+      }
     };
   },
   computed: {
@@ -130,17 +178,26 @@ export default {
   },
   mounted() {
     this.getList(1);
+    this.getSourceList();
     this.getRoleList();
     if (this.hasBtnAuth('B20122',this.btnApiList)) {
       this.getAutomationList();
     }
   },
   methods: {
-    selectStartTime(time) {
-      this.searchForm.realRepayTimeStart = time;
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
     },
-    selectEndTime(time) {
-      this.searchForm.realRepayTimeEnd = time;
+    handleReapyDate(time){
+      if (this.isEmpty(time)) {
+        this.searchForm.repayDateStart = "";
+        this.searchForm.repayDateEnd = ""
+        return
+      };
+      const timeArr = time.split(" - ");
+      this.searchForm.repayDateStart = timeArr[0];
+      this.searchForm.repayDateEnd = timeArr[1];
     },
     getRoleList(){
       if (this.roleList.length == 0) {
@@ -307,6 +364,30 @@ export default {
         })
       }
     },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
+    },
     getList(pageNo) {
       const pageSize = this.pageSize;
       this.ajax({
@@ -354,9 +435,10 @@ export default {
           message:"申请单分配成功",
           type:'success'
         });
-        this.fullscreenLoading = false;
         this.allotList = [];
         this.getList(1)
+      }).finally(() => {
+        this.fullscreenLoading = false;
       })
     }
   }

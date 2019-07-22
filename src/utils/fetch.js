@@ -6,7 +6,7 @@ import store from "../store";
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: "/credit-web/", // api的base_url
+  // baseURL: "/credit-web/", // api的base_url
   timeout: 90000 // 请求超时时间
 });
 

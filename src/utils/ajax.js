@@ -4,10 +4,10 @@ export default {
   install(Vue, option) {
     Vue.prototype.ajax = function (params) {
       let {
-          method = "post",
-          url,
-          data = null,
-          responseType
+        method = "post",
+        url,
+        data = null,
+        responseType
       } = params;
       //时间控件的坑，有时间选择的提交前先进行格式化
       if (!this.isEmpty(data)) {

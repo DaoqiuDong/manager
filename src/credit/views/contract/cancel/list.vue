@@ -2,6 +2,18 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
+        <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+          <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
           <el-option
             v-for="item in allCorpList"
@@ -37,6 +49,7 @@
     </el-form>
     <div>
       <el-table :data="list" :stripe='true' v-loading.body="loading">
+        <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="合同号" prop="code" min-width="140"></el-table-column>
         <el-table-column label="借款人" prop="name"></el-table-column>
         <el-table-column label="手机号" prop="mobile"></el-table-column>
@@ -51,7 +64,7 @@
           </template>
           </el-table-column>            
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
   </div>
 </template>
@@ -67,10 +80,16 @@ export default {
         loanDateEnd: "",
         code: "",
         productId: "",
-        corpId:""
+        corpId:"",
+        channelList:[],
+        subChannelList:[]
       },
+      sourceList:[],
+      sourceChildList:[],
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading: true
     };
   },
@@ -79,8 +98,13 @@ export default {
   },
   mounted() {
     this.getList(1);
+    this.getSourceList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectStartTime(time) {
       this.searchForm.loanDateStart = time;
       this.getList(1);
@@ -88,6 +112,30 @@ export default {
     selectEndTime(time) {
       this.searchForm.loanDateEnd = time;
       this.getList(1);
+    },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
     },
     getList(pageNo) {
       const pageSize = this.pageSize;

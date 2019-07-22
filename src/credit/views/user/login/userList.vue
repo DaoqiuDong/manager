@@ -96,13 +96,13 @@
         <el-table-column label="用户来源" prop="sourceName" :formatter="(row) => emptyOf(row.sourceName)"></el-table-column>
         <el-table-column label="操作" align="center"  v-if="hasBtnAuth('B10001',btnGoList)">
           <template scope="scope">
-            <router-link :to="{path:'UserDetail',query:{userId:scope.row.uid,appId:scope.row.id}}">
+            <router-link :to="{path:'userDetail',query:{userId:scope.row.uid,appId:scope.row.id}}">
               <el-button type="text" v-text="getbtnName('B10001',btnGoList)"></el-button>
             </router-link>
           </template>
           </el-table-column>            
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
   </div>
 </template>
@@ -127,6 +127,8 @@ export default {
       time2:"",
       userList: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading:true,
       sourceList:[]
     };
@@ -140,6 +142,10 @@ export default {
     this.getGroupList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectStartTime(time){
       this.searchForm.registStart = time
     },
@@ -170,7 +176,7 @@ export default {
           this.userList = res.data.list;
         })
         .catch(err => {
-          console.log(err);
+          this.loading = false;
         });
     },
     getSourceList(){

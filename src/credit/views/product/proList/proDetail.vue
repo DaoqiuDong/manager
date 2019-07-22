@@ -115,7 +115,8 @@
             </el-select>
           </el-input>
         </el-form-item><br/>
-        <div v-if="hasBtnAuth('B20109',btnApiList)">
+
+        <div v-if="hasBtnAuth('B20109',btnApiList)" class="renewalCnf-container">
           <el-form-item label="展期配置">
             <el-switch v-model="renewalCnf.switchStatus" :on-value="1" on-text="开" :off-value="0" off-text="关"></el-switch>
             <i>*备注：开启后用户在账单期限内可申请展期，逾期后不可展期。如（七天产品）首期账单1/1--1/7展期后为1/8--1/14，只有1/8--1/14才能再次申请展期</i>
@@ -151,6 +152,46 @@
             </li>
           </div>
         </div>
+
+        <div v-if="hasBtnAuth('B20147',btnApiList)" class="autoRenewalCnf-container">
+          <el-form-item label="自动展期">
+            <el-switch v-model="autoRenewalCnf.switchStatus" :on-value="1" on-text="开" :off-value="0" off-text="关"></el-switch>
+          </el-form-item>
+          <el-form-item label="逾期展期" v-if="autoRenewalCnf.switchStatus == 1">
+            <el-switch v-model="autoRenewalCnf.overdueSwitchStatus" :on-value="1" on-text="开" :off-value="0" off-text="关"></el-switch>
+          </el-form-item><br/>
+          <div v-if="autoRenewalCnf.switchStatus == 1">
+            <el-form-item label="展期次数">
+              <el-input v-model="autoRenewalCnf.limitNum" placeholder="展期次数">
+                <template slot="append">
+                  <span>次</span>
+                </template>
+              </el-input>
+              <i>备注：可连续展期次数</i>
+            </el-form-item><br/>
+            <el-form-item label="单次展期费用" label-width="120px">
+              <el-button type="primary" icon="plus" @click="addAutoRenewalFee">添加</el-button>
+            </el-form-item>
+            <li v-for="(item,index) in autoRenewalFee" :key="index">
+              <el-form-item label="费用名称">
+                <el-input v-model="item.title" placeholder="费用名称"></el-input>
+              </el-form-item>
+              <el-form-item label="计算方式">
+                <el-select v-model="item.calMethod" placeholder="计算方式">
+                  <el-option :label="cal.title" :value="cal.value" v-for="cal in dict.cal_method" :key="cal.name"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="费用">
+                <el-input v-model="item.value" placeholder="费用"></el-input>
+              </el-form-item>
+              <el-form-item label="备注">
+                <el-input v-model="item.remark" placeholder="备注:150字以内" @change="handleRemark"></el-input>
+              </el-form-item>
+              <el-button icon="delete" @click="delAutoRenewalFee(index)"></el-button>
+            </li>
+          </div>
+        </div>
+
         <el-form-item label="还款方式">
           <el-select v-model="proInfo.repayWay" placeholder="还款方式">
           <el-option :label="way.title" :value="way.value" v-for="way in dict.repay_way" :key="way.name"></el-option> 
@@ -358,10 +399,18 @@ export default {
         }
       },
       renewalCnf: {
+        renewalType: 0,
         switchStatus: 0,
-        limitNum: 1
+        limitNum: 1,
       },
+      autoRenewalCnf: {
+        renewalType: 1,
+        switchStatus: 0,
+        limitNum: 1,
+        overdueSwitchStatus: 0
+      },//自动展期
       renewalFee: [],
+      autoRenewalFee:[],
       preFeeList: [],
       overdueInterestVal: "",
       otherFee: [],
@@ -445,6 +494,14 @@ export default {
         if (!this.isEmpty(res.data.renewalFee)) {
           this.renewalFee = res.data.renewalFee;
         }
+        if (!this.isEmpty(res.data.renewalAutoCnf)) {
+          this.renewalAutoCnf = res.data.renewalAutoCnf;
+          this.autoRenewalCnf = this.renewalAutoCnf;
+        }
+        if (!this.isEmpty(res.data.renewalAutoFee)) {
+          this.renewalAutoFee = res.data.renewalAutoFee;
+          this.autoRenewalFee = this.renewalAutoFee;
+        }
         this.setValue();
       });
     },
@@ -485,6 +542,17 @@ export default {
     delRenewalFee(i) {
       this.renewalFee.splice(i, 1);
     },
+    addAutoRenewalFee(){
+      this.autoRenewalFee.push({
+        title: "",
+        calMethod: "", //计算方式
+        value: "",
+        remark: ""
+      });
+    },
+    delAutoRenewalFee(i){
+      this.autoRenewalFee.splice(i, 1);
+    },
     delFee(i) {
       this.otherFee.splice(i, 1);
     },
@@ -499,9 +567,12 @@ export default {
       const overdueFee = this.overdueFee;
       const overdueInterest = this.overdueInterest;
       const repayCnf = this.repayCnf;
-      if (!this.isEmpty(repayCnf.maxRepayRate)&&Number(repayCnf.maxRepayRate) < 100) {
+      if (
+        !this.isEmpty(repayCnf.maxRepayRate) &&
+        Number(repayCnf.maxRepayRate) < 100
+      ) {
         this.$message("费用上限请设置为大于100%的值");
-        return 
+        return;
       }
       var otherFee;
       if (this.otherFee && this.otherFee.length) {
@@ -522,8 +593,16 @@ export default {
         }
       }
       const preFee = this.preFeeList;
-      const renewalFee = this.renewalFee;
       const renewalCnf = this.renewalCnf;
+      const renewalAutoCnf = this.autoRenewalCnf;
+
+      let renewalFee = this.renewalFee,	renewalAutoFee = this.autoRenewalFee;
+      if (renewalCnf.switchStatus == 0) {
+        renewalFee = [];
+      }
+      if(renewalAutoCnf.switchStatus == 0){
+        renewalAutoFee = [];
+      }
       this.ajax({
         url: "credit/web/sys/product/update",
         data: {
@@ -538,7 +617,9 @@ export default {
           preFee,
           otherFee,
           renewalCnf,
+          renewalAutoCnf,
           renewalFee,
+          renewalAutoFee,
           repayCnf
         }
       }).then(res => {
@@ -597,6 +678,18 @@ export default {
   }
   .validity {
     width: 360px;
+  }
+  .renewalCnf-container{
+    margin-bottom: 1em;
+    padding: 1em;
+    border: 1px dotted #444;
+    border-radius: 1em;
+  }
+  .autoRenewalCnf-container{
+    margin-bottom: 1em;
+    padding: 1em;
+    border: 1px dotted #444;
+    border-radius: 1em;
   }
 }
 </style>

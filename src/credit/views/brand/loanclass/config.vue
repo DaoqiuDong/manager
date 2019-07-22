@@ -57,17 +57,20 @@
       </el-col>
       <el-col :span="12">
         <div class="editor">
-          <li v-if="config.applyLimit_txt">
+          <li>
             <p>申请条件</p>
-            <editor-public editorName="applyLimit_txt" :value.sync="config.applyLimit_txt"></editor-public>
+            <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="config.applyLimit_txt"></el-input>
+            <!-- <editor-public editorName="applyLimit_txt" :value.sync="config.applyLimit_txt"></editor-public> -->
           </li>
-          <li v-if="config.mustInfo_txt">
+          <li>
             <p>所需材料</p>
-            <editor-public editorName="mustInfo_txt" :value.sync="config.mustInfo_txt"></editor-public>
+            <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="config.mustInfo_txt"></el-input>
+            <!-- <editor-public editorName="mustInfo_txt" :value.sync="config.mustInfo_txt"></editor-public> -->
           </li>
-          <li v-if="config.remark">
+          <li>
             <p>其他说明</p>
-            <editor-public editorName="remark" :value.sync="config.remark"></editor-public>
+            <el-input type="textarea" :rows="4" placeholder="请输入内容" v-model="config.remark"></el-input>
+            <!-- <editor-public editorName="remark" :value.sync="config.remark"></editor-public> -->
           </li>
         </div>
       </el-col>

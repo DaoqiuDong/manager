@@ -2,6 +2,18 @@
   <div>
     <el-form :inline='true'>
       <el-form-item>
+        <el-select clearable filterable v-model="searchForm.channelList" multiple placeholder="主渠道" @change="value => getSourceChildList(value)">
+          <el-option v-for="item in sourceList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-select clearable filterable :disabled="isEmpty(searchForm.channelList)" v-model="searchForm.subChannelList" multiple placeholder="子渠道">
+          <el-option v-for="item in sourceChildList" :key="item.code" :label="item.name" :value="item.code">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-select v-model="searchForm.corpId" clearable placeholder="机构名称">
           <el-option
             v-for="item in allCorpList"
@@ -53,6 +65,7 @@
     </el-form>
     <div>
       <el-table :data="applyList" v-loading.body="loading" :stripe='true'>
+        <el-table-column label="渠道" prop="channelName" :formatter="(row)=>emptyOf(row.channelName)"></el-table-column>
         <el-table-column label="申请单号" prop="flowCode" min-width="120"></el-table-column>
         <el-table-column label="手机号" prop="mobile" min-width="100"></el-table-column>
         <el-table-column label="所属机构" prop="corpName"></el-table-column>
@@ -89,7 +102,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)">
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange">
       </el-pagination>
     </div>
   </div>
@@ -110,8 +123,12 @@ export default {
         nodeStatus: "",
         flowCode: "",
         isInvalid: 0,
-        corpId:""
+        corpId:"",
+        channelList:[],
+        subChannelList:[]
       },
+      sourceList:[],
+      sourceChildList:[],
       startTimeOption: {
         disabledDate(time) {
           return time.getTime() > Date.now()||time.getTime() > new Date(_this.searchForm.flowEndTime).getTime() - 8.64e7;
@@ -128,6 +145,8 @@ export default {
       showText: "隐藏失效申请单",
       applyList: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading: true,
       quotaProList:[]
     };
@@ -138,8 +157,13 @@ export default {
   mounted() {
     this.getList(1);
     this.getQuotaList();
+    this.getSourceList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     selectflowStartTime(time) {
       this.searchForm.flowStartTime = time;
       this.getList(1);
@@ -156,6 +180,30 @@ export default {
       }).then(res => {
         this.quotaProList = res.data
       })
+    },
+    getSourceList() {
+      const type = 2;
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type }
+      }).then(res => {
+        this.sourceList = res.data;
+      });
+    },
+    getSourceChildList() {
+      const type = 1;
+      const channelList = this.searchForm.channelList;
+      this.searchForm.subChannelList = [];
+      if (this.isEmpty(channelList)) {
+        this.sourceChildList = [];
+        return;
+      }
+      this.ajax({
+        url: "credit/web/sys/source",
+        data: { type, channelList }
+      }).then(res => {
+        this.sourceChildList = res.data;
+      });
     },
     getList(pageNo) {
       const pageSize = this.pageSize;

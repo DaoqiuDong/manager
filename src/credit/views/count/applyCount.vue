@@ -105,7 +105,7 @@
     <div v-else>
       <p style="text-align:center">无数据</p>
     </div>
-    <el-pagination layout="total,prev, pager, next" :page-size="5" :total="applyData.total" @current-change="(i) => getApplyData(i)"></el-pagination>
+    <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="applyData.total" @current-change="(i) => getApplyData(i)" :current-page.sync="currentPage" :page-sizes="[5, 10, 20, 50,100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
   </div>
 </template>
 <script>
@@ -142,7 +142,9 @@ export default {
       allGroupList: [],
       appCorpList: [],
       productList: [],
-      applyData: {}
+      applyData: {},
+      currentPage: 1,
+      pageSize: 5
     };
   },
   computed: {
@@ -153,8 +155,12 @@ export default {
     this.getGroupList();
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getApplyData(1);
+    },
     getApplyData(pageNo) {
-      const pageSize = 5;
+      const pageSize = this.pageSize;
       this.ajax({
         url: "credit/web/sys/flow/apply/stat",
         data: {

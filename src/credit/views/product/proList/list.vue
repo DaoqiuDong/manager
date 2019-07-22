@@ -61,7 +61,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination layout="total,prev, pager, next" :total="total" @current-change="(i) => getList(i)"></el-pagination>
+      <el-pagination layout="total,sizes,prev,pager,next,jumper" :total="total" @current-change="(i) => getList(i)" :current-page.sync="currentPage" :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" @size-change="sizeChange"></el-pagination>
     </div>
   </div>
 </template>
@@ -78,6 +78,8 @@ export default {
       },
       list: [],
       total: 0,
+      currentPage: 1,
+      pageSize: 10,
       loading:true
     };
   },
@@ -88,6 +90,10 @@ export default {
     this.getList(1);
   },
   methods: {
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getList(1);
+    },
     getList(pageNo) {
       this.loading = true;
       const pageSize = this.pageSize;
